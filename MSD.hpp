@@ -130,14 +130,14 @@ namespace MassSpringDamper {  // Mass Spring Damper
         // ---------------------
         
         // x position
-        double fitness_1 = abs((M_PI/2 - pend.at(pend.size()-1).theta)*tp_weight)/2*M_PI;
+        double fitness_1 = abs(( msd_state.at(msd_state.size()-1).x)*tp_weight);
         // x velocity
-        double fitness_2 = abs((pend.at(pend.size()-1).theta_dot)*tv_weight);
+        double fitness_2 = abs((msd_state.at(msd_state.size()-1).x_dot)*tv_weight);
         if (fitness_2 > 10) fitness_2 = 10;
         fitness_2 = fitness_2/10;
         // below vertical axis (change to pass)
         double fitness_ch = 0.0;
-        if (msd_state.at(msd_state.size()-1).x > 0) fitness_ch = ch_weight;
+        if (msd_state.at(msd_state.size()-1).x > 0.0) fitness_ch = ch_weight;
         // effort used
         double fitness_tu = tu_weight * force;
         
