@@ -96,14 +96,14 @@ namespace MassSpringDamper {  // Mass Spring Damper
     void MSD::cycle() {
         msd_state nextState;
         // - calculations -
-        // torque to theta dd
+        // force to x dd
         nextState.x_dd = (1/m)*(-b*msd_state.at(msd_state.size()-1).x_dot + k*msd_state.at(msd_state.size()-1).x +force - mu;
         // x_dd to x_dot
         nextState.x_dot = msd_state.at(msd_state.size() - 1).x_dot + nextState.x_dd*dt;
-        // theta_dot to theta
+        // x_dot to x
         nextState.x = msd_state.at(msd_state.size() - 1).x + nextState.x_dot*dt;
         //// - END CALCULATIONS - ////
-        // keep theta between 0 and 2*PI
+        // keep x over 0
         assert (nextState.x < 0.0);
         
 #ifdef CB_CONSULE
@@ -165,7 +165,7 @@ namespace MassSpringDamper {  // Mass Spring Damper
     }
     
     // return reward for current state
-    std::vector <double> Pendulum::give_reward() {
+    std::vector <double> MSD::give_reward() {
         std::vector <double> total_fitness;
         total_fitness.push_back(fitness);
         
@@ -177,8 +177,8 @@ namespace MassSpringDamper {  // Mass Spring Damper
     void MSD::::export_all_states() {
         std::ofstream fout;
         fout.open("msd_state_log.csv", std::ofstream::out | std::ofstream::trunc);
-        fout << "torq, x, y, theta, theta_dot, theta_dd, fitness" << "\n";
-        for (std::size_t i=0; i<pend.size(); ++i) {
+        fout << "force, x, x_dot, x_dd, fitness" << "\n";
+        for (std::size_t i=0; i<msd_state.size(); ++i) {
             fout << force_history.at(i) << ", "   << msd_state.at(i).x* << \
             ", " << msd_state.at(i).x_dot << ", " << msd_state.at(i).x_dd << \
             ", " << fitness_history.at(i) << "\n";
