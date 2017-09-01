@@ -29,20 +29,20 @@ public:
     vector<double> weights;
     double fitness;
     int age; //how long did it last?
-    int x; // position of mass
-    int x_dot; //velocity
-    int x_dd; //acceleration
-    int m = 5; //mass
-    int b = 1; //damper
-    int k = 1; //spring
-    int dt = 0.01; //time step [s]
+    double x; // position of mass
+    double x_dot; //velocity
+    double x_dd; //acceleration
+    double m = 5; //mass
+    double b = 1; //damper
+    double k = 1; //spring
+    double dt = 0.01; //time step [s]
     
-    int mu = 0; //friction
-    int P_force = 1; //Protagonist force
+    double mu = 0; //friction
+    double P_force = 0; //Protagonist force
     
-    int desired_x;
-    int desired_x_dot = 0;
-    int desired_x_dd = 0;
+    double desired_x;
+    double desired_x_dot = 0;
+    double desired_x_dd = 0;
     
     void Init_P_policy(int num_weights); //initializes one policy
     
