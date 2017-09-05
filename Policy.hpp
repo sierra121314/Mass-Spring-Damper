@@ -37,8 +37,8 @@ public:
     double k = 1; //spring
     double dt = 0.01; //time step [s]
     
-    double mu = 0; //friction
-    double P_force = 0; //Protagonist force
+    double mu = .5; //friction
+    double P_force; //Protagonist force
     
     double desired_x;
     double desired_x_dot = 0;

@@ -49,7 +49,7 @@ void Simulator::Simulate(Policy* pPo)
     pPo->x_dot = start_x_dot;
     int start_x_dd = 0;
     pPo->x_dd = start_x_dd;
-    int start_P_force = 0;
+    int start_P_force = 1;
     pPo->P_force = start_P_force;
     //clear x, xdot, xdd history vector
     
