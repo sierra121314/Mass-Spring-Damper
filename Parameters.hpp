@@ -30,6 +30,25 @@ public:
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.05;          //mutation range
     
+    int num_weights;
+    
+    int num_inputs = 3;
+    int num_outputs = 1;
+    int num_nodes = 10;
+    
+    double start_x = 15;
+    double start_x_dot = 0;
+    double start_x_dd = 0;
+    double start_P_force = 0;
+    
+    int f_min_bound = -10;
+    int f_max_bound = 10;
+    int x_min_bound = 0;
+    int x_max_bound = start_x*3;
+    int x_dot_min_bound = -175;
+    int x_dot_max_bound = 175;
+    int x_dd_min_bound = -6;
+    int x_dd_max_bound = 6;
     
     
     bool only_pro = true;    //Just protagonist?

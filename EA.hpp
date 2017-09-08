@@ -21,8 +21,10 @@
 #include <cassert>
 #include <ctime>
 #include <random>
+#include "LY_NN.h"
 
 using namespace std;
+
 
 
 class EA
@@ -30,6 +32,8 @@ class EA
     friend class Parameters;
     friend class Simulator;
     friend class Policy;
+    friend class neural_network;
+    
     
 protected:
     
@@ -51,8 +55,8 @@ public:
     void EA_Process();
     void Run_Program();
     
-    //int num_weights = NN.get_number_of_weights;
-    int num_weights = 5;
+    
+    //int num_weights = 5;
     
 private:
 };
@@ -65,14 +69,20 @@ private:
 //Builds population of policies
 void EA::Build_Population()
 {
+    neural_network ANN;
+    ANN.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs); //3 input, 5 hidden, 1 output
+    pP->num_weights = ANN.intended_size;
+    //cout << pP->num_weights << endl;
+    
     for (int i=0; i<pP->num_pol; i++)
     {
         Policy P;
         pol.push_back(P);
         pol.at(i).age = 0;
+        pol.at(i).fitness = 0;
         //cout << "Policy" << "\t" << i << "\t" << "weights" << "\t";
         //for that policy have a vector of weights
-        for (int w=0; w < num_weights; w++){
+        for (int w=0; w < pP->num_weights; w++){
             //pick random # between 0 and 1 and put into that vector
             //double ph = dou);
             //cout << ph << endl;
@@ -96,10 +106,11 @@ void EA::Run_Simulation()
 {
     for (int i=0; i<pP->num_pol; i++)
     {
+        pol.at(i).fitness =0;
         //First we insert a policy into the simulator then we can take the objective data for that policy and store it in our data architecture
         Simulator S;
-        Parameters P;
-        S.pP = &P;
+
+        S.pP = this->pP;
         Policy* pPo;
         pPo = & pol.at(i);
         S.Simulate(pPo);
@@ -172,20 +183,30 @@ void EA::Mutation(Policy &M)
 {
    //This is where the policy is slightly mutated
     
-    /*
-    for (int j=0; j<pP->num_x_val; j++)
+    
+    for (int x = 0; x < pP->num_weights; x++)
     {
-        double r = ((double)rand()/RAND_MAX);
-        if (r <= pP->mutation_rate)
+        double random = ((double)rand()/RAND_MAX);
+        //cout << "r" << "\t" << random << endl;
+        if (random <= 0.5)
         {
-            double R1 = ((double)rand()/RAND_MAX) * pP->mutate_range;
-            double R2 = ((double)rand()/RAND_MAX) * pP->mutate_range;
-            //M.x_val.at(j) = M.x_val.at(j) + (R1-R2);
-            
+            double R1 = ((double)rand()/RAND_MAX) * 0.1;
+            double R2 = ((double)rand()/RAND_MAX) * 0.1;
+            pol.at(pol.size()-1).weights.at(x) = pol.at(pol.size()-1).weights.at(x) + (R1-R2);
+            if (pol.at(pol.size()-1).weights.at(x)<-1)
+            {
+                pol.at(pol.size()-1).weights.at(x) = -1;
+            }
+            if (pol.at(pol.size()-1).weights.at(x)>1)
+            {
+                pol.at(pol.size()-1).weights.at(x) = 1;
+            }
+            //cout << x << "\t";
         }
-        //assert(M.x_val.at(j) >= pP->x_val_min && M.x_val.at(j) <= pP->x_val_max);
+        //cout << Gen.at(Gen.size()-1).weights.at(x) << endl;
+        assert(pol.at(pol.size()-1).weights.at(x)<=1 && pol.at(pol.size()-1).weights.at(x)>=-1);
     }
-     */
+    
 }
 
 
@@ -248,16 +269,20 @@ void EA::Run_Program()
     Build_Population();
     for (int gen=0; gen<pP->gen_max; gen++)
     {
+        cout << "GENERATION \t" << gen << endl;
         if (gen < pP->gen_max-1)
         {
             EA_Process();
             Sort_Policies_By_Fitness();
+            cout << "BEST POLICY FITNESS" << "\t" << pol.at(0).fitness << endl;
         }
         else
         {
+            cout << "FINAL GENERATION" << endl;
             Run_Simulation();
             Evaluate();
             Sort_Policies_By_Fitness();
+            cout << "BEST POLICY FITNESS" << "\t" << pol.at(0).fitness << endl;
         }
     }
 }

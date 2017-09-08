@@ -19,6 +19,7 @@ class Policy
     friend class EA;
     friend class Parameters;
     friend class Simulator;
+    friend class neural_network;
     
 protected:
     
@@ -73,14 +74,8 @@ void Policy::Init_A_policy(<#int num_A_weights#>) {
     }
 }
 */
-/*
-void Policy::Calc_P_fitness(){
-    int F_dist = (abs(pPo->start_x - x)) * 100; //want closest to 0 displacement
-    int F_vel = abs(desired_x_dot - x_dot) * 10; // want smallest velocity
-    int F_acc = abs(desired_x_dd - x_dd) * 10; // want smallest acceleration
-    //policy.at(i).fitness = F_dist + F_vel + F_acc; //total fitness
-    fitness = F_dist + F_vel + F_acc;
-    //fitness.push_back(fitness); //vector of fitness?
-}
-*/
+
+
+
+
 #endif /* Policy_hpp */
