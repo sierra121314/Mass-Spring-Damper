@@ -45,7 +45,7 @@ void Simulator::Simulate(Policy* pPo)
     //pPo->weights;
     
     //intialize starting stuff
-    pPo->x = pP->start_x;
+    pPo->x = pP->start_x-pP->displace;
     pPo->x_dot = pP->start_x_dot;
     pPo->x_dd = pP->start_x_dd;
     pPo->P_force = pP->start_P_force;
@@ -70,8 +70,8 @@ void Simulator::Simulate(Policy* pPo)
     }
     cout << endl;
      */
-    
-    
+    pPo->x_history.clear();
+    //cout << pPo->x_history.size() << endl;
     
     for (int i = 0; i < 1000; i++) { // has to run long enough to change directions
         
@@ -86,11 +86,14 @@ void Simulator::Simulate(Policy* pPo)
         pPo->P_force = NN.get_output(0);
         assert(pPo->P_force >= pP->f_min_bound && pPo->P_force <= pP->f_max_bound); //make sure matches NN output
         
-        //update pos, vel, acc
-        pPo->x_dd = (1/(pPo->m))*((-pPo->b*pPo->x_dot) - (pPo->k*(pPo->x-pP->start_x)) + pPo->P_force - pPo->mu); // (x - start_x in order to not have ICs //
+        // UPDATE POSITION, VELOCITY, ACCELERATION //
+        //pPo->x_dd = (1/(pPo->m))*((-pPo->b*pPo->x_dot) - (pPo->k*(pPo->x-pP->start_x)) + pPo->P_force - pPo->mu); // (x - start_x in order to not have ICs //
+        
+        
+        
         
         // TEST DISPLACEMENT //
-        //pPo->x_dd = (1/(pPo->m))*((-pPo->b*pPo->x_dot) - (pPo->k*(pPo->x-(start_x-2))) + pPo->P_force - pPo->mu);
+        pPo->x_dd = (1/(pPo->m))*((-pPo->b*pPo->x_dot) - (pPo->k*(pPo->x-pP->start_x)) + pPo->P_force - pPo->mu);
         
         pPo->x_dot = pPo->x_dot + pPo->x_dd*pPo->dt;
         pPo->x = pPo->x + pPo->x_dot*pPo->dt;
@@ -102,7 +105,7 @@ void Simulator::Simulate(Policy* pPo)
         double F_dist = (abs(pP->start_x - pPo->x)); //want closest to 0 displacement
         pPo->fitness += F_dist;
         //cout << "F_dist" << "\t" << F_dist << endl;
-        
+        pPo->x_history.push_back(pPo->x);
     }
     
     //cout << "end of simulator loop" << endl;

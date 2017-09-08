@@ -26,7 +26,7 @@ protected:
 public:
     int num_pol = 100;                  //number of policies
     int to_kill = num_pol/2;
-    int gen_max = 50;                   //number of generations
+    int gen_max = 1;                   //number of generations
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.05;          //mutation range
     
@@ -40,9 +40,10 @@ public:
     double start_x_dot = 0;
     double start_x_dd = 0;
     double start_P_force = 0;
+    double displace = 2;
     
-    int f_min_bound = -10;
-    int f_max_bound = 10;
+    int f_min_bound = -0;
+    int f_max_bound = 0;
     int x_min_bound = 0;
     int x_max_bound = start_x*3;
     int x_dot_min_bound = -175;

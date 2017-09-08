@@ -266,6 +266,8 @@ void EA::Sort_Policies_By_Fitness()
 //Runs the entire program
 void EA::Run_Program()
 {
+    ofstream fout;
+    fout.open("x_history.txt", std::ofstream::out | ofstream::trunc);
     Build_Population();
     for (int gen=0; gen<pP->gen_max; gen++)
     {
@@ -283,8 +285,13 @@ void EA::Run_Program()
             Evaluate();
             Sort_Policies_By_Fitness();
             cout << "BEST POLICY FITNESS" << "\t" << pol.at(0).fitness << endl;
+            
         }
     }
+    for (int f =0; f < pol.size(); f++){
+        fout << f << "\t" << pol.at(0).x_history.at(f) << endl;
+    }
+    fout.close();
 }
 
 

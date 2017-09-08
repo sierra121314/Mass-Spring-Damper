@@ -29,6 +29,8 @@ public:
     //Include all needed information about any policy here
     vector<double> weights;
     vector<double> A_weights;
+    vector<double> x_history;
+    //...
     double fitness;
     int age; //how long did it last?
     
