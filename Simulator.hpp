@@ -43,9 +43,9 @@ void Simulator::Simulate(Policy* pPo)
     //pPo->weights;
     
     //intialize starting stuff
-    int start_x = 5;
+    int start_x = 15;
     pPo->x = start_x;
-    int start_x_dot = 0;
+    int start_x_dot = 1;
     pPo->x_dot = start_x_dot;
     int start_x_dd = 0;
     pPo->x_dd = start_x_dd;
@@ -59,17 +59,22 @@ void Simulator::Simulate(Policy* pPo)
         pPo->x_dd = (1/(pPo->m))*((-pPo->b*pPo->x_dot) - (pPo->k*(pPo->x-start_x)) + pPo->P_force - pPo->mu); // (x - start_x in order to not have ICs //
         
         //TEST DISPLACEMENT //
-        //pPo->x_dd = (1/(pPo->m))*((-pPo->b*pPo->x_dot) - (pPo->k*(pPo->x-(start_x-1))) + pPo->P_force - pPo->mu);
+        //pPo->x_dd = (1/(pPo->m))*((-pPo->b*pPo->x_dot) - (pPo->k*(pPo->x-(start_x-2))) + pPo->P_force - pPo->mu);
         
         pPo->x_dot = pPo->x_dot + pPo->x_dd*pPo->dt;
         pPo->x = pPo->x + pPo->x_dot*pPo->dt;
         
         cout << pPo->x_dd << "\t" << pPo->x_dot << "\t" << pPo->x << endl;
-        //push each variable into its own vector instead of outputting into text file
+        //NEED:push each variable into its own vector instead of outputting into text file
+        
+        
+        
     }
     
-    cout << "end of for loop" << endl;
+    cout << "end of simulator loop" << endl;
     
+    //calculate fitness
+    //Calc_P_fitness();
     
 }
 

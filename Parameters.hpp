@@ -32,7 +32,7 @@ public:
     
     
     
-    bool only_pro = true;    
+    bool only_pro = true;    //Just protagonist?
     
     
     

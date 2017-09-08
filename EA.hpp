@@ -51,6 +51,9 @@ public:
     void EA_Process();
     void Run_Program();
     
+    //int num_weights = NN.get_number_of_weights;
+    int num_weights = 5;
+    
 private:
 };
 
@@ -58,7 +61,7 @@ private:
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-//-------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////
 //Builds population of policies
 void EA::Build_Population()
 {
@@ -66,17 +69,28 @@ void EA::Build_Population()
     {
         Policy P;
         pol.push_back(P);
+        pol.at(i).age = 0;
+        //cout << "Policy" << "\t" << i << "\t" << "weights" << "\t";
         //for that policy have a vector of weights
-        //pick random # between 0 and 1 and put into that vector
-        //r = random #
-        //for loop for how many weights in that vector
-        //pol.at(i).weights.push_back(1);
+        for (int w=0; w < num_weights; w++){
+            //pick random # between 0 and 1 and put into that vector
+            //double ph = dou);
+            //cout << ph << endl;
+            double r = -1 + (2)*((double)rand()/RAND_MAX);
+            //double  r  = -1 + 2*ph;
+            pol.at(i).weights.push_back(r);
+            //cout << r << "\t";
+            assert(-1<=r && 1>=r);
+            
+        }
+        //cout << endl;
+        
     }
-    assert(pol.size() == pP->num_pol);
+    assert(pol.size() == pP->num_pol); // check to make sure that the policy sizes are the same
 }
 
 
-//-------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////
 //Puts each policy into the simulation
 void EA::Run_Simulation()
 {
@@ -93,19 +107,20 @@ void EA::Run_Simulation()
 }
 
 
-//-------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////
 //Evaluates each policies fitness scores for each objective
 void EA::Evaluate()
 {
     //might not need
     for (int i=0; i< pP->num_pol; i++)
     {
+      
         
     }
 }
 
 
-//-------------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////////////
 //Randomly selects two individuals and decides which one will die based on their fitness
 int EA::Binary_Select()
 {
