@@ -70,7 +70,7 @@ private:
 void EA::Build_Population()
 {
     neural_network ANN;
-    ANN.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs); //3 input, 5 hidden, 1 output
+    ANN.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs);
     pP->num_weights = ANN.intended_size;
     //cout << pP->num_weights << endl;
     

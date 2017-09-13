@@ -56,7 +56,7 @@ void Simulator::Simulate(Policy* pPo)
     
     NN.set_in_min_max(pP->x_min_bound, pP->x_max_bound); //displacement
     NN.set_in_min_max(pP->x_dot_min_bound,pP->x_dot_max_bound); //velocity
-    NN.set_in_min_max(pP->x_dd_min_bound,pP->x_dd_max_bound); //acceleration
+    //NN.set_in_min_max(pP->x_dd_min_bound,pP->x_dd_max_bound); //acceleration
     NN.set_out_min_max(pP->f_min_bound,pP->f_max_bound); // max forces
     NN.set_weights(pPo->weights, true);
     //cout << pPo->weights.size() << endl;
@@ -70,7 +70,7 @@ void Simulator::Simulate(Policy* pPo)
     cout << endl;
      */
     
-    //clear x, xdot, xdd history vector
+    //CLEAR x, xdot, xdd history vector
     pPo->x_history.clear();
     pPo->x_dot_history.clear();
     pPo->x_dd_history.clear();
@@ -101,9 +101,9 @@ void Simulator::Simulate(Policy* pPo)
         //cout << pPo->x_dd << "\t" << pPo->x_dot << "\t" << pPo->x << endl;
 
         //calculate fitness
-        double F_dist = (abs(pP->start_x - pPo->x)); //want closest to 0 displacement
+        double F_dist = (abs(1 + pP->start_x - pPo->x)); //want closest to 0 displacement
         pPo->fitness += F_dist;
-        //cout << "F_dist" << "\t" << F_dist << endl;
+        //cout << "F_dist" << "\t" << endl;
         pPo->x_history.push_back(pPo->x);
         pPo->x_dot_history.push_back(pPo->x_dot);
         pPo->x_dd_history.push_back(pPo->x_dd);
@@ -111,8 +111,6 @@ void Simulator::Simulate(Policy* pPo)
     }
     
     //cout << "end of simulator loop" << endl;
-    
-    
     
     
 }
