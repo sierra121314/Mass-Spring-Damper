@@ -106,7 +106,7 @@ void EA::Run_Simulation()
 {
     for (int i=0; i<pP->num_pol; i++)
     {
-        pol.at(i).fitness =0;
+        pol.at(i).fitness = 0;
         //First we insert a policy into the simulator then we can take the objective data for that policy and store it in our data architecture
         Simulator S;
 
@@ -188,23 +188,23 @@ void EA::Mutation(Policy &M)
     {
         double random = ((double)rand()/RAND_MAX);
         //cout << "r" << "\t" << random << endl;
-        if (random <= 0.5)
+        if (random <= pP->mutation_rate)
         {
-            double R1 = ((double)rand()/RAND_MAX) * 0.1;
-            double R2 = ((double)rand()/RAND_MAX) * 0.1;
-            pol.at(pol.size()-1).weights.at(x) = pol.at(pol.size()-1).weights.at(x) + (R1-R2);
-            if (pol.at(pol.size()-1).weights.at(x)<-1)
+            double R1 = ((double)rand()/RAND_MAX) * pP->mutate_range;
+            double R2 = ((double)rand()/RAND_MAX) * pP->mutate_range;
+            M.weights.at(x) = M.weights.at(x) + (R1-R2);
+            if (M.weights.at(x)<-1)
             {
-                pol.at(pol.size()-1).weights.at(x) = -1;
+                M.weights.at(x) = -1;
             }
-            if (pol.at(pol.size()-1).weights.at(x)>1)
+            if (M.weights.at(x)>1)
             {
-                pol.at(pol.size()-1).weights.at(x) = 1;
+                M.weights.at(x) = 1;
             }
             //cout << x << "\t";
         }
         //cout << Gen.at(Gen.size()-1).weights.at(x) << endl;
-        assert(pol.at(pol.size()-1).weights.at(x)<=1 && pol.at(pol.size()-1).weights.at(x)>=-1);
+        assert(M.weights.at(x)<=1 && M.weights.at(x)>=-1);
     }
     
 }
@@ -288,8 +288,26 @@ void EA::Run_Program()
             
         }
     }
-    for (int f =0; f < pol.size(); f++){
-        fout << f << "\t" << pol.at(0).x_history.at(f) << endl;
+    //fout << "vector spot" << "\t" << "x" << "\t" << "x_dot" << "\t" << "x_dd" << endl;
+    for (int f =0; f < pP->total_time; f++){
+        fout << pol.at(0).x_history.at(f) << "\t";
+    }
+    fout.close();
+    
+    fout.open("x_dot_history.txt",std::ofstream::out | ofstream::trunc);
+    for (int g =0; g < pP->total_time; g++){
+        fout << pol.at(0).x_dot_history.at(g) << "\t";
+    }
+    fout.close();
+    
+    fout.open("x_dd_history.txt",std::ofstream::out | ofstream::trunc);
+    for (int h =0; h < pP->total_time; h++){
+        fout << pol.at(0).x_dd_history.at(h) << "\t";
+    }
+    fout.close();
+    fout.open("P_force_history.txt",std::ofstream::out | ofstream::trunc);
+    for (int h =0; h < pP->total_time; h++){
+        fout << pol.at(0).P_force_history.at(h) << "\t";
     }
     fout.close();
 }

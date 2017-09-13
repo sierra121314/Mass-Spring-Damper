@@ -30,6 +30,9 @@ public:
     vector<double> weights;
     vector<double> A_weights;
     vector<double> x_history;
+    vector<double> x_dot_history;
+    vector<double> x_dd_history;
+    vector<double> P_force_history;
     //...
     double fitness;
     int age; //how long did it last?
@@ -44,8 +47,7 @@ public:
     
     double mu = 0; //friction
     double P_force; //Protagonist force
-    
-    
+
     double desired_x = 0;
     double desired_x_dot = 0;
     double desired_x_dd = 0;
