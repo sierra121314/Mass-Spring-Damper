@@ -41,7 +41,7 @@ public:
     double x_dot; //velocity
     double x_dd; //acceleration
     double m = 7; //mass
-    double b = -1; //damper
+    double b = 1; //damper
     double k = 1; //spring
     double dt = 0.1; //time step [s]
     

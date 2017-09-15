@@ -49,10 +49,13 @@ public:
     int f_max_bound = 5;
     int x_min_bound = 0;
     int x_max_bound = 20;
-    int x_dot_min_bound = -10;
-    int x_dot_max_bound = 10;
+    int x_dot_min_bound = -.2;
+    int x_dot_max_bound = .2;
     int x_dd_min_bound = -6;
     int x_dd_max_bound = 6;
+    
+    double w1 = 1;
+    double w2 = 10;
     
     
     bool only_pro = true;    //Just protagonist?

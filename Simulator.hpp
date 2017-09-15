@@ -84,12 +84,17 @@ void Simulator::Simulate(Policy* pPo)
         state.push_back(pPo->x);
         state.push_back(pPo->x_dot);
         state.push_back(pPo->x_dd);
+        //cout << pPo->x << "\t" << pPo->x_dot << "\t" << pPo->x_dd << endl;
         
         NN.set_vector_input(state);
+        
         NN.execute();
+        
+        cout << NN.scInput() << endl;
         pPo->P_force = NN.get_output(0);
-        //cout << pPo->P_force << endl;
-        assert(pPo->P_force >= pP->f_min_bound && pPo->P_force <= pP->f_max_bound); //make sure matches NN output
+        cout << pPo->P_force << endl;
+        cout << "i " << i << endl;
+        assert(pPo->P_force >= pP->f_min_bound - 0.5 && pPo->P_force <= pP->f_max_bound + 0.5); //make sure matches NN output
         
         // UPDATE POSITION, VELOCITY, ACCELERATION //
         
@@ -101,8 +106,14 @@ void Simulator::Simulate(Policy* pPo)
         //cout << pPo->x_dd << "\t" << pPo->x_dot << "\t" << pPo->x << endl;
 
         //calculate fitness
-        double F_dist = (abs(1 + pP->start_x - pPo->x)); //want closest to 0 displacement
-        pPo->fitness += F_dist;
+        double ss_penalty = 0;
+        if (pPo->x<1.05*(1 + pP->start_x) || pPo->x>.95*(1 + pP->start_x)) {
+            ss_penalty = 1; //want closest to 0 displacement and penalize for not being at Steady state
+        }
+        
+        double F_dist = (abs(2 + pP->start_x - pPo->x)); //want closest to 0 displacement
+        
+        pPo->fitness += pP->w1*F_dist + pP->w2*ss_penalty;
         //cout << "F_dist" << "\t" << endl;
         pPo->x_history.push_back(pPo->x);
         pPo->x_dot_history.push_back(pPo->x_dot);
