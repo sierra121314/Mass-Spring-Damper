@@ -41,18 +41,36 @@ public:
     double start_x_dot = 0;
     double start_x_dd = 0;
     double start_P_force = 0;
-    double displace = 0;
+    double start_A_force = 0;
+    double displace = 2;
+    
+    // DOMAIN VARIABLES - STATIC
+    double m = 7;       //mass
+    double b = 1;      //damper
+    double k = 1;       //spring
+    double dt = 0.1;    //time step [s]
+    double mu = 0;      //friction
+    
+    double P_force;     //Protagonist force
+    double A_force;     //Antagonist force
+    
+    double P_desired_x = 0;
+    double P_desired_x_dot = 0;
+    double P_desired_x_dd = 0;
     
     double total_time = 500; //total time
     
-    double f_min_bound = -5;
-    double f_max_bound = 5;
+    // NN BOUNDARIES //
+    double P_f_min_bound = -5;
+    double P_f_max_bound = 5;
+    double A_f_min_bound = -2;
+    double A_f_max_bound = 2;
     double x_min_bound = 0;
     double x_max_bound = 20;
-    double x_dot_min_bound = -.4;
-    double x_dot_max_bound = .4;
-    double x_dd_min_bound = -6;
-    double x_dd_max_bound = 6;
+    double x_dot_min_bound = -.2;
+    double x_dot_max_bound = .2;
+    //double x_dd_min_bound = -6;
+    //double x_dd_max_bound = 6;
     
     double w1 = 1;
     double w2 = 10;

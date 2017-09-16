@@ -34,6 +34,7 @@ int main()
     Parameters P;
     EA E;
     E.pP = &P;
+    //E.aP = &A;
     E.Run_Program();
     cout << "END PROGRAM" << endl;
 }

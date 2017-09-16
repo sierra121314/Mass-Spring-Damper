@@ -27,32 +27,23 @@ protected:
 public:
 
     //Include all needed information about any policy here
-    vector<double> weights;
+    vector<double> P_weights;
     vector<double> A_weights;
     vector<double> x_history;
     vector<double> x_dot_history;
     vector<double> x_dd_history;
     vector<double> P_force_history;
+    vector<double> A_force_history;
     //...
-    double fitness;
+    double P_fitness;
+    double A_fitness;
     int age; //how long did it last?
     
     double x; // position of mass
     double x_dot; //velocity
     double x_dd; //acceleration
-    double m = 7; //mass
-    double b = -1; //damper
-    double k = 1; //spring
-    double dt = 0.1; //time step [s]
-    
-    double mu = 0; //friction
-    double P_force; //Protagonist force
-
-    double desired_x = 0;
-    double desired_x_dot = 0;
-    double desired_x_dd = 0;
-    
-    void Init_P_policy(int num_weights); //initializes one policy
+        
+    void Init_P_policy(int num_P_weights); //initializes one policy
     void Init_A_policy(int num_A_weights);
     
     void Calc_P_fitness();
@@ -63,7 +54,7 @@ private:
 void Policy::Init_P_policy(int num_weights) {
     for (int p = 0; p < num_weights; p++) {
         //cout << "Order " << p << endl;
-        weights.push_back(0);
+        P_weights.push_back(0);
         
     }
     
@@ -77,8 +68,8 @@ void Policy::Init_A_policy(<#int num_A_weights#>) {
         
     }
 }
-*/
 
+*/
 
 
 

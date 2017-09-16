@@ -41,16 +41,21 @@ protected:
 public:
     Parameters* pP;
     
-    vector<Policy> pol;
+    vector<Policy> pro_pol;
+    vector<Policy> ant_pol;
+    vector<double> best_P_fitness;
+    vector<double> best_A_fitness;
 
     void Build_Population();
     void Run_Simulation();
     void Evaluate();
-    int Binary_Select();
+    int P_Binary_Select();
+    int A_Binary_Select();
     void Downselect();
-    void Mutation(Policy &M);
+    void Mutation(Policy &M, Policy &N);
     void Repopulate();
     struct Less_Than_Policy_Fitness;
+    struct Greater_Than_Policy_Fitness;
     void Sort_Policies_By_Fitness();
     void EA_Process();
     void Run_Program();
@@ -69,34 +74,42 @@ private:
 //Builds population of policies
 void EA::Build_Population()
 {
-    neural_network ANN;
-    ANN.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs);
-    pP->num_weights = ANN.intended_size;
+    neural_network PNN;
+    PNN.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs);
+    pP->num_weights = PNN.intended_size;
     //cout << pP->num_weights << endl;
     
     for (int i=0; i<pP->num_pol; i++)
     {
-        Policy P;
-        pol.push_back(P);
-        pol.at(i).age = 0;
-        pol.at(i).fitness = 0;
+        Policy proP;
+        Policy antP;
+        pro_pol.push_back(proP);
+        ant_pol.push_back(antP);
+        pro_pol.at(i).age = 0;
+        ant_pol.at(i).age = 0;
+        pro_pol.at(i).P_fitness = 0;
+        ant_pol.at(i).A_fitness = 0;
         //cout << "Policy" << "\t" << i << "\t" << "weights" << "\t";
         //for that policy have a vector of weights
         for (int w=0; w < pP->num_weights; w++){
             //pick random # between 0 and 1 and put into that vector
             //double ph = dou);
             //cout << ph << endl;
-            double r = -1 + (2)*((double)rand()/RAND_MAX);
+            double P_r = -1 + (2)*((double)rand()/RAND_MAX);
+            double A_r = -1 + (2)*((double)rand()/RAND_MAX);
             //double  r  = -1 + 2*ph;
-            pol.at(i).weights.push_back(r);
+            pro_pol.at(i).P_weights.push_back(P_r);
+            ant_pol.at(i).A_weights.push_back(A_r);
             //cout << r << "\t";
-            assert(-1<=r && 1>=r);
+            assert(-1<=P_r && 1>=P_r);
+            assert(-1<=A_r && 1>=A_r);
             
         }
         //cout << endl;
         
     }
-    assert(pol.size() == pP->num_pol); // check to make sure that the policy sizes are the same
+    assert(pro_pol.size() == pP->num_pol); // check to make sure that the policy sizes are the same
+    assert(ant_pol.size() == pP->num_pol);
 }
 
 
@@ -104,16 +117,21 @@ void EA::Build_Population()
 //Puts each policy into the simulation
 void EA::Run_Simulation()
 {
+    random_shuffle ( pro_pol.begin(), pro_pol.end() );
+    random_shuffle ( ant_pol.begin(), ant_pol.end() );
     for (int i=0; i<pP->num_pol; i++)
     {
-        pol.at(i).fitness = 0;
+        pro_pol.at(i).P_fitness = 0;
+        ant_pol.at(i).A_fitness = 0;
         //First we insert a policy into the simulator then we can take the objective data for that policy and store it in our data architecture
         Simulator S;
 
         S.pP = this->pP;
         Policy* pPo;
-        pPo = & pol.at(i);
-        S.Simulate(pPo);
+        Policy* aPo;
+        pPo = & pro_pol.at(i);
+        aPo = & ant_pol.at(i);
+        S.Simulate(pPo, aPo);
     }
 }
 
@@ -133,19 +151,18 @@ void EA::Evaluate()
 
 //////////////////////////////////////////////////////////////////////////////
 //Randomly selects two individuals and decides which one will die based on their fitness
-int EA::Binary_Select()
+int EA::P_Binary_Select()
 {
     int loser;
-    int index_1 = rand() % pol.size();
-    int index_2 = rand() % pol.size();
+    int index_1 = rand() % pro_pol.size();
+    int index_2 = rand() % pro_pol.size();
     while (index_1 == index_2)
     {
-        index_2 = rand() % pol.size();
+        index_2 = rand() % pro_pol.size();
     }
     
     //winner is one with lower fitness
-    //Can be switched for a maximization problem
-    if(pol.at(index_1).fitness < pol.at(index_2).fitness)
+    if(pro_pol.at(index_1).P_fitness < pro_pol.at(index_2).P_fitness)
     {
         loser = index_2;
         //cout << "loser" << "\t" <<  "agent" << "\t" << index_2 << endl;
@@ -157,29 +174,58 @@ int EA::Binary_Select()
     }
     return loser;
 }
+int EA::A_Binary_Select()
+{
+    int a_loser;
+    int index_3 = rand() % ant_pol.size();
+    int index_4 = rand() % ant_pol.size();
+    while (index_3 == index_4)
+    {
+        index_4 = rand() % ant_pol.size();
+    }
+    
+    //winner is one with higher fitness
+    if(ant_pol.at(index_3).A_fitness > ant_pol.at(index_4).A_fitness)
+    {
+        a_loser = index_4;
+        //cout << "loser" << "\t" <<  "agent" << "\t" << index_2 << endl;
+    }
+    else
+    {
+        a_loser = index_3;
+        //cout << "loser" << "\t" <<  "agent" << "\t" << index_1 << endl;
+    }
+    return a_loser;
+}
+
 
 
 //-------------------------------------------------------------------------
 //Policies are compared to determine the optimal policies for a given generation
 void EA::Downselect()
 {
-    int kill;
+    int pro_kill;
+    int ant_kill;
     for(int k=0; k<pP->to_kill; k++)
     {
-        kill = Binary_Select();
-        pol.erase(pol.begin() + kill);
+        pro_kill = P_Binary_Select();               //Protagonist
+        pro_pol.erase(pro_pol.begin() + pro_kill);
+        ant_kill = A_Binary_Select();               //Antagonist
+        ant_pol.erase(ant_pol.begin() + ant_kill);
     }
-    assert(pol.size() == pP->to_kill);
+    assert(pro_pol.size() == pP->to_kill);
+    assert(ant_pol.size() == pP->to_kill);
     for(int i=0; i<pP->to_kill; i++)
     {
-        pol.at(i).age += 1;
+        pro_pol.at(i).age += 1;
+        ant_pol.at(i).age += 1;
     }
 }
 
 
 //-------------------------------------------------------------------------
 //Mutates the copies of the winning individuals
-void EA::Mutation(Policy &M)
+void EA::Mutation(Policy &M, Policy &N)
 {
    //This is where the policy is slightly mutated
     
@@ -187,24 +233,35 @@ void EA::Mutation(Policy &M)
     for (int x = 0; x < pP->num_weights; x++)
     {
         double random = ((double)rand()/RAND_MAX);
+        double random2 = ((double)rand()/RAND_MAX);
         //cout << "r" << "\t" << random << endl;
-        if (random <= pP->mutation_rate)
-        {
+        if (random <= pP->mutation_rate) {                          // Protagonist
             double R1 = ((double)rand()/RAND_MAX) * pP->mutate_range;
             double R2 = ((double)rand()/RAND_MAX) * pP->mutate_range;
-            M.weights.at(x) = M.weights.at(x) + (R1-R2);
-            if (M.weights.at(x)<-1)
-            {
-                M.weights.at(x) = -1;
+            M.P_weights.at(x) = M.P_weights.at(x) + (R1-R2);
+            if (M.P_weights.at(x)<-1) {
+                M.P_weights.at(x) = -1;
             }
-            if (M.weights.at(x)>1)
-            {
-                M.weights.at(x) = 1;
+            if (M.P_weights.at(x)>1) {
+                M.P_weights.at(x) = 1;
+            }
+            //cout << x << "\t";
+        }
+        if (random2 <= pP->mutation_rate) {                         // Antagonist
+            double R3 = ((double)rand()/RAND_MAX) * pP->mutate_range;
+            double R4 = ((double)rand()/RAND_MAX) * pP->mutate_range;
+            N.A_weights.at(x) = N.A_weights.at(x) + (R3-R4);
+            if (N.A_weights.at(x)<-1) {
+                N.A_weights.at(x) = -1;
+            }
+            if (N.A_weights.at(x)>1) {
+                N.A_weights.at(x) = 1;
             }
             //cout << x << "\t";
         }
         //cout << Gen.at(Gen.size()-1).weights.at(x) << endl;
-        assert(M.weights.at(x)<=1 && M.weights.at(x)>=-1);
+        assert(M.P_weights.at(x)<=1 && M.P_weights.at(x)>=-1);
+        assert(N.A_weights.at(x)<=1 && N.A_weights.at(x)>=-1);
     }
     
 }
@@ -218,14 +275,20 @@ void EA::Repopulate()
     for (int rep=0; rep<to_replicate; rep++)
     {
         Policy M;
-        int spot = rand() % pol.size();
-        M = pol.at(spot);
+        Policy N;
+        int spot = rand() % pro_pol.size();
+        int spot2 = rand() % ant_pol.size();
+        M = pro_pol.at(spot);
+        N = ant_pol.at(spot2);
         //cout << "cp" << endl;
-        Mutation(M);
-        pol.push_back(M);
-        pol.at(pol.size()-1).age = 0; //how long it has survived
+        Mutation(M, N);
+        pro_pol.push_back(M);
+        ant_pol.push_back(N);
+        pro_pol.at(pro_pol.size()-1).age = 0; //how long it has survived
+        ant_pol.at(ant_pol.size()-1).age = 0;
     }
-    assert(pol.size() == pP->num_pol);
+    assert(pro_pol.size() == pP->num_pol);
+    assert(ant_pol.size() == pP->num_pol);
 }
 
 
@@ -235,6 +298,11 @@ void EA::EA_Process()
 {
     Run_Simulation();
     Evaluate();
+    Sort_Policies_By_Fitness();
+    //cout << "BEST POLICY PRO-FITNESS" << "\t" << pro_pol.at(0).P_fitness << endl;
+    //cout << "BEST POLICY ANT-FITNESS" << "\t" << ant_pol.at(0).A_fitness << endl;
+    best_P_fitness.push_back(pro_pol.at(0).P_fitness);
+    best_A_fitness.push_back(ant_pol.at(0).A_fitness);
     Downselect();
     Repopulate();
 }
@@ -246,10 +314,17 @@ struct EA::Less_Than_Policy_Fitness
 {
     inline bool operator() (const Policy& struct1, const Policy& struct2)
     {
-        return (struct1.fitness < struct2.fitness);
+        return (struct1.P_fitness < struct2.P_fitness);
     }
 };
 
+struct EA::Greater_Than_Policy_Fitness
+{
+    inline bool operator() (const Policy& struct3, const Policy& struct4)
+    {
+        return (struct3.A_fitness > struct4.A_fitness);
+    }
+};
 
 //-------------------------------------------------------------------------
 //Sorts population
@@ -257,8 +332,16 @@ void EA::Sort_Policies_By_Fitness()
 {
     for (int i=0; i<pP->num_pol; i++)
     {
-        sort(pol.begin(), pol.end(), Less_Than_Policy_Fitness());
+        sort(pro_pol.begin(), pro_pol.end(), Less_Than_Policy_Fitness());
+        sort(ant_pol.begin(), ant_pol.end(), Greater_Than_Policy_Fitness());
     }
+    /*
+     for (int i=0; i<pP->num_pol; i++)
+     {
+     sort(ant_pol.begin(), ant_pol.end(), Less_Than_Policy_Fitness());
+     }
+     
+     */
 }
 
 
@@ -275,8 +358,7 @@ void EA::Run_Program()
         if (gen < pP->gen_max-1)
         {
             EA_Process();
-            Sort_Policies_By_Fitness();
-            cout << "BEST POLICY FITNESS" << "\t" << pol.at(0).fitness << endl;
+            
         }
         else
         {
@@ -284,30 +366,47 @@ void EA::Run_Program()
             Run_Simulation();
             Evaluate();
             Sort_Policies_By_Fitness();
-            cout << "BEST POLICY FITNESS" << "\t" << pol.at(0).fitness << endl;
+            cout << "BEST POLICY PRO-FITNESS" << "\t" << pro_pol.at(0).P_fitness << endl;
+            best_P_fitness.push_back(pro_pol.at(0).P_fitness);      // best fitness per generation
+            best_A_fitness.push_back(ant_pol.at(0).A_fitness);
             
         }
     }
     //fout << "vector spot" << "\t" << "x" << "\t" << "x_dot" << "\t" << "x_dd" << endl;
     for (int f =0; f < pP->total_time; f++){
-        fout << pol.at(0).x_history.at(f) << "\t";
+        fout << pro_pol.at(0).x_history.at(f) << "\t";
     }
     fout.close();
     
     fout.open("x_dot_history.txt",std::ofstream::out | ofstream::trunc);
     for (int g =0; g < pP->total_time; g++){
-        fout << pol.at(0).x_dot_history.at(g) << "\t";
+        fout << pro_pol.at(0).x_dot_history.at(g) << "\t";
     }
     fout.close();
     
     fout.open("x_dd_history.txt",std::ofstream::out | ofstream::trunc);
     for (int h =0; h < pP->total_time; h++){
-        fout << pol.at(0).x_dd_history.at(h) << "\t";
+        fout << pro_pol.at(0).x_dd_history.at(h) << "\t";
     }
     fout.close();
     fout.open("P_force_history.txt",std::ofstream::out | ofstream::trunc);
     for (int h =0; h < pP->total_time; h++){
-        fout << pol.at(0).P_force_history.at(h) << "\t";
+        fout << pro_pol.at(0).P_force_history.at(h) << "\t";
+    }
+    fout.close();
+    fout.open("A_force_history.txt",std::ofstream::out | ofstream::trunc);
+    for (int h =0; h < pP->total_time; h++){
+        fout << ant_pol.at(0).A_force_history.at(h) << "\t";
+    }
+    fout.close();
+    fout.open("P_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);
+    for (int h =0; h < pP->gen_max; h++){
+        fout << best_P_fitness.at(h) << "\t";
+    }
+    fout.close();
+    fout.open("A_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);
+    for (int h =0; h < pP->gen_max; h++){
+        fout << best_A_fitness.at(h) << "\t";
     }
     fout.close();
 }
