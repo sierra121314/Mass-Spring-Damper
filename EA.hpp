@@ -122,7 +122,7 @@ void EA::Run_Simulation()
     for (int i=0; i<pP->num_pol; i++)
     {
         pro_pol.at(i).P_fitness = 0;
-        ant_pol.at(i).A_fitness = 0;
+        ant_pol.at(i).A_fitness = 0; 
         //First we insert a policy into the simulator then we can take the objective data for that policy and store it in our data architecture
         Simulator S;
 
@@ -354,7 +354,10 @@ void EA::Run_Program()
     Build_Population();
     for (int gen=0; gen<pP->gen_max; gen++)
     {
-        cout << "GENERATION \t" << gen << endl;
+        if (gen %10 ==0)
+        {
+            cout << "GENERATION \t" << gen << endl;
+        }
         if (gen < pP->gen_max-1)
         {
             EA_Process();
@@ -372,6 +375,7 @@ void EA::Run_Program()
             
         }
     }
+    
     //fout << "vector spot" << "\t" << "x" << "\t" << "x_dot" << "\t" << "x_dd" << endl;
     for (int f =0; f < pP->total_time; f++){
         fout << pro_pol.at(0).x_history.at(f) << "\t";

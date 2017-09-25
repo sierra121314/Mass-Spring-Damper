@@ -54,17 +54,17 @@ public:
     double P_force;     //Protagonist force
     double A_force;     //Antagonist force
     
-    double P_desired_x = 0;
+    //double P_desired_x = 0;
     double P_desired_x_dot = 0;
     double P_desired_x_dd = 0;
     
     double total_time = 500; //total time
     
     // NN BOUNDARIES //
-    double P_f_min_bound = -5;
-    double P_f_max_bound = 5;
-    double A_f_min_bound = -2;
-    double A_f_max_bound = 2;
+    double P_f_min_bound = -0;
+    double P_f_max_bound = 0;
+    double A_f_min_bound = -5;
+    double A_f_max_bound = 5;
     double x_min_bound = 0;
     double x_max_bound = 20;
     double x_dot_min_bound = -.2;
@@ -77,7 +77,8 @@ public:
     
     
     bool only_pro = true;    //Just protagonist?
-    
+    bool sensor_NOISE = true;
+    bool actuator_NOISE = false;
     
     
 private:

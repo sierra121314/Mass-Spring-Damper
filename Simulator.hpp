@@ -11,6 +11,9 @@
 
 #include "LY_NN.h"
 #include <stdio.h>
+#include <cstdlib>
+#include <cmath>
+#include <limits>
 
 using namespace std;
 
@@ -30,14 +33,58 @@ public:
     Parameters* aP;
     
     void Simulate(Policy* pPo, Policy* aPo);
+    double generateGaussianNoise();
+    
     
     
 private:
 };
 
 
+
 //------------------------------------------------------------------------------------------------------------
 
+
+double Simulator::generateGaussianNoise() {
+    const double epsilon = numeric_limits<double>::min();
+    const double two_pi = 2.0*3.14159265358979323846;
+    double mu = 0;
+    //double mu = (((double)rand() / RAND_MAX) - 0.5) * 2;
+    double sigma = 0.4;
+    //double sigma = (((double)rand() / RAND_MAX) - 0.5) * 2;
+    int n = 0;
+    //cout << mu << "," << sigma << endl;
+    double z0, z1;
+    double u1=0, u2=0;
+    
+    do{
+        //cout << u1 << "," u2 << endl;
+        u1 = ((double)rand() / RAND_MAX);
+        u2 = ((double)rand() / RAND_MAX);
+        //cout << u1 << "," << u2 << endl;
+    } while (u1 <= epsilon);
+    z0 = sqrt(-2.0 * log(u1)) * cos(two_pi * u2);
+    z1 = sqrt(-2.0 * log(u1)) * sin(two_pi * u2);
+    //cout << z0 << endl;
+    n = z0 * sigma + mu;
+    while (n>1 || n<-1){
+        cout << "loop" << endl;
+        double z0, z1;
+        double u1=0, u2=0;
+    
+        do{
+            //cout << u1 << "," u2 << endl;
+            u1 = ((double)rand() / RAND_MAX);
+            u2 = ((double)rand() / RAND_MAX);
+            //cout << u1 << "," << u2 << endl;
+        } while (u1 <= epsilon);
+        z0 = sqrt(-2.0 * log(u1)) * cos(two_pi * u2);
+        z1 = sqrt(-2.0 * log(u1)) * sin(two_pi * u2);
+        //cout << z0 << endl;
+        n = z0 * sigma + mu;
+    }
+    return n;
+}
 
 //-------------------------------------------------------------------------
 //Runs the entire simulation process
@@ -84,8 +131,33 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         
         //give state vector to give to NN in order to update P_force
         vector<double> state;
-        state.push_back(pPo->x);
-        state.push_back(pPo->x_dot);
+        vector<double> noise;
+        noise.push_back(0);
+        noise.push_back(0);
+        noise.push_back(0);
+        noise.push_back(0);
+        if (pP->sensor_NOISE == true)
+        {
+            double r = generateGaussianNoise();
+            assert(r<=1 && r>=-1);
+            noise.at(0)= r;
+            double rr = generateGaussianNoise();
+            assert(rr<=1 && rr>=-1);
+            noise.at(2)= rr;
+            //cout << "r=" << r << "\t" << "rr=" << rr << endl;
+        }
+        if (pP->actuator_NOISE == true)
+        {
+            double r = generateGaussianNoise();
+            assert(r<1 && r>-1);
+            noise.at(1)= r;
+            double rr = generateGaussianNoise();
+            assert(rr<1 && rr>-1);
+            noise.at(3)= rr;
+        }
+        state.push_back(pPo->x+noise.at(0)+noise.at(2));
+        state.push_back(pPo->x_dot+noise.at(1)+noise.at(3));
+        //cout << "x\t" << state.at(0) << "\t" << "xdot\t" << state.at(1) << endl;
         //state.push_back(pPo->x_dd);
         //cout << pPo->x << "\t" << pPo->x_dot << "\t" << pPo->x_dd << endl;
         
@@ -119,7 +191,7 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
             ss_penalty = 1; //want closest to 0 displacement and penalize for not being at Steady state
         }
         */
-        double F_dist = (abs(2 + pP->start_x - pPo->x)); //want closest to 0 displacement
+        double F_dist = (abs(2 + pP->start_x - pPo->x)); //2 + resting position
         
         pPo->P_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
         aPo->A_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
