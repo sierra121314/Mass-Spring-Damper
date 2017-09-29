@@ -31,34 +31,38 @@
 int main()
 {
     srand(time(NULL));
-    
     Parameters P;
-    
     EA E;
-    E.pP = &P; //what is this?
-    //E.aP = &A;
-    E.Run_Program();
     
-    /*
+    //TRAINING MODES
+    P.train_and_test = true;
+    P.tr_1 = true;
+    P.tr_2 = false;
+    P.te_1 = false;
+    P.te_2 = false;
+    
     if (P.train_and_test == true){
-        //Parameters P;
         P.train();
-        EA E;
+        E.pP = &P;
+        E.Run_Program();
+        if(P.te_1==true | P.te_2==true){
+            P.test();
+            E.pP = &P;
+            E.Run_Program();
+        }
+    }
+    
+    else {
+        P.P_f_min_bound = -5;
+        P.P_f_max_bound = 5;
+        P.A_f_min_bound = -2;
+        P.A_f_max_bound = 2;
+        
         E.pP = &P;
         E.Run_Program();
         
-        cout << "test" << endl;
-        P.test();
-        E.Run_Program(); //can't do this - population assert 
-        
-     
     }
-    else { //run however parameters are set up
-        EA E;
-        E.pP = &P;
-        //E.aP = &A;
-        E.Run_Program();
-    }
-    */
+    
+    
     cout << "END PROGRAM" << endl;
 }

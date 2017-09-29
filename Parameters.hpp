@@ -68,10 +68,10 @@ public:
     
     
     // NN BOUNDARIES //
-    double P_f_min_bound = -5;
-    double P_f_max_bound = 5;
-    double A_f_min_bound = -2;
-    double A_f_max_bound = 2;
+    double P_f_min_bound; //set in main
+    double P_f_max_bound;
+    double A_f_min_bound;
+    double A_f_max_bound;
     double x_min_bound = 0;
     double x_max_bound = 20;
     double x_dot_min_bound = -.2;
@@ -83,14 +83,14 @@ public:
     
     // NOISE is put into simulation //
     bool only_pro = true;    //Just protagonist?
-    bool sensor_NOISE = false;
-    bool actuator_NOISE = false;
+    bool sensor_NOISE;
+    bool actuator_NOISE;
     
-    bool train_and_test = false; //if false runs only simulation with antagonist; if true, runs with only sensor noise
-    bool tr_1 = false; //pro plus ant with no noise
+    bool train_and_test; //if false runs only simulation with antagonist; if true, runs with only sensor noise
+    bool tr_1; //pro plus ant with no noise
     bool tr_2; // pro only
     void train();
-    bool te_1 = false; // tr_1 with noise
+    bool te_1; // tr_1 with noise
     bool te_2; // tr_2 with noise
     void test();
 
