@@ -52,7 +52,7 @@ double Simulator::generateGaussianNoise() {
     //double mu = (((double)rand() / RAND_MAX) - 0.5) * 2;
     double sigma = 0.4;
     //double sigma = (((double)rand() / RAND_MAX) - 0.5) * 2;
-    int n = 0;
+    double n = 0;
     //cout << mu << "," << sigma << endl;
     double z0, z1;
     double u1=0, u2=0;
@@ -68,7 +68,7 @@ double Simulator::generateGaussianNoise() {
     //cout << z0 << endl;
     n = z0 * sigma + mu;
     while (n>1 || n<-1){
-        cout << "loop" << endl;
+        //cout << "new error loop" << endl;
         double z0, z1;
         double u1=0, u2=0;
     
@@ -90,7 +90,21 @@ double Simulator::generateGaussianNoise() {
 //Runs the entire simulation process
 void Simulator::Simulate(Policy* pPo, Policy* aPo)
 {
+    fstream nsensor;
+    fstream nactuator;
+    nsensor.open("ave_sensor_noise.txt", fstream::app);
+    nactuator.open("ave_actuator_noise.txt", fstream::app);
+    
+    ofstream tstep_sensor;
+    tstep_sensor.open("tstep_sensor.txt", ofstream::out | ofstream::trunc);
+    ofstream tstep_actuator;
+    tstep_actuator.open("tstep_actuator.txt", ofstream::out | ofstream::trunc);
+    double noise_x_sum = 0;
+    double noise_xdot_sum = 0;
     //pPo->weights;
+    if (pP->rand_start_sim == true){
+        pP->random_variables();
+    }
     
     //intialize starting stuff
     pPo->x = pP->start_x-pP->displace; //starting position minus any displacement
@@ -149,17 +163,16 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         if (pP->actuator_NOISE == true)
         {
             double r = generateGaussianNoise();
-            assert(r<1 && r>-1);
+            assert(r<=1 && r>=-1);
             noise.at(1)= r;
             double rr = generateGaussianNoise();
-            assert(rr<1 && rr>-1);
+            assert(rr<=1 && rr>=-1);
             noise.at(3)= rr;
         }
         state.push_back(pPo->x+noise.at(0)+noise.at(2));
         state.push_back(pPo->x_dot+noise.at(1)+noise.at(3));
-        //cout << "x\t" << state.at(0) << "\t" << "xdot\t" << state.at(1) << endl;
-        //state.push_back(pPo->x_dd);
-        //cout << pPo->x << "\t" << pPo->x_dot << "\t" << pPo->x_dd << endl;
+        
+        
         
         NN.set_vector_input(state);
         NNa.set_vector_input(state);
@@ -176,7 +189,9 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         assert(pP->A_force >= pP->A_f_min_bound - 0.5 && pP->A_force <= pP->A_f_max_bound + 0.5);
         
         // UPDATE POSITION, VELOCITY, ACCELERATION //
-        
+        if (pP->rand_start_ts == true){
+            pP->random_variables();
+        }
         pPo->x_dd = (1/(pP->m))*((-pP->b*pPo->x_dot) - (pP->k*(pPo->x-pP->start_x)) + pP->P_force + pP->A_force - pP->mu);
         
         pPo->x_dot = pPo->x_dot + pPo->x_dd*pP->dt;
@@ -191,7 +206,7 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
             ss_penalty = 1; //want closest to 0 displacement and penalize for not being at Steady state
         }
         */
-        double F_dist = (abs(2 + pP->start_x - pPo->x)); //2 + resting position
+        double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
         
         pPo->P_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
         aPo->A_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
@@ -201,11 +216,22 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         pPo->x_dd_history.push_back(pPo->x_dd);
         pPo->P_force_history.push_back(pP->P_force);
         aPo->A_force_history.push_back(pP->A_force);
+        
+        noise_x_sum += noise.at(0)+noise.at(2);
+        noise_xdot_sum += noise.at(1)+noise.at(3);
+        
+        tstep_sensor << noise.at(0)+noise.at(2) << "\t";
+        tstep_actuator << noise.at(1)+noise.at(3) << "\t";
     }
     
     //cout << "end of simulator loop" << endl;
+    /// total x_noise "/t"
+    nsensor << (noise_x_sum/(2*pP->total_time)) << "\t";
+    // total x_dot_noise "/t" put into file
+    nactuator << (noise_xdot_sum/(2*pP->total_time)) << "\t";
     
-    
+    tstep_sensor.close();
+    tstep_actuator.close();
 }
 
 

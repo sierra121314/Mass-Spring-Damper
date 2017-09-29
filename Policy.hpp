@@ -51,7 +51,7 @@ public:
 private:
 };
 
-void Policy::Init_P_policy(int num_weights) {
+void Policy::Init_P_policy(int num_weights) { //where does this get called?
     for (int p = 0; p < num_weights; p++) {
         //cout << "Order " << p << endl;
         P_weights.push_back(0);

@@ -31,10 +31,34 @@
 int main()
 {
     srand(time(NULL));
+    
     Parameters P;
+    
     EA E;
-    E.pP = &P;
+    E.pP = &P; //what is this?
     //E.aP = &A;
     E.Run_Program();
+    
+    /*
+    if (P.train_and_test == true){
+        //Parameters P;
+        P.train();
+        EA E;
+        E.pP = &P;
+        E.Run_Program();
+        
+        cout << "test" << endl;
+        P.test();
+        E.Run_Program(); //can't do this - population assert 
+        
+     
+    }
+    else { //run however parameters are set up
+        EA E;
+        E.pP = &P;
+        //E.aP = &A;
+        E.Run_Program();
+    }
+    */
     cout << "END PROGRAM" << endl;
 }

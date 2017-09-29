@@ -59,7 +59,7 @@ public:
     void Sort_Policies_By_Fitness();
     void EA_Process();
     void Run_Program();
-    
+    void Graph();
     
     //int num_weights = 5;
     
@@ -119,8 +119,7 @@ void EA::Run_Simulation()
 {
     random_shuffle ( pro_pol.begin(), pro_pol.end() );
     random_shuffle ( ant_pol.begin(), ant_pol.end() );
-    for (int i=0; i<pP->num_pol; i++)
-    {
+    for (int i=0; i<pP->num_pol; i++) {
         pro_pol.at(i).P_fitness = 0;
         ant_pol.at(i).A_fitness = 0; 
         //First we insert a policy into the simulator then we can take the objective data for that policy and store it in our data architecture
@@ -132,7 +131,15 @@ void EA::Run_Simulation()
         pPo = & pro_pol.at(i);
         aPo = & ant_pol.at(i);
         S.Simulate(pPo, aPo);
+        //put endline here for noise graph
+        
     }
+    fstream nsensor;
+    fstream nactuator;
+    nsensor.open("ave_sensor_noise.txt", fstream::app);
+    nactuator.open("ave_actuator_noise.txt", fstream::app);
+    nsensor << endl;
+    nactuator << endl;
 }
 
 
@@ -343,39 +350,11 @@ void EA::Sort_Policies_By_Fitness()
      
      */
 }
-
-
 //-------------------------------------------------------------------------
-//Runs the entire program
-void EA::Run_Program()
-{
+void EA::Graph(){
     ofstream fout;
-    fout.open("x_history.txt", std::ofstream::out | ofstream::trunc);
-    Build_Population();
-    for (int gen=0; gen<pP->gen_max; gen++)
-    {
-        if (gen %10 ==0)
-        {
-            cout << "GENERATION \t" << gen << endl;
-        }
-        if (gen < pP->gen_max-1)
-        {
-            EA_Process();
-            
-        }
-        else
-        {
-            cout << "FINAL GENERATION" << endl;
-            Run_Simulation();
-            Evaluate();
-            Sort_Policies_By_Fitness();
-            cout << "BEST POLICY PRO-FITNESS" << "\t" << pro_pol.at(0).P_fitness << endl;
-            best_P_fitness.push_back(pro_pol.at(0).P_fitness);      // best fitness per generation
-            best_A_fitness.push_back(ant_pol.at(0).A_fitness);
-            
-        }
-    }
     
+    fout.open("x_history.txt", std::ofstream::out | ofstream::trunc);
     //fout << "vector spot" << "\t" << "x" << "\t" << "x_dot" << "\t" << "x_dd" << endl;
     for (int f =0; f < pP->total_time; f++){
         fout << pro_pol.at(0).x_history.at(f) << "\t";
@@ -413,6 +392,48 @@ void EA::Run_Program()
         fout << best_A_fitness.at(h) << "\t";
     }
     fout.close();
+    
+}
+
+
+//-------------------------------------------------------------------------
+//Runs the entire program
+void EA::Run_Program()
+{
+    cout << "FINAL GENERATION" << endl;
+    ofstream nsensor;
+    nsensor.open("ave_sensor_noise.txt", ofstream::out | ofstream::trunc);
+    ofstream nactuator;
+    nactuator.open("ave_actuator_noise.txt", ofstream::out | ofstream::trunc);
+    
+    Build_Population();
+    for (int gen=0; gen<pP->gen_max; gen++) {
+        if (pP->rand_start_gen == true){
+            pP->random_variables();
+        }
+        if (gen %10 ==0) {
+            cout << "GENERATION \t" << gen << endl;
+        }
+        if (gen < pP->gen_max-1) {
+            EA_Process();
+        }
+        else {
+            
+            Run_Simulation();
+            Evaluate();
+            Sort_Policies_By_Fitness();
+            cout << "BEST POLICY PRO-FITNESS" << "\t" << pro_pol.at(0).P_fitness << endl;
+            best_P_fitness.push_back(pro_pol.at(0).P_fitness);      // best fitness per generation
+            best_A_fitness.push_back(ant_pol.at(0).A_fitness);
+            
+        }
+        
+
+    }
+    
+    Graph();
+    nsensor.close();
+    nactuator.close();
 }
 
 
