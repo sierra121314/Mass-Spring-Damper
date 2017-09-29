@@ -86,33 +86,50 @@ double Simulator::generateGaussianNoise() {
     return n;
 }
 
+
+
 //-------------------------------------------------------------------------
 //Runs the entire simulation process
 void Simulator::Simulate(Policy* pPo, Policy* aPo)
 {
+    //NOISE GRAPH
     fstream nsensor;
     fstream nactuator;
     nsensor.open("ave_sensor_noise.txt", fstream::app);
     nactuator.open("ave_actuator_noise.txt", fstream::app);
-    
     ofstream tstep_sensor;
     tstep_sensor.open("tstep_sensor.txt", ofstream::out | ofstream::trunc);
     ofstream tstep_actuator;
     tstep_actuator.open("tstep_actuator.txt", ofstream::out | ofstream::trunc);
+    
+    //STARTING POSITIONS
+    fstream rand_start;
+    rand_start.open("random_starting_variables.txt", fstream::app);
+    
     double noise_x_sum = 0;
     double noise_xdot_sum = 0;
     //pPo->weights;
-    if (pP->rand_start_sim == true){
+    if (pP->rand_start_gen == true){
         pP->random_variables();
+        //intialize starting stuff
+        pPo->x = pP->start_x-pP->displace; //starting position minus any displacement
+        pPo->x_dot = pP->start_x_dot;
+        pPo->x_dd = pP->start_x_dd;
+    }
+    else {
+        //intialize starting stuff
+        pPo->x = pP->start_x-pP->displace; //starting position minus any displacement
+        pPo->x_dot = pP->start_x_dot;
+        pPo->x_dd = pP->start_x_dd;
     }
     
-    //intialize starting stuff
-    pPo->x = pP->start_x-pP->displace; //starting position minus any displacement
-    pPo->x_dot = pP->start_x_dot;
-    pPo->x_dd = pP->start_x_dd;
     pP->P_force = pP->start_P_force;
     pP->A_force = pP->start_A_force;
 
+    //LOGGING START POSITIONS
+    rand_start << pP->m << "\t" << pP->b << "\t" << pP->k << "\t" << pP->mu << "\t" << pP->start_x << endl;
+    
+   
     neural_network NN;
     neural_network NNa;
 

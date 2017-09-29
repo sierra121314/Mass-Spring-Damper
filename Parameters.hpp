@@ -26,7 +26,8 @@ protected:
 public:
     int num_pol = 100;                  //number of policies
     int to_kill = num_pol/2;
-    int gen_max = 100;                   //number of generations
+    int gen_max = 100;                  //number of generations
+    double total_time = 500;            //total time
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range
     
@@ -54,8 +55,7 @@ public:
     
     // RANDOMIZING STARTS //
     bool rand_start_ts = false;
-    bool rand_start_sim = false;
-    bool rand_start_gen = false;
+    bool rand_start_gen = true;
     void random_variables();
     
     double P_force;     //Protagonist force
@@ -65,7 +65,7 @@ public:
     double P_desired_x_dot = 0;
     double P_desired_x_dd = 0;
     
-    double total_time = 500; //total time
+    
     
     // NN BOUNDARIES //
     double P_f_min_bound = -5;
@@ -84,7 +84,7 @@ public:
     // NOISE is put into simulation //
     bool only_pro = true;    //Just protagonist?
     bool sensor_NOISE = false;
-    bool actuator_NOISE = true;
+    bool actuator_NOISE = false;
     
     bool train_and_test = false; //if false runs only simulation with antagonist; if true, runs with only sensor noise
     bool tr_1 = false; //pro plus ant with no noise
@@ -103,27 +103,20 @@ void Parameters::random_variables(){
     if (rand_start_ts == true) {
         
         // DOMAIN VARIABLES - STATIC
-        m = 7 + rand()%2;       //mass
-        b = 1 + rand()%2;       //damper
-        k = 1 + rand()%2;       //spring
-        mu = 0 + rand()%2;      //friction
-        double start_x = 15 + rand()%2;
+        m = 7 + rand() % 2;       //mass
+        b = 1 + rand() % 2;       //damper
+        k = 1 + rand() % 2;       //spring
+        mu = 0 + rand() % 2;      //friction
+        start_x = 15 + rand() % 2;
     }
-    if (rand_start_sim == true){
-        // DOMAIN VARIABLES - STATIC
-        m = 7 + rand()%2;       //mass
-        b = 1 + rand()%2;       //damper
-        k = 1 + rand()%2;       //spring
-        mu = 0 + rand()%2;      //friction
-        double start_x = 15 + rand()%2;
-    }
+    
     if (rand_start_gen == true){
         // DOMAIN VARIABLES - STATIC
-        m = 7 + rand()%2;       //mass
-        b = 1 + rand()%2;       //damper
-        k = 1 + rand()%2;       //spring
-        mu = 0 + rand()%2;      //friction
-        double start_x = 15 + rand()%2;
+        m = 7 + rand() % 2;       //mass
+        b = 1 + rand() % 2;       //damper
+        k = 1 + rand() % 2;       //spring
+        mu = 0 + rand() % 2;      //friction
+        start_x = 15 + rand() % 2;
     }
 }
 

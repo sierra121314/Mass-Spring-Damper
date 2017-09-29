@@ -119,6 +119,9 @@ void EA::Run_Simulation()
 {
     random_shuffle ( pro_pol.begin(), pro_pol.end() );
     random_shuffle ( ant_pol.begin(), ant_pol.end() );
+    
+    
+    
     for (int i=0; i<pP->num_pol; i++) {
         pro_pol.at(i).P_fitness = 0;
         ant_pol.at(i).A_fitness = 0; 
@@ -140,6 +143,8 @@ void EA::Run_Simulation()
     nactuator.open("ave_actuator_noise.txt", fstream::app);
     nsensor << endl;
     nactuator << endl;
+    
+    
 }
 
 
@@ -406,11 +411,12 @@ void EA::Run_Program()
     ofstream nactuator;
     nactuator.open("ave_actuator_noise.txt", ofstream::out | ofstream::trunc);
     
+    ofstream rand_start;
+    rand_start.open("random_starting_variables.txt", ofstream::out | ofstream::trunc);
+    
     Build_Population();
     for (int gen=0; gen<pP->gen_max; gen++) {
-        if (pP->rand_start_gen == true){
-            pP->random_variables();
-        }
+    
         if (gen %10 ==0) {
             cout << "GENERATION \t" << gen << endl;
         }
@@ -434,6 +440,8 @@ void EA::Run_Program()
     Graph();
     nsensor.close();
     nactuator.close();
+    
+    rand_start.close();
 }
 
 
