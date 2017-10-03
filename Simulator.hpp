@@ -186,8 +186,8 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
             assert(rr<=1 && rr>=-1);
             noise.at(3)= rr;
         }
-        state.push_back(pPo->x+noise.at(0)+noise.at(2));
-        state.push_back(pPo->x_dot+noise.at(1)+noise.at(3));
+        state.push_back(pPo->x+pP->sn*noise.at(0)+pP->an*noise.at(1));
+        state.push_back(pPo->x_dot+pP->sn*noise.at(2)+pP->an*noise.at(3));
         
         
         

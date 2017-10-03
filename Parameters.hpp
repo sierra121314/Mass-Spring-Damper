@@ -85,6 +85,8 @@ public:
     bool only_pro = true;    //Just protagonist?
     bool sensor_NOISE;
     bool actuator_NOISE;
+    double sn = 2; //sensor noise magnitude
+    double an = 2; //actuator noise magnitude
     
     bool train_and_test; //if false runs only simulation with antagonist; if true, runs with only sensor noise
     bool tr_1; //pro plus ant with no noise
