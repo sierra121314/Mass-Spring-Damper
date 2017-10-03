@@ -60,6 +60,7 @@ public:
     void EA_Process();
     void Run_Program();
     void Graph();
+    void Graph_test();
     
     //int num_weights = 5;
     
@@ -399,6 +400,48 @@ void EA::Graph(){
     fout.close();
     
 }
+
+void EA::Graph_test(){
+    ofstream fout;
+    
+    fout.open("test_x_history.txt", std::ofstream::out | ofstream::trunc);
+    //fout << "vector spot" << "\t" << "x" << "\t" << "x_dot" << "\t" << "x_dd" << endl;
+    for (int f =0; f < pP->total_time; f++){
+        fout << pro_pol.at(0).x_history.at(f) << "\t";
+    }
+    fout.close();
+    
+    fout.open("test_x_dot_history.txt",std::ofstream::out | ofstream::trunc);
+    for (int g =0; g < pP->total_time; g++){
+        fout << pro_pol.at(0).x_dot_history.at(g) << "\t";
+    }
+    fout.close();
+    
+    fout.open("test_x_dd_history.txt",std::ofstream::out | ofstream::trunc);
+    for (int h =0; h < pP->total_time; h++){
+        fout << pro_pol.at(0).x_dd_history.at(h) << "\t";
+    }
+    fout.close();
+    fout.open("test_P_force_history.txt",std::ofstream::out | ofstream::trunc);
+    for (int h =0; h < pP->total_time; h++){
+        fout << pro_pol.at(0).P_force_history.at(h) << "\t";
+    }
+    fout.close();
+    
+    fout.open("test_P_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);
+    
+    
+    for (int h =0; h < pP->num_pol; h++){
+        fout << pro_pol.at(h).P_fitness << "\t";
+        //fitness per policy maybe?
+    }
+    
+    
+    fout.close();
+    
+    
+}
+
 
 
 //-------------------------------------------------------------------------

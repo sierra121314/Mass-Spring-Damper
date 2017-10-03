@@ -55,7 +55,7 @@ public:
     
     // RANDOMIZING STARTS //
     bool rand_start_ts = false;
-    bool rand_start_gen = true;
+    bool rand_start_gen = false;
     void random_variables();
     
     double P_force;     //Protagonist force
@@ -89,9 +89,11 @@ public:
     bool train_and_test; //if false runs only simulation with antagonist; if true, runs with only sensor noise
     bool tr_1; //pro plus ant with no noise
     bool tr_2; // pro only
+    bool tr_3; //pro plus ant
     void train();
     bool te_1; // tr_1 with noise
     bool te_2; // tr_2 with noise
+    bool te_3; // noise and no ANT
     void test();
 
     
@@ -139,6 +141,14 @@ void Parameters::train(){
             sensor_NOISE = false;
             actuator_NOISE = false;
         }
+        if (tr_3 == true){
+            P_f_min_bound = -5;
+            P_f_max_bound = 5;
+            A_f_min_bound = -1;
+            A_f_max_bound = 1;
+            sensor_NOISE = false;
+            actuator_NOISE = false;
+        }
     }
 }
 
@@ -154,6 +164,14 @@ void Parameters::test(){
             
         }
         if (te_2 == true){
+            P_f_min_bound = -5;
+            P_f_max_bound = 5;
+            A_f_min_bound = -0;
+            A_f_max_bound = 0;
+            sensor_NOISE = true;
+            actuator_NOISE = true;
+        }
+        if (te_3 == true){
             P_f_min_bound = -5;
             P_f_max_bound = 5;
             A_f_min_bound = -0;

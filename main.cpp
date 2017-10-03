@@ -36,19 +36,28 @@ int main()
     
     //TRAINING MODES
     P.train_and_test = true;
-    P.tr_1 = true;
+    P.tr_1 = false;
     P.tr_2 = false;
+    P.tr_3 = true;
     P.te_1 = false;
     P.te_2 = false;
+    P.te_3 = true;
     
     if (P.train_and_test == true){
         P.train();
         E.pP = &P;
         E.Run_Program();
-        if(P.te_1==true | P.te_2==true){
+        if(P.te_1==true | P.te_2==true | P.te_3==true){
             P.test();
-            E.pP = &P;
-            E.Run_Program();
+            E.Run_Simulation();
+            E.Evaluate();
+            //E.Sort_Policies_By_Fitness();
+            cout << "BEST POLICY PRO-FITNESS" << "\t" << E.pro_pol.at(0).P_fitness << endl;
+            
+            E.Graph_test();
+            //run nn that is trained but don't evolve any further
+            //1 simulation of the best
+            //1 simulation of medium of population
         }
     }
     
