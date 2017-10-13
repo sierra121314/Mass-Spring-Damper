@@ -83,19 +83,19 @@ public:
     
     // NOISE is put into simulation //
     bool only_pro = true;    //Just protagonist?
-    bool sensor_NOISE;
-    bool actuator_NOISE;
-    double sn = 2; //sensor noise magnitude
-    double an = 2; //actuator noise magnitude
+    bool sensor_NOISE = false;
+    bool actuator_NOISE = false;
+    double sn = 1; //sensor noise magnitude
+    double an = 1; //actuator noise magnitude
     
     bool train_and_test; //if false runs only simulation with antagonist; if true, runs with only sensor noise
-    bool tr_1; //pro plus ant with no noise
-    bool tr_2; // pro only
-    bool tr_3; //pro plus ant
+    bool tr_1=false; //pro plus ant with no noise
+    bool tr_2=false; // pro only
+    bool tr_3=false; //pro plus ant
     void train();
-    bool te_1; // tr_1 with noise
-    bool te_2; // tr_2 with noise
-    bool te_3; // noise and no ANT
+    bool te_1=false; // tr_1 with noise
+    bool te_2=false; // tr_2 with noise
+    bool te_3=false; // noise and no ANT
     void test();
 
     

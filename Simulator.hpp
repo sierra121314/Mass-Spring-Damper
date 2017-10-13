@@ -50,7 +50,7 @@ double Simulator::generateGaussianNoise() {
     const double two_pi = 2.0*3.14159265358979323846;
     double mu = 0;
     //double mu = (((double)rand() / RAND_MAX) - 0.5) * 2;
-    double sigma = 0.4;
+    double sigma = 0.4; //0.4
     //double sigma = (((double)rand() / RAND_MAX) - 0.5) * 2;
     double n = 0;
     //cout << mu << "," << sigma << endl;
@@ -186,8 +186,13 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
             assert(rr<=1 && rr>=-1);
             noise.at(3)= rr;
         }
-        state.push_back(pPo->x+pP->sn*noise.at(0)+pP->an*noise.at(1));
-        state.push_back(pPo->x_dot+pP->sn*noise.at(2)+pP->an*noise.at(3));
+        
+        noise.at(0) = pP->sn*noise.at(0);
+        noise.at(1) = pP->an*noise.at(1);
+        noise.at(2) = pP->sn*noise.at(2);
+        noise.at(3) = pP->an*noise.at(3);
+        state.push_back(pPo->x+noise.at(0)+noise.at(1));
+        state.push_back(pPo->x_dot+noise.at(2)+noise.at(3));
         
         
         
@@ -234,11 +239,11 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         pPo->P_force_history.push_back(pP->P_force);
         aPo->A_force_history.push_back(pP->A_force);
         
-        noise_x_sum += noise.at(0)+noise.at(2);
-        noise_xdot_sum += noise.at(1)+noise.at(3);
+        noise_x_sum += noise.at(0)+noise.at(1);
+        noise_xdot_sum += noise.at(2)+noise.at(3);
         
-        tstep_sensor << noise.at(0)+noise.at(2) << "\t";
-        tstep_actuator << noise.at(1)+noise.at(3) << "\t";
+        tstep_sensor << noise.at(0)+noise.at(1) << "\t";
+        tstep_actuator << noise.at(2)+noise.at(3) << "\t";
     }
     
     //cout << "end of simulator loop" << endl;

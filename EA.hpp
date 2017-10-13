@@ -61,7 +61,8 @@ public:
     void Run_Program();
     void Graph();
     void Graph_test();
-    
+    double sum;
+    double ave;
     //int num_weights = 5;
     
 private:
@@ -79,9 +80,9 @@ void EA::Build_Population()
     PNN.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs);
     pP->num_weights = PNN.intended_size;
     //cout << pP->num_weights << endl;
-    
-    for (int i=0; i<pP->num_pol; i++)
-    {
+    pro_pol.clear();
+    ant_pol.clear();
+    for (int i=0; i<pP->num_pol; i++) {
         Policy proP;
         Policy antP;
         pro_pol.push_back(proP);
@@ -448,7 +449,6 @@ void EA::Graph_test(){
 //Runs the entire program
 void EA::Run_Program()
 {
-    cout << "FINAL GENERATION" << endl;
     ofstream nsensor;
     nsensor.open("ave_sensor_noise.txt", ofstream::out | ofstream::trunc);
     ofstream nactuator;
@@ -457,11 +457,16 @@ void EA::Run_Program()
     ofstream rand_start;
     rand_start.open("random_starting_variables.txt", ofstream::out | ofstream::trunc);
     
+    ofstream P_fit;
+    P_fit.open("stat_P_fitness.txt", fstream::app);
+    sum=0;
     Build_Population();
+    best_P_fitness.clear();
+    best_A_fitness.clear();
     for (int gen=0; gen<pP->gen_max; gen++) {
-    
+        
         if (gen %10 ==0) {
-            cout << "GENERATION \t" << gen << endl;
+            //cout << "GENERATION \t" << gen << endl;
         }
         if (gen < pP->gen_max-1) {
             EA_Process();
@@ -472,9 +477,15 @@ void EA::Run_Program()
             Evaluate();
             Sort_Policies_By_Fitness();
             cout << "BEST POLICY PRO-FITNESS" << "\t" << pro_pol.at(0).P_fitness << endl;
+            //P_fit << pro_pol.at(0).P_fitness << endl;
+            
             best_P_fitness.push_back(pro_pol.at(0).P_fitness);      // best fitness per generation
             best_A_fitness.push_back(ant_pol.at(0).A_fitness);
-            
+            for (int f=0; f<best_P_fitness.size(); f++) {
+                sum += pro_pol.at(f).P_fitness;
+            }
+            ave = sum/best_P_fitness.size();
+            P_fit << ave << endl;
         }
         
 
