@@ -15,6 +15,7 @@
 #include <cmath>
 #include <limits>
 
+
 using namespace std;
 
 
@@ -34,8 +35,9 @@ public:
     
     void Simulate(Policy* pPo, Policy* aPo);
     double generateGaussianNoise();
-    
-    
+    double PI = 3.1415926535897;
+    double Fh = 60; //Frequency in hertz
+    double xt =0;
     
 private:
 };
@@ -81,10 +83,11 @@ double Simulator::generateGaussianNoise() {
         z0 = sqrt(-2.0 * log(u1)) * cos(two_pi * u2);
         z1 = sqrt(-2.0 * log(u1)) * sin(two_pi * u2);
         //cout << z0 << endl;
-        n = z0 * sigma + mu;
+        n = (z0 * sigma + mu)/10;
     }
     return n;
 }
+
 
 
 
@@ -163,34 +166,41 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         //give state vector to give to NN in order to update P_force
         vector<double> state;
         vector<double> noise;
-        noise.push_back(0);
-        noise.push_back(0);
-        noise.push_back(0);
-        noise.push_back(0);
-        if (pP->sensor_NOISE == true)
-        {
+        noise.push_back(0); // x sensor
+        noise.push_back(0); // x actuator
+        noise.push_back(0); // xdot actuator
+        noise.push_back(0); // xdot actuator
+        if (pP->sensor_NOISE == true) {
             double r = generateGaussianNoise();
             assert(r<=1 && r>=-1);
-            noise.at(0)= r;
+            xt = xt+pP->dt;
+            double yt = r + sin(2*PI*(xt+pP->dt));
+            noise.at(0)= yt;
+            
             double rr = generateGaussianNoise();
             assert(rr<=1 && rr>=-1);
-            noise.at(2)= rr;
+            yt = rr + sin(2*PI*(xt+pP->dt));
+            noise.at(2)= yt;
             //cout << "r=" << r << "\t" << "rr=" << rr << endl;
         }
-        if (pP->actuator_NOISE == true)
-        {
+        if (pP->actuator_NOISE == true) {
             double r = generateGaussianNoise();
             assert(r<=1 && r>=-1);
-            noise.at(1)= r;
+            xt = xt+pP->dt;
+            double yt = r + sin(2*PI*(xt+pP->dt));
+            
+            noise.at(1)= yt;
             double rr = generateGaussianNoise();
             assert(rr<=1 && rr>=-1);
-            noise.at(3)= rr;
+            yt = rr + sin(2*PI*(xt+pP->dt));
+            
+            noise.at(3)= yt;
         }
         
-        noise.at(0) = pP->sn*noise.at(0);
-        noise.at(1) = pP->an*noise.at(1);
-        noise.at(2) = pP->sn*noise.at(2);
-        noise.at(3) = pP->an*noise.at(3);
+        noise.at(0) = pP->sn*noise.at(0); //sensor noise for position
+        noise.at(1) = pP->an*noise.at(1); //actuator noise for position
+        noise.at(2) = pP->sn*(1/10)*noise.at(2); //sensor noise for velocity
+        noise.at(3) = pP->an*noise.at(3); //actuator noise for velocity
         state.push_back(pPo->x+noise.at(0)+noise.at(1));
         state.push_back(pPo->x_dot+noise.at(2)+noise.at(3));
         

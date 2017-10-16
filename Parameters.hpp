@@ -27,7 +27,7 @@ public:
     int num_pol = 100;                  //number of policies
     int to_kill = num_pol/2;
     int gen_max = 100;                  //number of generations
-    double total_time = 500;            //total time
+    double total_time = 1000;            //total time steps
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range
     
@@ -48,7 +48,7 @@ public:
     
     // DOMAIN VARIABLES - STATIC
     double m = 7;       //mass
-    double b = 1;      //damper
+    double b = 0.05;      //damper
     double k = 1;       //spring
     double dt = 0.1;    //time step [s]
     double mu = 0;      //friction
@@ -85,20 +85,20 @@ public:
     bool only_pro = true;    //Just protagonist?
     bool sensor_NOISE = false;
     bool actuator_NOISE = false;
-    double sn = 1; //sensor noise magnitude
-    double an = 1; //actuator noise magnitude
+    double sn = 1;      //sensor noise magnitude
+    double an = 1;      //actuator noise magnitude
     
-    bool train_and_test; //if false runs only simulation with antagonist; if true, runs with only sensor noise
-    bool tr_1=false; //pro plus ant with no noise
-    bool tr_2=false; // pro only
-    bool tr_3=false; //pro plus ant
+    bool train_and_test;
+    bool tr_1=false;    //pro plus ant with no noise
+    bool tr_2=false;    // pro only
+    bool tr_3=false;    //pro plus ant
     void train();
-    bool te_1=false; // tr_1 with noise
-    bool te_2=false; // tr_2 with noise
-    bool te_3=false; // noise and no ANT
+    bool te_1=false;    // tr_1 with noise
+    bool te_2=false;    // tr_2 with noise
+    bool te_3=false;    // noise and no ANT
     void test();
 
-    
+    double phase = 30;
     
 private:
 };
