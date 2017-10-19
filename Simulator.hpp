@@ -174,12 +174,12 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
             double r = generateGaussianNoise();
             assert(r<=1 && r>=-1);
             xt = xt+pP->dt;
-            double yt = r + sin(2*PI*(xt+pP->dt));
+            double yt = r + sin(2*PI*(xt+pP->dt)+pP->phase);
             noise.at(0)= yt;
             
             double rr = generateGaussianNoise();
             assert(rr<=1 && rr>=-1);
-            yt = rr + sin(2*PI*(xt+pP->dt));
+            yt = rr + sin(2*PI*(xt+pP->dt)+pP->phase);
             noise.at(2)= yt;
             //cout << "r=" << r << "\t" << "rr=" << rr << endl;
         }
@@ -187,12 +187,12 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
             double r = generateGaussianNoise();
             assert(r<=1 && r>=-1);
             xt = xt+pP->dt;
-            double yt = r + sin(2*PI*(xt+pP->dt));
+            double yt = r + sin(2*PI*(xt+pP->dt)+pP->phase);
             
             noise.at(1)= yt;
             double rr = generateGaussianNoise();
             assert(rr<=1 && rr>=-1);
-            yt = rr + sin(2*PI*(xt+pP->dt));
+            yt = rr + sin(2*PI*(xt+pP->dt)+pP->phase);
             
             noise.at(3)= yt;
         }

@@ -65,6 +65,8 @@ public:
     double P_desired_x_dot = 0;
     double P_desired_x_dd = 0;
     
+    // WHAT TO GRAPH
+    bool best_v_median = true;
     
     
     // NN BOUNDARIES //
@@ -82,11 +84,12 @@ public:
     double w2 = 10;
     
     // NOISE is put into simulation //
-    bool only_pro = true;    //Just protagonist?
+    bool only_pro = true;       //Just protagonist?
     bool sensor_NOISE = false;
     bool actuator_NOISE = false;
-    double sn = 1;      //sensor noise magnitude
-    double an = 1;      //actuator noise magnitude
+    double sn = 1;              //sensor noise magnitude
+    double an = 1;              //actuator noise magnitude
+    double phase = 3.1415/2;    //in Radians
     
     bool train_and_test;
     bool tr_1=false;    //pro plus ant with no noise
