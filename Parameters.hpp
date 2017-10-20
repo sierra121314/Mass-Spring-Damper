@@ -89,6 +89,7 @@ public:
     bool actuator_NOISE = false;
     double sn = 1;              //sensor noise magnitude
     double an = 1;              //actuator noise magnitude
+    bool sinusoidal_noise = true;
     double phase = 3.1415/2;    //in Radians
     
     bool train_and_test;
@@ -101,7 +102,7 @@ public:
     bool te_3=false;    // noise and no ANT
     void test();
 
-    double phase = 30;
+
     
 private:
 };

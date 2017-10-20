@@ -38,6 +38,7 @@ public:
     double PI = 3.1415926535897;
     double Fh = 60; //Frequency in hertz
     double xt =0;
+    double sinusoidal=0;
     
 private:
 };
@@ -173,27 +174,36 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         if (pP->sensor_NOISE == true) {
             double r = generateGaussianNoise();
             assert(r<=1 && r>=-1);
-            xt = xt+pP->dt;
-            double yt = r + sin(2*PI*(xt+pP->dt)+pP->phase);
+            
+            if (pP->sinusoidal_noise==true){
+                xt = xt+pP->dt;
+                sinusoidal = sin(2*PI*(xt+pP->dt)+pP->phase);
+            }
+            
+            double yt = r + sinusoidal;
             noise.at(0)= yt;
             
             double rr = generateGaussianNoise();
             assert(rr<=1 && rr>=-1);
-            yt = rr + sin(2*PI*(xt+pP->dt)+pP->phase);
+            //sinusoidal = sin(2*PI*(xt+pP->dt)+pP->phase);
+            yt = rr + sinusoidal;
             noise.at(2)= yt;
             //cout << "r=" << r << "\t" << "rr=" << rr << endl;
         }
         if (pP->actuator_NOISE == true) {
             double r = generateGaussianNoise();
             assert(r<=1 && r>=-1);
-            xt = xt+pP->dt;
-            double yt = r + sin(2*PI*(xt+pP->dt)+pP->phase);
             
+            if (pP->sinusoidal_noise==true){
+                xt = xt+pP->dt;
+                sinusoidal = sin(2*PI*(xt+pP->dt)+pP->phase);
+            }
+            double yt = r + sinusoidal;
             noise.at(1)= yt;
+            
             double rr = generateGaussianNoise();
             assert(rr<=1 && rr>=-1);
-            yt = rr + sin(2*PI*(xt+pP->dt)+pP->phase);
-            
+            yt = rr + sinusoidal;
             noise.at(3)= yt;
         }
         
