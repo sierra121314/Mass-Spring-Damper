@@ -29,7 +29,7 @@
 bool three;
 bool two;
 bool one;
-int stat_runs = 5;
+int stat_runs = 1;
 
 
 int main()

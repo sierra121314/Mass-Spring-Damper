@@ -49,8 +49,8 @@ public:
     double start_P_force = 0;
     double start_A_force = 0;
     double displace = 2;        //initial displacement
-    double goal_x;          //ending position (start_x+goal_x);
-    double A_g = 20;         //amplifier for goal sinusoidal
+    double goal_x;              //ending position (start_x+goal_x);
+    double A_g = 2;            //amplifier for goal sinusoidal
     bool sinusoidal_goal = true;
     double g_phase = 0;
     void moving_goal();
@@ -92,7 +92,7 @@ public:
     double sn = 1;                  //sensor noise magnitude
     double an = 1;                  //actuator noise magnitude
     bool sinusoidal_noise = false;   //
-    double phase = PI/2;        //in Radians
+    double phase = PI/2;            //in Radians
     
     
     // TRAINING AND TESTING MODES //
@@ -144,8 +144,8 @@ void Parameters::train(){
 
         }
         if (tr_2 == true){
-            P_f_min_bound = -15;
-            P_f_max_bound = 15;
+            P_f_min_bound = -5;
+            P_f_max_bound = 5;
             A_f_min_bound = -0;
             A_f_max_bound = 0;
             sensor_NOISE = false;
@@ -174,8 +174,8 @@ void Parameters::test(){
             
         }
         if (te_2 == true){
-            P_f_min_bound = -15;
-            P_f_max_bound = 15;
+            P_f_min_bound = -5;
+            P_f_max_bound = 5;
             A_f_min_bound = -0;
             A_f_max_bound = 0;
             sensor_NOISE = true;

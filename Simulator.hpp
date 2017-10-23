@@ -249,9 +249,9 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
             ss_penalty = 1; //want closest to 0 displacement and penalize for not being at Steady state
         }
         */
-        if (pP->sinusoidal_goal==true){
-            //g_xt = pPo->x+g_xt+pP->dt;
-            pP->goal_x = pP->start_x + pP->A_g*sin(2*PI*(pP->dt)+pP->g_phase);
+        if (pP->sinusoidal_goal==true){  // SINUSOIDAL GOAL //
+            g_xt = pPo->x+g_xt+pP->dt;
+            pP->goal_x = pP->start_x + pP->A_g*sin(2*PI*(g_xt+pP->dt)+pP->g_phase);
             double F_dist = (abs(pP->goal_x - pPo->x));
             pPo->P_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
             aPo->A_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
