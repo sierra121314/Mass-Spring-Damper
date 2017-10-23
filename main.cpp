@@ -29,7 +29,7 @@
 bool three;
 bool two;
 bool one;
-int stat_runs = 10;
+int stat_runs = 5;
 
 
 int main()
@@ -41,8 +41,8 @@ int main()
     //TRAINING MODES
     P.train_and_test = true; //CHANGE
     
-    three = true;
-    two = false;
+    three = false;
+    two = true;
     one = false;
     ofstream test_fit;
     test_fit.open("stat_Ptest_fitness.txt", ofstream::out | ofstream::trunc);

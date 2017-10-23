@@ -10,6 +10,7 @@
 #define Parameters_hpp
 
 #include <stdio.h>
+#define PI 3.1415926535897
 
 using namespace std;
 
@@ -24,6 +25,7 @@ protected:
     
     
 public:
+    // EA STUFF //
     int num_pol = 100;                  //number of policies
     int to_kill = num_pol/2;
     int gen_max = 100;                  //number of generations
@@ -31,20 +33,27 @@ public:
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range
     
-    // NEURAL NETWORK STUFF
+    double P_force;                     //Protagonist force
+    double A_force;                     //Antagonist force
+    
+    // NEURAL NETWORK STUFF //
     int num_weights;
     int num_inputs = 2;
     int num_outputs = 1;
     int num_nodes = 10;
     
-    //CHANGE THESE VARIABLES
+    // GOAL VARIABLES //
     double start_x = 15;
     double start_x_dot = 0;
     double start_x_dd = 0;
     double start_P_force = 0;
     double start_A_force = 0;
-    double displace = 2;
-    double goal_x = 2; //ending position (start_x+goal_x);
+    double displace = 2;        //initial displacement
+    double goal_x;          //ending position (start_x+goal_x);
+    double A_g = 20;         //amplifier for goal sinusoidal
+    bool sinusoidal_goal = true;
+    double g_phase = 0;
+    void moving_goal();
     
     // DOMAIN VARIABLES - STATIC
     double m = 7;       //mass
@@ -57,13 +66,6 @@ public:
     bool rand_start_ts = false;
     bool rand_start_gen = false;
     void random_variables();
-    
-    double P_force;     //Protagonist force
-    double A_force;     //Antagonist force
-    
-    //double P_desired_x = 0;
-    double P_desired_x_dot = 0;
-    double P_desired_x_dd = 0;
     
     // WHAT TO GRAPH
     bool best_v_median = true;
@@ -79,19 +81,21 @@ public:
     double x_dot_min_bound = -.2;
     double x_dot_max_bound = .2;
 
+    // FITNESS WEIGHTS //
+    double w1 = 1;      //Weight on Pro and Ant
+    double w2 = 1;      //weight on extra penalty
     
-    double w1 = 1;
-    double w2 = 10;
+    // SIMULATION NOISE //
+    bool only_pro = true;           //Just protagonist?
+    bool sensor_NOISE = false;      //Determined by train-test otherwise default
+    bool actuator_NOISE = false;    //Determined by train-test otherwise default
+    double sn = 1;                  //sensor noise magnitude
+    double an = 1;                  //actuator noise magnitude
+    bool sinusoidal_noise = false;   //
+    double phase = PI/2;        //in Radians
     
-    // NOISE is put into simulation //
-    bool only_pro = true;       //Just protagonist?
-    bool sensor_NOISE = false;
-    bool actuator_NOISE = false;
-    double sn = 1;              //sensor noise magnitude
-    double an = 1;              //actuator noise magnitude
-    bool sinusoidal_noise = true;
-    double phase = 3.1415/2;    //in Radians
     
+    // TRAINING AND TESTING MODES //
     bool train_and_test;
     bool tr_1=false;    //pro plus ant with no noise
     bool tr_2=false;    // pro only
@@ -140,8 +144,8 @@ void Parameters::train(){
 
         }
         if (tr_2 == true){
-            P_f_min_bound = -5;
-            P_f_max_bound = 5;
+            P_f_min_bound = -15;
+            P_f_max_bound = 15;
             A_f_min_bound = -0;
             A_f_max_bound = 0;
             sensor_NOISE = false;
@@ -170,8 +174,8 @@ void Parameters::test(){
             
         }
         if (te_2 == true){
-            P_f_min_bound = -5;
-            P_f_max_bound = 5;
+            P_f_min_bound = -15;
+            P_f_max_bound = 15;
             A_f_min_bound = -0;
             A_f_max_bound = 0;
             sensor_NOISE = true;
@@ -187,5 +191,14 @@ void Parameters::test(){
         }
     }
 }
+
+void Parameters::moving_goal(){
+    if (sinusoidal_goal==true){
+        //g_xt = g_xt+dt;
+        //goal_x = sin(2*PI*(g_xt+dt)+phase);
+        
+    }
+}
+
 
 #endif /* Parameters_hpp */

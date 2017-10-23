@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <limits>
+#define PI 3.1415926535897
 
 
 using namespace std;
@@ -35,9 +36,9 @@ public:
     
     void Simulate(Policy* pPo, Policy* aPo);
     double generateGaussianNoise();
-    double PI = 3.1415926535897;
     double Fh = 60; //Frequency in hertz
-    double xt =0;
+    double xt =0;    //noise sinusoidal
+    double g_xt = 0; //goal sinusoidal
     double sinusoidal=0;
     
 private:
@@ -248,10 +249,22 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
             ss_penalty = 1; //want closest to 0 displacement and penalize for not being at Steady state
         }
         */
-        double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
+        if (pP->sinusoidal_goal==true){
+            //g_xt = pPo->x+g_xt+pP->dt;
+            pP->goal_x = pP->start_x + pP->A_g*sin(2*PI*(pP->dt)+pP->g_phase);
+            double F_dist = (abs(pP->goal_x - pPo->x));
+            pPo->P_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
+            aPo->A_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
+        }
+        else {
+            pP->goal_x = 2;
+            double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
+            pPo->P_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
+            aPo->A_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
+        }
         
-        pPo->P_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
-        aPo->A_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
+        
+        
         //cout << "F_dist" << "\t" << endl;
         pPo->x_history.push_back(pPo->x);
         pPo->x_dot_history.push_back(pPo->x_dot);
