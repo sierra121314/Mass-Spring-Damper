@@ -51,7 +51,7 @@ private:
 
 double Simulator::generateGaussianNoise() {
     const double epsilon = numeric_limits<double>::min();
-    const double two_pi = 2.0*3.14159265358979323846;
+    const double two_pi = 2.0*PI;
     double mu = 0;
     //double mu = (((double)rand() / RAND_MAX) - 0.5) * 2;
     double sigma = 0.4; //0.4
@@ -178,16 +178,16 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
             
             if (pP->sinusoidal_noise==true){
                 xt = xt+pP->dt;
-                sinusoidal = sin(2*PI*(xt+pP->dt)+pP->phase);
+                sinusoidal = pP->As*sin(PI*(xt+pP->dt)+pP->phase);
             }
             
-            double yt = r + sinusoidal;
+            double yt = 0 + sinusoidal;
             noise.at(0)= yt;
             
             double rr = generateGaussianNoise();
             assert(rr<=1 && rr>=-1);
             //sinusoidal = sin(2*PI*(xt+pP->dt)+pP->phase);
-            yt = rr + sinusoidal;
+            yt = 0 + sinusoidal;
             noise.at(2)= yt;
             //cout << "r=" << r << "\t" << "rr=" << rr << endl;
         }
@@ -197,14 +197,14 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
             
             if (pP->sinusoidal_noise==true){
                 xt = xt+pP->dt;
-                sinusoidal = sin(2*PI*(xt+pP->dt)+pP->phase);
+                sinusoidal = pP->As*sin(PI*(xt+pP->dt)+pP->phase);
             }
-            double yt = r + sinusoidal;
+            double yt = 0 + sinusoidal;
             noise.at(1)= yt;
             
             double rr = generateGaussianNoise();
             assert(rr<=1 && rr>=-1);
-            yt = rr + sinusoidal;
+            yt = 0 + sinusoidal;
             noise.at(3)= yt;
         }
         
@@ -251,7 +251,7 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         */
         if (pP->sinusoidal_goal==true){  // SINUSOIDAL GOAL //
             g_xt = pPo->x+g_xt+pP->dt;
-            pP->goal_x = pP->start_x + pP->A_g*sin(2*PI*(g_xt+pP->dt)+pP->g_phase);
+            pP->goal_x = pP->start_x + pP->A_g*sin(PI/4*(g_xt+pP->dt)+pP->g_phase);
             double F_dist = (abs(pP->goal_x - pPo->x));
             pPo->P_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
             aPo->A_fitness += pP->w1*F_dist + pP->w2*ss_penalty;

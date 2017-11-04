@@ -57,7 +57,7 @@ public:
     
     // DOMAIN VARIABLES - STATIC
     double m = 7;       //mass
-    double b = 0.05;      //damper
+    double b = 0.05;    //damper
     double k = 1;       //spring
     double dt = 0.1;    //time step [s]
     double mu = 0;      //friction
@@ -91,8 +91,9 @@ public:
     bool actuator_NOISE = false;    //Determined by train-test otherwise default
     double sn = 1;                  //sensor noise magnitude
     double an = 1;                  //actuator noise magnitude
+    double As = 2;
     bool sinusoidal_noise = false;   //
-    double phase = PI/2;            //in Radians
+    double phase = PI/4;            //in Radians
     
     
     // TRAINING AND TESTING MODES //
@@ -144,8 +145,8 @@ void Parameters::train(){
 
         }
         if (tr_2 == true){
-            P_f_min_bound = -5;
-            P_f_max_bound = 5;
+            P_f_min_bound = -15;
+            P_f_max_bound = 15;
             A_f_min_bound = -0;
             A_f_max_bound = 0;
             sensor_NOISE = false;
