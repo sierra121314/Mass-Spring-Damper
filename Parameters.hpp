@@ -36,6 +36,13 @@ public:
     double P_force;                     //Protagonist force
     double A_force;                     //Antagonist force
     
+    // DOMAIN VARIABLES - STATIC
+    double m = 7;       //mass
+    double b = 0.05;    //damper
+    double k = 1;       //spring
+    double dt = 0.1;    //time step [s]
+    double mu = 0;      //friction
+    
     // NEURAL NETWORK STUFF //
     int num_weights;
     int num_inputs = 2;
@@ -50,17 +57,10 @@ public:
     double start_A_force = 0;
     double displace = 2;        //initial displacement
     double goal_x;              //ending position (start_x+goal_x);
-    double A_g = 2;            //amplifier for goal sinusoidal
-    bool sinusoidal_goal = true;
+    double A_g = 2;             //amplifier for goal sinusoidal
+    bool sinusoidal_goal = false;
     double g_phase = 0;
     void moving_goal();
-    
-    // DOMAIN VARIABLES - STATIC
-    double m = 7;       //mass
-    double b = 0.05;    //damper
-    double k = 1;       //spring
-    double dt = 0.1;    //time step [s]
-    double mu = 0;      //friction
     
     // RANDOMIZING STARTS //
     bool rand_start_ts = false;
@@ -92,7 +92,7 @@ public:
     double sn = 1;                  //sensor noise magnitude
     double an = 1;                  //actuator noise magnitude
     double As = 2;
-    bool sinusoidal_noise = false;   //
+    bool sinusoidal_noise = true;   //
     double phase = PI/4;            //in Radians
     
     
@@ -145,8 +145,8 @@ void Parameters::train(){
 
         }
         if (tr_2 == true){
-            P_f_min_bound = -15;
-            P_f_max_bound = 15;
+            P_f_min_bound = -5;
+            P_f_max_bound = 5;
             A_f_min_bound = -0;
             A_f_max_bound = 0;
             sensor_NOISE = false;

@@ -29,7 +29,7 @@
 bool three;
 bool two;
 bool one;
-int stat_runs = 1;
+int stat_runs = 30;
 
 
 int main()
@@ -41,8 +41,8 @@ int main()
     //TRAINING MODES
     P.train_and_test = true; //CHANGE
     
-    three = false;
-    two = true;
+    three = true;
+    two = false;
     one = false;
     ofstream test_fit;
     test_fit.open("stat_Ptest_fitness.txt", ofstream::out | ofstream::trunc);
@@ -76,7 +76,7 @@ int main()
                 P.test();
                 E.Run_Simulation();
                 E.Evaluate();
-                //E.Sort_Policies_By_Fitness();
+                E.Sort_Policies_By_Fitness();
                 cout << "BEST POLICY Test PRO-FITNESS" << "\t" << E.pro_pol.at(0).P_fitness << endl;
                 test_fit << E.pro_pol.at(0).P_fitness << endl;
                 E.Graph_test();

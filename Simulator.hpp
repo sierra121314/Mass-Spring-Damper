@@ -134,11 +134,10 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
     //LOGGING START POSITIONS
     rand_start << pP->m << "\t" << pP->b << "\t" << pP->k << "\t" << pP->mu << "\t" << pP->start_x << endl;
     
-   
     neural_network NN;
     neural_network NNa;
 
-    NN.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs); //2 input, 5 hidden, 1 output
+    NN.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs); //2 input, 10 hidden, 1 output
     NNa.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs);
     
     // PROTAGONIST
@@ -178,16 +177,16 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
             
             if (pP->sinusoidal_noise==true){
                 xt = xt+pP->dt;
-                sinusoidal = pP->As*sin(PI*(xt+pP->dt)+pP->phase);
+                sinusoidal = pP->As*sin(PI/8*(xt+pP->dt)+pP->phase);
             }
             
-            double yt = 0 + sinusoidal;
+            double yt = r + sinusoidal;
             noise.at(0)= yt;
             
             double rr = generateGaussianNoise();
             assert(rr<=1 && rr>=-1);
             //sinusoidal = sin(2*PI*(xt+pP->dt)+pP->phase);
-            yt = 0 + sinusoidal;
+            yt = rr + sinusoidal;
             noise.at(2)= yt;
             //cout << "r=" << r << "\t" << "rr=" << rr << endl;
         }
@@ -197,14 +196,14 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
             
             if (pP->sinusoidal_noise==true){
                 xt = xt+pP->dt;
-                sinusoidal = pP->As*sin(PI*(xt+pP->dt)+pP->phase);
+                sinusoidal = pP->As*sin(PI/8*(xt+pP->dt)+pP->phase);
             }
-            double yt = 0 + sinusoidal;
+            double yt = r + sinusoidal;
             noise.at(1)= yt;
             
             double rr = generateGaussianNoise();
             assert(rr<=1 && rr>=-1);
-            yt = 0 + sinusoidal;
+            yt = rr + sinusoidal;
             noise.at(3)= yt;
         }
         
@@ -216,7 +215,7 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         state.push_back(pPo->x_dot+noise.at(2)+noise.at(3));
         
         
-        
+        // IS THIS CORRECT? //
         NN.set_vector_input(state);
         NNa.set_vector_input(state);
         
@@ -251,7 +250,7 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         */
         if (pP->sinusoidal_goal==true){  // SINUSOIDAL GOAL //
             g_xt = pPo->x+g_xt+pP->dt;
-            pP->goal_x = pP->start_x + pP->A_g*sin(PI/4*(g_xt+pP->dt)+pP->g_phase);
+            pP->goal_x = pP->start_x + pP->A_g*sin(PI/16*(g_xt+pP->dt)+pP->g_phase);
             double F_dist = (abs(pP->goal_x - pPo->x));
             pPo->P_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
             aPo->A_fitness += pP->w1*F_dist + pP->w2*ss_penalty;

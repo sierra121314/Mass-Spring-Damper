@@ -156,8 +156,7 @@ void EA::Run_Simulation()
 void EA::Evaluate()
 {
     //might not need
-    for (int i=0; i< pP->num_pol; i++)
-    {
+    for (int i=0; i< pP->num_pol; i++) {
       
         
     }
@@ -171,42 +170,35 @@ int EA::P_Binary_Select()
     int loser;
     int index_1 = rand() % pro_pol.size();
     int index_2 = rand() % pro_pol.size();
-    while (index_1 == index_2)
-    {
+    while (index_1 == index_2) {
         index_2 = rand() % pro_pol.size();
     }
     
     //winner is one with lower fitness
-    if(pro_pol.at(index_1).P_fitness < pro_pol.at(index_2).P_fitness)
-    {
+    if(pro_pol.at(index_1).P_fitness < pro_pol.at(index_2).P_fitness) {
         loser = index_2;
         //cout << "loser" << "\t" <<  "agent" << "\t" << index_2 << endl;
     }
-    else
-    {
+    else {
         loser = index_1;
         //cout << "loser" << "\t" <<  "agent" << "\t" << index_1 << endl;
     }
     return loser;
 }
-int EA::A_Binary_Select()
-{
+int EA::A_Binary_Select() {
     int a_loser;
     int index_3 = rand() % ant_pol.size();
     int index_4 = rand() % ant_pol.size();
-    while (index_3 == index_4)
-    {
+    while (index_3 == index_4) {
         index_4 = rand() % ant_pol.size();
     }
     
     //winner is one with higher fitness
-    if(ant_pol.at(index_3).A_fitness > ant_pol.at(index_4).A_fitness)
-    {
+    if(ant_pol.at(index_3).A_fitness > ant_pol.at(index_4).A_fitness) {
         a_loser = index_4;
         //cout << "loser" << "\t" <<  "agent" << "\t" << index_2 << endl;
     }
-    else
-    {
+    else {
         a_loser = index_3;
         //cout << "loser" << "\t" <<  "agent" << "\t" << index_1 << endl;
     }
@@ -221,8 +213,7 @@ void EA::Downselect()
 {
     int pro_kill;
     int ant_kill;
-    for(int k=0; k<pP->to_kill; k++)
-    {
+    for(int k=0; k<pP->to_kill; k++) {
         pro_kill = P_Binary_Select();               //Protagonist
         pro_pol.erase(pro_pol.begin() + pro_kill);
         ant_kill = A_Binary_Select();               //Antagonist
@@ -230,8 +221,7 @@ void EA::Downselect()
     }
     assert(pro_pol.size() == pP->to_kill);
     assert(ant_pol.size() == pP->to_kill);
-    for(int i=0; i<pP->to_kill; i++)
-    {
+    for(int i=0; i<pP->to_kill; i++) {
         pro_pol.at(i).age += 1;
         ant_pol.at(i).age += 1;
     }
@@ -245,8 +235,7 @@ void EA::Mutation(Policy &M, Policy &N)
    //This is where the policy is slightly mutated
     
     
-    for (int x = 0; x < pP->num_weights; x++)
-    {
+    for (int x = 0; x < pP->num_weights; x++) {
         double random = ((double)rand()/RAND_MAX);
         double random2 = ((double)rand()/RAND_MAX);
         //cout << "r" << "\t" << random << endl;
@@ -287,8 +276,7 @@ void EA::Mutation(Policy &M, Policy &N)
 void EA::Repopulate()
 {
     int to_replicate = pP->to_kill;
-    for (int rep=0; rep<to_replicate; rep++)
-    {
+    for (int rep=0; rep<to_replicate; rep++) {
         Policy M;
         Policy N;
         int spot = rand() % pro_pol.size();
@@ -309,8 +297,7 @@ void EA::Repopulate()
 
 //-------------------------------------------------------------------------
 //Runs the entire EA loop process
-void EA::EA_Process()
-{
+void EA::EA_Process() {
     Run_Simulation();
     Evaluate();
     Sort_Policies_By_Fitness();
@@ -325,28 +312,22 @@ void EA::EA_Process()
 
 //-------------------------------------------------------------------------
 //Sorts the population based on their fitness from lowest to highest
-struct EA::Less_Than_Policy_Fitness
-{
-    inline bool operator() (const Policy& struct1, const Policy& struct2)
-    {
+struct EA::Less_Than_Policy_Fitness {
+    inline bool operator() (const Policy& struct1, const Policy& struct2) {
         return (struct1.P_fitness < struct2.P_fitness);
     }
 };
 
-struct EA::Greater_Than_Policy_Fitness
-{
-    inline bool operator() (const Policy& struct3, const Policy& struct4)
-    {
+struct EA::Greater_Than_Policy_Fitness {
+    inline bool operator() (const Policy& struct3, const Policy& struct4) {
         return (struct3.A_fitness > struct4.A_fitness);
     }
 };
 
 //-------------------------------------------------------------------------
 //Sorts population
-void EA::Sort_Policies_By_Fitness()
-{
-    for (int i=0; i<pP->num_pol; i++)
-    {
+void EA::Sort_Policies_By_Fitness() {
+    for (int i=0; i<pP->num_pol; i++) {
         sort(pro_pol.begin(), pro_pol.end(), Less_Than_Policy_Fitness());
         sort(ant_pol.begin(), ant_pol.end(), Greater_Than_Policy_Fitness());
     }
@@ -440,8 +421,6 @@ void EA::Graph_test(){
     fout.close();
     
     fout.open("test_P_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);
-    
-    
     for (int h =0; h < pP->num_pol; h++){
         fout << pro_pol.at(h).P_fitness << "\t";
         //fitness per policy maybe?
@@ -457,8 +436,7 @@ void EA::Graph_test(){
 
 //-------------------------------------------------------------------------
 //Runs the entire program
-void EA::Run_Program()
-{
+void EA::Run_Program() {
     ofstream nsensor;
     nsensor.open("ave_sensor_noise.txt", ofstream::out | ofstream::trunc);
     ofstream nactuator;
