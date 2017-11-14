@@ -200,7 +200,8 @@ void Parameters::test(){
 void Parameters::fifty_var(){
     if (multi_var==true) {
         //Open variable text document
-        
+        fstream fifty_history;
+        fifty_history.open("fiftysets_init.txt", fstream::app);
         for (int i=0; i<50; i++) {
             vector<int> three_inits;
             
@@ -209,10 +210,12 @@ void Parameters::fifty_var(){
             three_inits.push_back(5 + rand() % 25);//start_x=something;(0 to 25)
             three_inits.push_back(0 + rand() % 5);//start_x_dot=something;(0 to 5)
             for (int j=0; j<3; j++) {
-                //put into variable file
+                fifty_history << three_inits.at(j) << "\t";
             }
+            fifty_history << endl;
             fifty_inits.push_back(three_inits);
         }
+        fifty_history.close();
     }
 }
 

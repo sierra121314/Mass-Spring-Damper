@@ -128,6 +128,7 @@ void EA::Run_Simulation() {
     for (int i=0; i<pP->num_pol; i++) {
         if (pP->multi_var==true){
             num_loops=50;
+            pP->fifty_var();    //initialize 50x3 variables
         }
         else {
             num_loops=1;
