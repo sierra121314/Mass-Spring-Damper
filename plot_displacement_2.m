@@ -101,9 +101,9 @@ data13 = load('stat_P_fitness.txt');
 data14 = load('stat_Ptest_fitness.txt');
 
 time = [1:1000];
-generations = [1:10];
+generations = [1:100];
 num_pol=[1:100];
-stat_runs = [1:2];
+stat_runs = [1:30];
 
 subplot(8,2,1)
 plot(time, data1)
@@ -163,7 +163,7 @@ xlabel('Generations')
 
 subplot(8,2,10)
 plot(num_pol, data6t)
-title('Test Protagonist Fitness(In Order)')
+title('Test Protagonist Fitness(Sorted)')
 ylabel('Fitness of 100 Policies')
 xlabel('Policy')
 
@@ -192,17 +192,21 @@ title('Actuator Noise for Last Run')
 ylabel('Noise Magnitude')
 xlabel('Time[ms]')
 
-six=mean(data6);
-sixt=mean(data6t);
+Pfit_mean=mean(data6);
+Ptestfit_mean=mean(data6t);
+Pfit_best=min(data6);
+Ptestfit_best=min(data6t);
 
 subplot(8,2,[15,16])
 plot(stat_runs,data13);
 hold on 
 plot(stat_runs,data14);
-F = mean(data14); %average
-B = min(data14); %best fitness
-plot(stat_runs,F*ones(size(stat_runs)));
-plot(stat_runs,B*ones(size(stat_runs)));
+Stat_P_mean = mean(data13) %average
+Stat_P_best = min(data13) %best fitness
+Stat_Ptest_mean = mean(data14) %average
+Stat_Ptest_best = min(data14) %best fitness
+plot(stat_runs,Stat_Ptest_mean*ones(size(stat_runs)));
+plot(stat_runs,Stat_Ptest_best*ones(size(stat_runs)));
 ylabel('Ave Fitness per Stat Run');
 xlabel('Stat runs');
 legend('Train Pro Fitness','Test Pro Fitness','Ave Test Pro Fitness','Best Test Pro Fit')
