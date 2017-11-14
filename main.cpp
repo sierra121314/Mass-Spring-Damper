@@ -29,7 +29,7 @@
 bool three;
 bool two;
 bool one;
-int stat_runs = 30;
+int stat_runs = 1;
 
 
 int main() {
@@ -40,8 +40,8 @@ int main() {
     //TRAINING MODES
     P.train_and_test = true; //CHANGE
     
-    three = true;
-    two = false;
+    three = false;
+    two = true;
     one = false;
     ofstream test_fit;
     test_fit.open("stat_Ptest_fitness.txt", ofstream::out | ofstream::trunc);
@@ -73,6 +73,8 @@ int main() {
             E.Run_Program();
             if(P.te_1==true || P.te_2==true || P.te_3==true){
                 P.test();
+                P.three_for_three = false;
+                E.pP = &P;
                 E.Run_Simulation();
                 E.Evaluate();
                 E.Sort_Policies_By_Fitness();
@@ -93,10 +95,9 @@ int main() {
             
             E.pP = &P;
             E.Run_Program();
-            
         }
-
     }
+    
     test_fit.close();
     P_fit.close();
     
