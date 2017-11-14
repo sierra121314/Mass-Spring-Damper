@@ -64,7 +64,7 @@ public:
     
     // RANDOMIZING STARTS //
     bool rand_start_ts = false;
-    bool rand_start_gen = false;
+    bool rand_start_gen = true;
     void random_variables();
     
     // WHAT TO GRAPH
@@ -107,6 +107,7 @@ public:
     bool te_3=false;    // noise and no ANT
     void test();
 
+    bool three_for_three = false;   //Reverse Leniancy
 
     
 private:
@@ -120,16 +121,16 @@ void Parameters::random_variables(){
         b = 1 + rand() % 2;       //damper
         k = 1 + rand() % 2;       //spring
         mu = 0 + rand() % 2;      //friction
-        start_x = 15 + rand() % 2;
+        start_x = 15 + rand() % 5;
     }
     
     if (rand_start_gen == true){
         // DOMAIN VARIABLES - STATIC
-        m = 7 + rand() % 2;       //mass
-        b = 1 + rand() % 2;       //damper
-        k = 1 + rand() % 2;       //spring
-        mu = 0 + rand() % 2;      //friction
-        start_x = 15 + rand() % 2;
+        //m = 7 + rand() % 2;       //mass
+        //b = 1 + rand() % 2;       //damper
+        //k = 1 + rand() % 2;       //spring
+        //mu = 0 + rand() % 2;      //friction
+        start_x = 15 + rand() % 5;
     }
 }
 

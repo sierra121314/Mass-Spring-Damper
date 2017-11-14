@@ -273,7 +273,6 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         
         noise_x_sum += noise.at(0)+noise.at(1);
         noise_xdot_sum += noise.at(2)+noise.at(3);
-        
         tstep_sensor << noise.at(0)+noise.at(1) << "\t";
         tstep_actuator << noise.at(2)+noise.at(3) << "\t";
     }
