@@ -64,6 +64,7 @@ public:
     double sum;
     double ave;
     int place;
+    int num_loops;
     //int num_weights = 5;
     
 private:
@@ -118,28 +119,63 @@ void EA::Build_Population()
 
 //////////////////////////////////////////////////////////////////////////////
 //Puts each policy into the simulation
-void EA::Run_Simulation()
-{
+void EA::Run_Simulation() {
     random_shuffle ( pro_pol.begin(), pro_pol.end() );
     random_shuffle ( ant_pol.begin(), ant_pol.end() );
     
     
     
     for (int i=0; i<pP->num_pol; i++) {
-        pro_pol.at(i).P_fitness = 0;
-        ant_pol.at(i).A_fitness = 0; 
-        //First we insert a policy into the simulator then we can take the objective data for that policy and store it in our data architecture
-        Simulator S;
-
-        S.pP = this->pP;
-        Policy* pPo;
-        Policy* aPo;
-        pPo = & pro_pol.at(i);
-        aPo = & ant_pol.at(i);
-        S.Simulate(pPo, aPo);
-        //put endline here for noise graph
+        if (pP->multi_goal==true){
+            num_loops=50;
+        }
+        else {
+            num_loops=1;
+        }
+        for (int k=0; k<num_loops; k++) {
+            pro_pol.at(i).P_fitness = 0;
+            ant_pol.at(i).A_fitness = 0;
+            //First we insert a policy into the simulator then we can take the objective data for that policy and store it in our data architecture
+            Simulator S;
+            
+            S.pP = this->pP;
+            Policy* pPo;
+            Policy* aPo;
+            pPo = & pro_pol.at(i);
+            aPo = & ant_pol.at(i);
+            S.Simulate(pPo, aPo);
+            //put endline here for noise graph
+        }
+        
         
     }
+    
+    if (pP->three_for_three == true) {
+        //Uses the same order of policies as before
+        //Copy antagonist policies into seperate vector
+        for (int j=0; j<2; j++) {
+            random_shuffle ( ant_pol.begin(), ant_pol.end() );
+            for (int i=0; i<pP->num_pol; i++) {
+                ant_pol.at(i).A_fitness = 0;
+                Simulator S;
+                
+                S.pP = this->pP;
+                Policy* pPo;
+                Policy* aPo;
+                pPo = & pro_pol.at(i);
+                aPo = & ant_pol.at(i);
+                S.Simulate(pPo, aPo);
+            }
+            if (j==0){
+                //copy 2nd antagonist vector
+            }
+            if (j==1){
+                //copy 3rd antagonit vector
+            }
+        }
+        //find best antagonist set out of 3
+    }
+     
     fstream nsensor;
     fstream nactuator;
     nsensor.open("ave_sensor_noise.txt", fstream::app);

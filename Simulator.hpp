@@ -255,6 +255,12 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
             pPo->P_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
             aPo->A_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
         }
+        else if (pP->multi_goal==true){
+            pP->goal_x = 2;//goal.at(k) from list
+            double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
+            pPo->P_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
+            aPo->A_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
+        }
         else {
             pP->goal_x = 2;
             double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
@@ -273,7 +279,6 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         
         noise_x_sum += noise.at(0)+noise.at(1);
         noise_xdot_sum += noise.at(2)+noise.at(3);
-        
         tstep_sensor << noise.at(0)+noise.at(1) << "\t";
         tstep_actuator << noise.at(2)+noise.at(3) << "\t";
     }

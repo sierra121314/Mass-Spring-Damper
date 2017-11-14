@@ -32,8 +32,7 @@ bool one;
 int stat_runs = 30;
 
 
-int main()
-{
+int main() {
     srand(time(NULL));
     Parameters P;
     EA E;
