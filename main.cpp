@@ -93,10 +93,9 @@ int main() {
             
             E.pP = &P;
             E.Run_Program();
-            
         }
-
     }
+    
     test_fit.close();
     P_fit.close();
     

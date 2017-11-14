@@ -255,8 +255,8 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
             pPo->P_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
             aPo->A_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
         }
-        else if (pP->multi_goal==true){
-            pP->goal_x = 2;//goal.at(k) from list
+        else if (pP->multi_var==true){
+            pP->goal_x = pP->goal_x;//goal.at(k) from list
             double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
             pPo->P_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
             aPo->A_fitness += pP->w1*F_dist + pP->w2*ss_penalty;

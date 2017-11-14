@@ -126,13 +126,18 @@ void EA::Run_Simulation() {
     
     
     for (int i=0; i<pP->num_pol; i++) {
-        if (pP->multi_goal==true){
+        if (pP->multi_var==true){
             num_loops=50;
         }
         else {
             num_loops=1;
         }
         for (int k=0; k<num_loops; k++) {
+            if (pP->multi_var==true){
+                pP->goal_x = pP->fifty_inits.at(k).at(0);       //goal from vector
+                pP->start_x = pP->fifty_inits.at(k).at(1);      //start x from vector
+                pP->start_x_dot = pP->fifty_inits.at(k).at(2);  //start xdot from vector
+            }
             pro_pol.at(i).P_fitness = 0;
             ant_pol.at(i).A_fitness = 0;
             //First we insert a policy into the simulator then we can take the objective data for that policy and store it in our data architecture
@@ -144,15 +149,12 @@ void EA::Run_Simulation() {
             pPo = & pro_pol.at(i);
             aPo = & ant_pol.at(i);
             S.Simulate(pPo, aPo);
-            //put endline here for noise graph
         }
-        
-        
     }
     
     if (pP->three_for_three == true) {
         //Uses the same order of policies as before
-        //Copy antagonist policies into seperate vector
+        //Copy antagonist policies into seperate vector in order to choose best performance
         for (int j=0; j<2; j++) {
             random_shuffle ( ant_pol.begin(), ant_pol.end() );
             for (int i=0; i<pP->num_pol; i++) {

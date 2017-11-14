@@ -61,7 +61,9 @@ public:
     bool sinusoidal_goal = false;
     double g_phase = 0;
     void moving_goal();
-    bool multi_goal=false;      //50 goals per policy
+    bool multi_var = false;      //50 goals per policy
+    void fifty_var();           //50 goals, start_x, start_x_dot
+    vector<vector<int>> fifty_inits;
     
     // RANDOMIZING STARTS //
     bool rand_start_ts = false;
@@ -191,6 +193,25 @@ void Parameters::test(){
             A_f_max_bound = 0;
             sensor_NOISE = true;
             actuator_NOISE = true;
+        }
+    }
+}
+
+void Parameters::fifty_var(){
+    if (multi_var==true) {
+        //Open variable text document
+        
+        for (int i=0; i<50; i++) {
+            vector<int> three_inits;
+            
+            //Initialize 50x3 variables
+            three_inits.push_back(rand() % 6);//goal_x(0to6)
+            three_inits.push_back(5 + rand() % 25);//start_x=something;(0 to 25)
+            three_inits.push_back(0 + rand() % 5);//start_x_dot=something;(0 to 5)
+            for (int j=0; j<3; j++) {
+                //put into variable file
+            }
+            fifty_inits.push_back(three_inits);
         }
     }
 }
