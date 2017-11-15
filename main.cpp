@@ -68,15 +68,14 @@ int main() {
         
         
         if (P.train_and_test == true){
-            
+            P.three_for_three = true;
             P.train();
             E.pP = &P;
             E.Run_Program();
-            
+            P.three_for_three = false;
             if(P.te_1==true || P.te_2==true || P.te_3==true){
                 
                 P.test();
-                P.three_for_three = false;
                 E.pP = &P;
                 E.Run_Simulation();
                 E.Evaluate();
