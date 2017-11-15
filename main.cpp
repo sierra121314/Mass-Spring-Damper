@@ -68,10 +68,13 @@ int main() {
         
         
         if (P.train_and_test == true){
+            
             P.train();
             E.pP = &P;
             E.Run_Program();
+            
             if(P.te_1==true || P.te_2==true || P.te_3==true){
+                
                 P.test();
                 P.three_for_three = false;
                 E.pP = &P;
@@ -84,6 +87,7 @@ int main() {
                 //run nn that is trained but don't evolve any further
                 //1 simulation of the best
                 //1 simulation of medium of population
+                
             }
         }
         

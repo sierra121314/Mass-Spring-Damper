@@ -67,7 +67,7 @@ public:
     
     // RANDOMIZING STARTS //
     bool rand_start_ts = false;
-    bool rand_start_gen = true;
+    bool rand_start_gen = false;
     void random_variables();
     
     // WHAT TO GRAPH
@@ -95,7 +95,7 @@ public:
     double sn = 1;                  //sensor noise magnitude
     double an = 1;                  //actuator noise magnitude
     double As = 2;
-    bool sinusoidal_noise = true;   //
+    bool sinusoidal_noise = true;   //within sensor and actuator noise, so if those are false->sinusoidal is false
     double phase = PI/4;            //in Radians
     
     
@@ -164,6 +164,20 @@ void Parameters::train(){
             sensor_NOISE = false;
             actuator_NOISE = false;
         }
+        ofstream train_para;
+        train_para.open("training_parameters.txt", ofstream::out | ofstream::trunc);
+
+        train_para << "# Policies\t" << num_pol << "\t # Generations\t" << gen_max << "\t Mut Rate and Range\t" << mutation_rate << "\t" << mutate_range << endl;
+        train_para << "Pro Bounds\t " << P_f_min_bound << "\t" << P_f_max_bound << endl;
+        train_para << "Ant Bounds\t " << A_f_min_bound << "\t" << A_f_max_bound << endl;
+        train_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
+        train_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
+        train_para << "Noise\t" << sensor_NOISE << "\t" << actuator_NOISE << "\t" << sinusoidal_noise << "\t" << phase << endl;
+        train_para << "Random Starts/Gen\t" << rand_start_gen << endl;
+        train_para << "Reverse Leniency\t" << three_for_three << endl;
+        train_para << "50 Goals/Policy\t" << multi_var << endl;
+        train_para.close();
+        
     }
 }
 
@@ -194,6 +208,20 @@ void Parameters::test(){
             sensor_NOISE = true;
             actuator_NOISE = true;
         }
+        ofstream test_para;
+        test_para.open("testing_parameters.txt", ofstream::out | ofstream::trunc);
+        
+        test_para << "# Policies\t" << num_pol << "\t # Generations\t" << gen_max << "\t Mut Rate and Range\t" << mutation_rate << "\t" << mutate_range << endl;
+        test_para << "Pro Bounds\t " << P_f_min_bound << "\t" << P_f_max_bound << endl;
+        test_para << "Ant Bounds\t " << A_f_min_bound << "\t" << A_f_max_bound << endl;
+        test_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
+        test_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
+        test_para << "Noise\t" << sensor_NOISE << "\t" << actuator_NOISE << "\t" << sinusoidal_noise << "\t" << phase << endl;
+        test_para << "Random Starts/Gen\t" << rand_start_gen << endl;
+        test_para << "Reverse Leniency\t" << three_for_three << endl;
+        test_para << "50 Goals/Policy\t" << multi_var << endl;
+        
+        test_para.close();
     }
 }
 
