@@ -29,7 +29,7 @@
 bool three;
 bool two;
 bool one;
-int stat_runs = 30;
+int stat_runs = 1;
 
 
 int main() {
@@ -40,8 +40,8 @@ int main() {
     //TRAINING MODES
     P.train_and_test = true; //CHANGE
     
-    three = true;
-    two = false;
+    three = false;
+    two = true;
     one = false;
     ofstream test_fit;
     test_fit.open("stat_Ptest_fitness.txt", ofstream::out | ofstream::trunc);
@@ -68,11 +68,16 @@ int main() {
         
         
         if (P.train_and_test == true){
+            P.three_for_three = false; //change this one
+            P.multi_var = false; //do NOT change this one
             P.train();
             E.pP = &P;
             E.Run_Program();
+            P.three_for_three = false; //do not change this one
             if(P.te_1==true || P.te_2==true || P.te_3==true){
+                P.multi_var = true; //change this one
                 P.test();
+                E.pP = &P;
                 E.Run_Simulation();
                 E.Evaluate();
                 E.Sort_Policies_By_Fitness();
@@ -82,6 +87,7 @@ int main() {
                 //run nn that is trained but don't evolve any further
                 //1 simulation of the best
                 //1 simulation of medium of population
+                
             }
         }
         

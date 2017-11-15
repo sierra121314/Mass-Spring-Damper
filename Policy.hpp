@@ -37,6 +37,8 @@ public:
     //...
     double P_fitness;
     double A_fitness;
+    double P_fit_swap;
+    double A_fit_swap;
     int age; //how long did it last?
     
     double x; // position of mass
