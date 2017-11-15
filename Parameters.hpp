@@ -110,7 +110,7 @@ public:
     bool te_3=false;    // noise and no ANT
     void test();
 
-    bool three_for_three = false;   //Reverse Leniancy
+    bool three_for_three = true;   //Reverse Leniancy
 
     
 private:
