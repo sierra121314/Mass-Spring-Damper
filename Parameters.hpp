@@ -28,7 +28,7 @@ public:
     // EA STUFF //
     int num_pol = 100;                  //number of policies
     int to_kill = num_pol/2;
-    int gen_max = 100;                  //number of generations
+    int gen_max = 500;                  //number of generations
     double total_time = 1000;            //total time steps
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range
@@ -61,6 +61,9 @@ public:
     bool sinusoidal_goal = false;
     double g_phase = 0;
     void moving_goal();
+    bool multi_var;      //50 goals per policy
+    void fifty_var();           //50 goals, start_x, start_x_dot
+    vector<vector<int>> fifty_inits;
     
     // RANDOMIZING STARTS //
     bool rand_start_ts = false;
@@ -92,7 +95,7 @@ public:
     double sn = 1;                  //sensor noise magnitude
     double an = 1;                  //actuator noise magnitude
     double As = 2;
-    bool sinusoidal_noise = true;   //
+    bool sinusoidal_noise = true;   //within sensor and actuator noise, so if those are false->sinusoidal is false
     double phase = PI/4;            //in Radians
     
     
@@ -107,7 +110,11 @@ public:
     bool te_3=false;    // noise and no ANT
     void test();
 
+    bool three_for_three;   //Reverse Leniancy
 
+    // GRAPHS //
+    void train_para();
+    void test_para();
     
 private:
 };
@@ -120,17 +127,33 @@ void Parameters::random_variables(){
         b = 1 + rand() % 2;       //damper
         k = 1 + rand() % 2;       //spring
         mu = 0 + rand() % 2;      //friction
-        start_x = 15 + rand() % 2;
+        start_x = 15 + rand() % 5;
     }
     
     if (rand_start_gen == true){
         // DOMAIN VARIABLES - STATIC
-        m = 7 + rand() % 2;       //mass
-        b = 1 + rand() % 2;       //damper
-        k = 1 + rand() % 2;       //spring
-        mu = 0 + rand() % 2;      //friction
-        start_x = 15 + rand() % 2;
+        //m = 7 + rand() % 2;       //mass
+        //b = 1 + rand() % 2;       //damper
+        //k = 1 + rand() % 2;       //spring
+        //mu = 0 + rand() % 2;      //friction
+        start_x = 15 + rand() % 5;
     }
+}
+
+void Parameters::train_para(){
+    ofstream train_para;
+    train_para.open("training_parameters.txt", ofstream::out | ofstream::trunc);
+    
+    train_para << "# Policies\t" << num_pol << "\t # Generations\t" << gen_max << "\t Mut Rate and Range\t" << mutation_rate << "\t" << mutate_range << endl;
+    train_para << "Pro Bounds\t " << P_f_min_bound << "\t" << P_f_max_bound << endl;
+    train_para << "Ant Bounds\t " << A_f_min_bound << "\t" << A_f_max_bound << endl;
+    train_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
+    train_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
+    train_para << "Noise\t" << sensor_NOISE << "\t" << actuator_NOISE << "\t" << sinusoidal_noise << "\t" << phase << endl;
+    train_para << "Random Starts/Gen\t" << rand_start_gen << endl;
+    train_para << "Reverse Leniency\t" << three_for_three << endl;
+    train_para << "50 Goals/Policy\t" << multi_var << endl;
+    train_para.close();
 }
 
 void Parameters::train(){
@@ -160,7 +183,26 @@ void Parameters::train(){
             sensor_NOISE = false;
             actuator_NOISE = false;
         }
+        train_para();
+        
     }
+}
+
+void Parameters::test_para(){
+    ofstream test_para;
+    test_para.open("testing_parameters.txt", ofstream::out | ofstream::trunc);
+    
+    test_para << "# Policies\t" << num_pol << "\t # Generations\t" << gen_max << "\t Mut Rate and Range\t" << mutation_rate << "\t" << mutate_range << endl;
+    test_para << "Pro Bounds\t " << P_f_min_bound << "\t" << P_f_max_bound << endl;
+    test_para << "Ant Bounds\t " << A_f_min_bound << "\t" << A_f_max_bound << endl;
+    test_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
+    test_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
+    test_para << "Noise\t" << sensor_NOISE << "\t" << actuator_NOISE << "\t" << sinusoidal_noise << "\t" << phase << endl;
+    test_para << "Random Starts/Gen\t" << rand_start_gen << endl;
+    test_para << "Reverse Leniency\t" << three_for_three << endl;
+    test_para << "50 Goals/Policy\t" << multi_var << endl;
+    
+    test_para.close();
 }
 
 void Parameters::test(){
@@ -190,6 +232,28 @@ void Parameters::test(){
             sensor_NOISE = true;
             actuator_NOISE = true;
         }
+        test_para();
+    }
+}
+
+void Parameters::fifty_var(){
+    if (multi_var==true) {
+        fstream fifty_history;
+        fifty_history.open("fiftysets_init.txt", ofstream::out | ofstream::trunc);
+        for (int i=0; i<50; i++) {
+            vector<int> three_inits;
+            
+            //Initialize 50x3 variables
+            three_inits.push_back(rand() % 6);//goal_x(0to6)
+            three_inits.push_back(5 + rand() % 25);//start_x=something;(0 to 25)
+            three_inits.push_back(0 + rand() % 5);//start_x_dot=something;(0 to 5)
+            for (int j=0; j<3; j++) {
+                fifty_history << three_inits.at(j) << "\t";
+            }
+            fifty_history << endl;
+            fifty_inits.push_back(three_inits);
+        }
+        fifty_history.close();
     }
 }
 

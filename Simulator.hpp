@@ -35,8 +35,14 @@ public:
     Parameters* aP;
     
     void Simulate(Policy* pPo, Policy* aPo);
+    void initStates(Policy* pPo, Policy* aPo);
     double generateGaussianNoise();
+    double generateActuatorNoise();
+    double generateSensorNoise();
+    void calculateFitness(Policy* pPo, Policy* aPo);
     double Fh = 60; //Frequency in hertz
+    double noise_x_sum;
+    double noise_xdot_sum;
     double xt =0;    //noise sinusoidal
     double g_xt = 0; //goal sinusoidal
     double sinusoidal=0;
@@ -47,7 +53,19 @@ private:
 
 
 //------------------------------------------------------------------------------------------------------------
+void Simulator::initStates(Policy* pPo, Policy* aPo){
+    noise_x_sum = 0;
+    noise_xdot_sum = 0;
+    
+    //intialize starting stuff
+    pPo->x = pP->start_x-pP->displace; //starting position minus any displacement
+    pPo->x_dot = pP->start_x_dot;
+    pPo->x_dd = pP->start_x_dd;
+    
+    pP->P_force = pP->start_P_force;
+    pP->A_force = pP->start_A_force;
 
+}
 
 double Simulator::generateGaussianNoise() {
     const double epsilon = numeric_limits<double>::min();
@@ -90,7 +108,35 @@ double Simulator::generateGaussianNoise() {
     return n;
 }
 
+void Simulator::calculateFitness(Policy* pPo, Policy* aPo){
+    double ss_penalty = 0;
+    /*
+     if (pPo->x<1.05*(1 + pP->start_x) || pPo->x>.95*(1 + pP->start_x)) {
+     ss_penalty = 1; //want closest to 0 displacement and penalize for not being at Steady state
+     }
+     */
+    if (pP->sinusoidal_goal==true){  // SINUSOIDAL GOAL //
+        g_xt = pPo->x+g_xt+pP->dt;
+        pP->goal_x = pP->start_x + pP->A_g*sin(PI/16*(g_xt+pP->dt)+pP->g_phase);
+        double F_dist = (abs(pP->goal_x - pPo->x));
+        pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+        aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+    }
+    else if (pP->multi_var==true){
+        pP->goal_x = pP->goal_x;//goal.at(k) from list
+        //cout << pP->goal_x << endl;
+        double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
+        pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+        aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+    }
+    else {
+        pP->goal_x = 2;
+        double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
+        pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+        aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+    }
 
+}
 
 
 //-------------------------------------------------------------------------
@@ -107,30 +153,12 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
     ofstream tstep_actuator;
     tstep_actuator.open("tstep_actuator.txt", ofstream::out | ofstream::trunc);
     
-    //STARTING POSITIONS
     fstream rand_start;
     rand_start.open("random_starting_variables.txt", fstream::app);
     
-    double noise_x_sum = 0;
-    double noise_xdot_sum = 0;
-    //pPo->weights;
-    if (pP->rand_start_gen == true){
-        pP->random_variables();
-        //intialize starting stuff
-        pPo->x = pP->start_x-pP->displace; //starting position minus any displacement
-        pPo->x_dot = pP->start_x_dot;
-        pPo->x_dd = pP->start_x_dd;
-    }
-    else {
-        //intialize starting stuff
-        pPo->x = pP->start_x-pP->displace; //starting position minus any displacement
-        pPo->x_dot = pP->start_x_dot;
-        pPo->x_dd = pP->start_x_dd;
-    }
+    //STARTING POSITIONS
+    initStates(pPo, aPo);
     
-    pP->P_force = pP->start_P_force;
-    pP->A_force = pP->start_A_force;
-
     //LOGGING START POSITIONS
     rand_start << pP->m << "\t" << pP->b << "\t" << pP->k << "\t" << pP->mu << "\t" << pP->start_x << endl;
     
@@ -169,7 +197,7 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         vector<double> noise;
         noise.push_back(0); // x sensor
         noise.push_back(0); // x actuator
-        noise.push_back(0); // xdot actuator
+        noise.push_back(0); // xdot sensor
         noise.push_back(0); // xdot actuator
         if (pP->sensor_NOISE == true) {
             double r = generateGaussianNoise();
@@ -238,33 +266,10 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         
         pPo->x_dot = pPo->x_dot + pPo->x_dd*pP->dt;
         pPo->x = pPo->x + pPo->x_dot*pP->dt;
-        
-        //cout << pPo->x_dd << "\t" << pPo->x_dot << "\t" << pPo->x << endl;
-
+       
         //calculate fitness
-        double ss_penalty = 0;
-        /*
-        if (pPo->x<1.05*(1 + pP->start_x) || pPo->x>.95*(1 + pP->start_x)) {
-            ss_penalty = 1; //want closest to 0 displacement and penalize for not being at Steady state
-        }
-        */
-        if (pP->sinusoidal_goal==true){  // SINUSOIDAL GOAL //
-            g_xt = pPo->x+g_xt+pP->dt;
-            pP->goal_x = pP->start_x + pP->A_g*sin(PI/16*(g_xt+pP->dt)+pP->g_phase);
-            double F_dist = (abs(pP->goal_x - pPo->x));
-            pPo->P_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
-            aPo->A_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
-        }
-        else {
-            pP->goal_x = 2;
-            double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
-            pPo->P_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
-            aPo->A_fitness += pP->w1*F_dist + pP->w2*ss_penalty;
-        }
+        calculateFitness(pPo, aPo);
         
-        
-        
-        //cout << "F_dist" << "\t" << endl;
         pPo->x_history.push_back(pPo->x);
         pPo->x_dot_history.push_back(pPo->x_dot);
         pPo->x_dd_history.push_back(pPo->x_dd);
@@ -273,7 +278,6 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         
         noise_x_sum += noise.at(0)+noise.at(1);
         noise_xdot_sum += noise.at(2)+noise.at(3);
-        
         tstep_sensor << noise.at(0)+noise.at(1) << "\t";
         tstep_actuator << noise.at(2)+noise.at(3) << "\t";
     }

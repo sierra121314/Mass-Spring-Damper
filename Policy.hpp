@@ -37,6 +37,8 @@ public:
     //...
     double P_fitness;
     double A_fitness;
+    double P_fit_swap;
+    double A_fit_swap;
     int age; //how long did it last?
     
     double x; // position of mass
@@ -53,23 +55,9 @@ private:
 
 void Policy::Init_P_policy(int num_weights) { //where does this get called?
     for (int p = 0; p < num_weights; p++) {
-        //cout << "Order " << p << endl;
         P_weights.at(p)=0;
-        
-    }
-    
-    
-}
-/*
-void Policy::Init_A_policy(<#int num_A_weights#>) {
-    for(int pa = 0; pa < num_A_weights; pa++) {
-        //cout << "Order " << pa << endl;
-        A_weights.push_back(0);
-        
     }
 }
-
-*/
 
 
 

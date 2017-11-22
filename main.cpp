@@ -32,8 +32,7 @@ bool one;
 int stat_runs = 30;
 
 
-int main()
-{
+int main() {
     srand(time(NULL));
     Parameters P;
     EA E;
@@ -48,6 +47,11 @@ int main()
     test_fit.open("stat_Ptest_fitness.txt", ofstream::out | ofstream::trunc);
     ofstream P_fit;
     P_fit.open("stat_P_fitness.txt", ofstream::out | ofstream::trunc);
+    ofstream SR;
+    SR.open("P_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);
+    ofstream SR_test;
+    SR_test.open("Ptest_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);
+    
 
     for (int s=0; s<stat_runs; s++){
         
@@ -69,11 +73,16 @@ int main()
         
         
         if (P.train_and_test == true){
+            P.three_for_three = false; //change this one
+            P.multi_var = false; //do NOT change this one
             P.train();
             E.pP = &P;
             E.Run_Program();
+            P.three_for_three = false; //do not change this one
             if(P.te_1==true || P.te_2==true || P.te_3==true){
+                P.multi_var = false; //change this one
                 P.test();
+                E.pP = &P;
                 E.Run_Simulation();
                 E.Evaluate();
                 E.Sort_Policies_By_Fitness();
@@ -83,6 +92,7 @@ int main()
                 //run nn that is trained but don't evolve any further
                 //1 simulation of the best
                 //1 simulation of medium of population
+                
             }
         }
         
@@ -94,12 +104,12 @@ int main()
             
             E.pP = &P;
             E.Run_Program();
-            
         }
-
     }
+    
     test_fit.close();
     P_fit.close();
-    
+    SR.close();
+    SR_test.close();
     cout << "END PROGRAM" << endl;
 }
