@@ -65,6 +65,9 @@ public:
     void fifty_var();           //50 goals, start_x, start_x_dot
     vector<vector<int>> fifty_inits;
     
+    // 2ND ANTAGONIST //
+    bool rand_antagonist = false;
+    
     // RANDOMIZING STARTS //
     bool rand_start_ts = false;
     bool rand_start_gen = false;
@@ -136,7 +139,10 @@ void Parameters::random_variables(){
         //b = 1 + rand() % 2;       //damper
         //k = 1 + rand() % 2;       //spring
         //mu = 0 + rand() % 2;      //friction
-        start_x = 15 + rand() % 5;
+        start_x = 5 + rand() % 25;
+        goal_x  = rand() % 6;
+        start_x_dot = 0 + rand() % 5;
+
     }
 }
 

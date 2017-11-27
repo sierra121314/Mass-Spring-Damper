@@ -35,7 +35,8 @@ public:
     Parameters* aP;
     
     void Simulate(Policy* pPo, Policy* aPo);
-    void initStates(Policy* pPo, Policy* aPo);
+    void MSD_initStates(Policy* pPo, Policy* aPo);
+    void Pendulum_initStates(Policy* pPo, Policy* aPo);
     double generateGaussianNoise();
     double generateActuatorNoise();
     double generateSensorNoise();
@@ -46,6 +47,8 @@ public:
     double xt =0;    //noise sinusoidal
     double g_xt = 0; //goal sinusoidal
     double sinusoidal=0;
+    void MSD_equations(Policy* pPo, Policy* aPo);
+    void Pendulum_equations(Policy* pPo, Policy* aPo);
     
 private:
 };
@@ -53,7 +56,7 @@ private:
 
 
 //------------------------------------------------------------------------------------------------------------
-void Simulator::initStates(Policy* pPo, Policy* aPo){
+void Simulator::MSD_initStates(Policy* pPo, Policy* aPo){
     noise_x_sum = 0;
     noise_xdot_sum = 0;
     
@@ -65,6 +68,17 @@ void Simulator::initStates(Policy* pPo, Policy* aPo){
     pP->P_force = pP->start_P_force;
     pP->A_force = pP->start_A_force;
 
+}
+
+void Simulator::Pendulum_initStates(Policy *pPo, Policy *aPo){
+    noise_x_sum = 0;
+    noise_xdot_sum = 0;
+    //theta = start_theta - displace;
+    //theta_dot = start_theta_dot;
+    //theta_dd = start_theta_dd;
+    
+    pP->P_force = pP->start_P_force;
+    pP->A_force = pP->start_A_force;
 }
 
 double Simulator::generateGaussianNoise() {
@@ -106,6 +120,27 @@ double Simulator::generateGaussianNoise() {
         n = (z0 * sigma + mu)/10;
     }
     return n;
+}
+
+void Simulator::MSD_equations(Policy* pPo, Policy* aPo){
+    if (pP->rand_antagonist==true){
+        pP->A_force=0;
+    }
+    pPo->x_dd = (1/(pP->m))*((-pP->b*pPo->x_dot) - (pP->k*(pPo->x-pP->start_x)) + pP->P_force + pP->A_force - pP->mu);
+    
+    pPo->x_dot = pPo->x_dot + pPo->x_dd*pP->dt;
+    pPo->x = pPo->x + pPo->x_dot*pP->dt;
+}
+
+void Simulator::Pendulum_equations(Policy *pPo, Policy *aPo){
+    //theta_dd = -g*sin(theta) / (L); //rad/s^2   // define theta_dd with t variable
+    //thetat_dd to theta_dot
+    //theta_dot = theta_dot + theta_dd*dt;
+    //theta_dot to theta
+    //theta = theta + theta_dot*dt;
+    //theta to xy
+    //Px = L*cos(theta);
+    //Py = L*sin(theta);
 }
 
 void Simulator::calculateFitness(Policy* pPo, Policy* aPo){
@@ -157,31 +192,36 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
     rand_start.open("random_starting_variables.txt", fstream::app);
     
     //STARTING POSITIONS
-    initStates(pPo, aPo);
+    MSD_initStates(pPo, aPo);
     
     //LOGGING START POSITIONS
     rand_start << pP->m << "\t" << pP->b << "\t" << pP->k << "\t" << pP->mu << "\t" << pP->start_x << endl;
     
+    // PROTAGONIST //
     neural_network NN;
-    neural_network NNa;
-
     NN.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs); //2 input, 10 hidden, 1 output
-    NNa.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs);
-    
-    // PROTAGONIST
     NN.set_in_min_max(pP->x_min_bound, pP->x_max_bound);        //displacement
     NN.set_in_min_max(pP->x_dot_min_bound,pP->x_dot_max_bound); //velocity
-    //NN.set_in_min_max(pP->x_dd_min_bound,pP->x_dd_max_bound); //acceleration
-    
     NN.set_out_min_max(pP->P_f_min_bound,pP->P_f_max_bound); // max forces
     NN.set_weights(pPo->P_weights, true);
     
-    // ANTAGONIST
-    NNa.set_in_min_max(pP->x_min_bound, pP->x_max_bound);        //displacement
-    NNa.set_in_min_max(pP->x_dot_min_bound,pP->x_dot_max_bound);  //velocity
-    NNa.set_out_min_max(pP->A_f_min_bound,pP->A_f_max_bound); // max forces
-    NNa.set_weights(aPo->A_weights, true);
-    
+    // ANTAGONIST //
+    neural_network NNa;
+    if (pP->rand_antagonist ==true) {
+        
+    }
+    else {
+        // ANTAGONIST //
+        
+        NNa.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs);
+        NNa.set_in_min_max(pP->x_min_bound, pP->x_max_bound);        //displacement
+        NNa.set_in_min_max(pP->x_dot_min_bound,pP->x_dot_max_bound);  //velocity
+        NNa.set_out_min_max(pP->A_f_min_bound,pP->A_f_max_bound); // max forces
+        NNa.set_weights(aPo->A_weights, true);
+
+    }
+
+
     //CLEAR x, xdot, xdd history vector
     pPo->x_history.clear();
     pPo->x_dot_history.clear();
@@ -242,32 +282,30 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         state.push_back(pPo->x+noise.at(0)+noise.at(1));
         state.push_back(pPo->x_dot+noise.at(2)+noise.at(3));
         
-        
-        // IS THIS CORRECT? //
         NN.set_vector_input(state);
-        NNa.set_vector_input(state);
-        
         NN.execute();
-        NNa.execute();
-        
-        //cout << NN.scInput() << endl;
         pP->P_force = NN.get_output(0);
-        pP->A_force = NNa.get_output(0);
-        //cout << pPo->P_force << endl;
-        //cout << "i " << i << endl;
         assert(pP->P_force >= pP->P_f_min_bound - 0.5 && pP->P_force <= pP->P_f_max_bound + 0.5); //make sure matches NN output
-        assert(pP->A_force >= pP->A_f_min_bound - 0.5 && pP->A_force <= pP->A_f_max_bound + 0.5);
+        if (pP->rand_antagonist==true){
+            
+        }
+        else {
+            NNa.set_vector_input(state);
+            NNa.execute();
+            pP->A_force = NNa.get_output(0);
+            assert(pP->A_force >= pP->A_f_min_bound - 0.5 && pP->A_force <= pP->A_f_max_bound + 0.5);
+            
+        }
         
         // UPDATE POSITION, VELOCITY, ACCELERATION //
         if (pP->rand_start_ts == true){
             pP->random_variables();
         }
-        pPo->x_dd = (1/(pP->m))*((-pP->b*pPo->x_dot) - (pP->k*(pPo->x-pP->start_x)) + pP->P_force + pP->A_force - pP->mu);
         
-        pPo->x_dot = pPo->x_dot + pPo->x_dd*pP->dt;
-        pPo->x = pPo->x + pPo->x_dot*pP->dt;
+        MSD_equations(pPo, aPo);
+        //Pendulum_equations(pPo, aPo);
        
-        //calculate fitness
+        // CALCULATE FITNESS //
         calculateFitness(pPo, aPo);
         
         pPo->x_history.push_back(pPo->x);
@@ -282,10 +320,7 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         tstep_actuator << noise.at(2)+noise.at(3) << "\t";
     }
     
-    //cout << "end of simulator loop" << endl;
-    /// total x_noise "/t"
     nsensor << (noise_x_sum/(2*pP->total_time)) << "\t";
-    // total x_dot_noise "/t" put into file
     nactuator << (noise_xdot_sum/(2*pP->total_time)) << "\t";
     
     tstep_sensor.close();
