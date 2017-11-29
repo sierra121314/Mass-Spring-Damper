@@ -65,7 +65,6 @@ public:
     double ave;
     int place;
     int num_loops;
-    //int num_weights = 5;
     
 private:
 };
@@ -76,8 +75,7 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 //Builds population of policies
-void EA::Build_Population()
-{
+void EA::Build_Population() {
     neural_network PNN;
     PNN.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs);
     pP->num_weights = PNN.intended_size;
@@ -135,7 +133,6 @@ void EA::Run_Simulation() {
     }
     
     for (int i=0; i<pP->num_pol; i++) {
-        
         for (int k=0; k<num_loops; k++) {
             if (pP->multi_var==true){
                 pP->goal_x = pP->fifty_inits.at(k).at(0);       //goal from vector
@@ -179,7 +176,6 @@ void EA::Run_Simulation() {
                 ant_pol.at(i).A_fit_swap = 0;
                 
                 Simulator S;
-                
                 S.pP = this->pP;
                 Policy* pPo;
                 Policy* aPo;
@@ -286,12 +282,12 @@ void EA::Downselect() {
 //Mutates the copies of the winning individuals
 void EA::Mutation(Policy &M, Policy &N) {
    //This is where the policy is slightly mutated
-    
     for (int x = 0; x < pP->num_weights; x++) {
         double random = ((double)rand()/RAND_MAX);
         double random2 = ((double)rand()/RAND_MAX);
-        //cout << "r" << "\t" << random << endl;
-        if (random <= pP->mutation_rate) {                          // Protagonist
+
+        // PROTAGONIST //
+        if (random <= pP->mutation_rate) {
             double R1 = ((double)rand()/RAND_MAX) * pP->mutate_range;
             double R2 = ((double)rand()/RAND_MAX) * pP->mutate_range;
             M.P_weights.at(x) = M.P_weights.at(x) + (R1-R2);
@@ -301,25 +297,38 @@ void EA::Mutation(Policy &M, Policy &N) {
             if (M.P_weights.at(x)>1) {
                 M.P_weights.at(x) = 1;
             }
-            //cout << x << "\t";
         }
-        if (random2 <= pP->mutation_rate) {                         // Antagonist
+        assert(M.P_weights.at(x)<=1 && M.P_weights.at(x)>=-1);
+        
+        // ANTAGONIST //
+        if (random2 <= pP->mutation_rate) {
             double R3 = ((double)rand()/RAND_MAX) * pP->mutate_range;
             double R4 = ((double)rand()/RAND_MAX) * pP->mutate_range;
-            N.A_weights.at(x) = N.A_weights.at(x) + (R3-R4);
-            if (N.A_weights.at(x)<-1) {
-                N.A_weights.at(x) = -1;
+            if (pP->rand_antagonist==false){
+                N.A_weights.at(x) = N.A_weights.at(x) + (R3-R4);
+                if (N.A_weights.at(x)<-1) {
+                    N.A_weights.at(x) = -1;
+                }
+                if (N.A_weights.at(x)>1) {
+                    N.A_weights.at(x) = 1;
+                }
+                assert(N.A_weights.at(x)<=1 && N.A_weights.at(x)>=-1);
             }
-            if (N.A_weights.at(x)>1) {
-                N.A_weights.at(x) = 1;
-            }
-            //cout << x << "\t";
         }
-        //cout << Gen.at(Gen.size()-1).weights.at(x) << endl;
-        assert(M.P_weights.at(x)<=1 && M.P_weights.at(x)>=-1);
-        assert(N.A_weights.at(x)<=1 && N.A_weights.at(x)>=-1);
     }
-    
+    if (pP->rand_antagonist==true){
+        for (int y =0; y < 4; y++){
+            double random2 = ((double)rand()/RAND_MAX);
+            if (random2 <= pP->mutation_rate) {
+                double R3 = rand() % 1;
+                double R4 = rand() % 1;
+                pP->start_x = pP->start_x + R3 - R4;
+                pP->start_x_dot = pP->start_x_dot + R3 - R4;
+                pP->goal_x = pP->goal_x + R3 - R4;
+            
+            }
+        }
+    }
 }
 
 
@@ -334,7 +343,7 @@ void EA::Repopulate() {
         int spot2 = rand() % ant_pol.size();
         M = pro_pol.at(spot);
         N = ant_pol.at(spot2);
-        //cout << "cp" << endl;
+
         Mutation(M, N);
         pro_pol.push_back(M);
         ant_pol.push_back(N);
@@ -474,7 +483,7 @@ void EA::Graph_test(){
     fout.open("test_P_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);
     for (int h =0; h < pP->num_pol; h++){
         fout << pro_pol.at(h).P_fitness << "\t";
-        //fitness per policy maybe?
+
     }
     ofstream SR_test;
     SR_test.open("Ptest_best_fitpergen_SR_history.txt", fstream::app);
@@ -506,7 +515,11 @@ void EA::Run_Program() {
     best_P_fitness.clear();
     best_A_fitness.clear();
     for (int gen=0; gen<pP->gen_max; gen++) {
-        
+        if (gen %5 ==0){
+            if (pP->rand_start_5gen==true){
+                pP->random_variables();
+            }
+        }
         if (gen %10 ==0) {
             //cout << "GENERATION \t" << gen << endl;
         }
@@ -523,7 +536,7 @@ void EA::Run_Program() {
             
             best_P_fitness.push_back(pro_pol.at(0).P_fitness);      // best fitness per generation
             best_A_fitness.push_back(ant_pol.at(0).A_fitness);
-            for (int f = 0; f<best_P_fitness.size(); f++) { //help 11/20
+            for (int f = 0; f < best_P_fitness.size(); f++) { //help 11/20
                 //sum += pro_pol.at(f).P_fitness;
                 sum += best_P_fitness.at(f);
             }

@@ -69,8 +69,8 @@ public:
     bool rand_antagonist = false;
     
     // RANDOMIZING STARTS //
-    bool rand_start_ts = false;
     bool rand_start_gen = false;
+    bool rand_start_5gen = false;
     void random_variables();
     
     // WHAT TO GRAPH
@@ -104,6 +104,10 @@ public:
     
     // TRAINING AND TESTING MODES //
     bool train_and_test;
+    void test_train_set();
+    bool three;         //train test 3 combo
+    bool two;           //train test 2 combo
+    bool one;           //train test 1 combo
     bool tr_1=false;    //pro plus ant with no noise
     bool tr_2=false;    // pro only
     bool tr_3=false;    //pro plus ant
@@ -123,26 +127,33 @@ private:
 };
 
 void Parameters::random_variables(){
-    if (rand_start_ts == true) {
-        
-        // DOMAIN VARIABLES - STATIC
-        m = 7 + rand() % 2;       //mass
-        b = 1 + rand() % 2;       //damper
-        k = 1 + rand() % 2;       //spring
-        mu = 0 + rand() % 2;      //friction
-        start_x = 15 + rand() % 5;
-    }
     
-    if (rand_start_gen == true){
-        // DOMAIN VARIABLES - STATIC
-        //m = 7 + rand() % 2;       //mass
-        //b = 1 + rand() % 2;       //damper
-        //k = 1 + rand() % 2;       //spring
-        //mu = 0 + rand() % 2;      //friction
-        start_x = 5 + rand() % 25;
-        goal_x  = rand() % 6;
-        start_x_dot = 0 + rand() % 5;
+    // DOMAIN VARIABLES - STATIC
+    //m = 7 + rand() % 2;       //mass
+    //b = 1 + rand() % 2;       //damper
+    //k = 1 + rand() % 2;       //spring
+    //mu = 0 + rand() % 2;      //friction
+    start_x = 5 + rand() % 5;
+    goal_x  = rand() % 5;
+    start_x_dot = 0 + rand() % 5;  
 
+}
+
+void Parameters::test_train_set(){
+    if (one ==true){
+        tr_1 = true;
+        te_1 = true;
+        cout << "test one" <<endl;
+    }
+    if (two == true){
+        tr_2 = true;
+        te_2 = true;
+        cout << "test two" <<endl;
+    }
+    if (three == true){
+        tr_3 = true;
+        te_3 = true;
+        cout << "test three" <<endl;
     }
 }
 

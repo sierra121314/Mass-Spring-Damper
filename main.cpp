@@ -26,9 +26,7 @@
 #include "Simulator.hpp"
 #include "EA.hpp"
 
-bool three;
-bool two;
-bool one;
+
 int stat_runs = 1;
 
 
@@ -40,42 +38,24 @@ int main() {
     //TRAINING MODES
     P.train_and_test = true; //CHANGE
     
-    three = true;
-    two = false;
-    one = false;
-    ofstream test_fit;
+    P.three = false;
+    P.two = true;
+    P.one = false;
+    ofstream test_fit, P_fit, SR, SR_test;
     test_fit.open("stat_Ptest_fitness.txt", ofstream::out | ofstream::trunc);
-    ofstream P_fit;
     P_fit.open("stat_P_fitness.txt", ofstream::out | ofstream::trunc);
-    ofstream SR;
     SR.open("P_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);
-    ofstream SR_test;
     SR_test.open("Ptest_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);
     
 
     for (int s=0; s<stat_runs; s++){
         
-        if (one ==true){
-            P.tr_1 = true;
-            P.te_1 = true;
-            cout << "test one" <<endl;
-        }
-        if (two == true){
-            P.tr_2 = true;
-            P.te_2 = true;
-            cout << "test two" <<endl;
-        }
-        if (three == true){
-            P.tr_3 = true;
-            P.te_3 = true;
-            cout << "test three" <<endl;
-        }
-        
-        
         if (P.train_and_test == true){
+            P.test_train_set();
             P.three_for_three = false; //change this one
             P.multi_var = false; //do NOT change this one
-            P.rand_start_gen = true; //change this one
+            P.rand_start_gen = false; //change this one
+            P.rand_start_5gen = true; //change this one
             P.train();
             E.pP = &P;
             E.Run_Program();

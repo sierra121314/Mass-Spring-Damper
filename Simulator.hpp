@@ -298,9 +298,6 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         }
         
         // UPDATE POSITION, VELOCITY, ACCELERATION //
-        if (pP->rand_start_ts == true){
-            pP->random_variables();
-        }
         
         MSD_equations(pPo, aPo);
         //Pendulum_equations(pPo, aPo);
