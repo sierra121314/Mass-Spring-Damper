@@ -27,7 +27,7 @@
 #include "EA.hpp"
 
 
-int stat_runs = 1;
+int stat_runs = 30;
 
 
 int main() {
@@ -38,8 +38,10 @@ int main() {
     //TRAINING MODES
     P.train_and_test = true; //CHANGE
     
-    P.three = false;
-    P.two = true;
+    P.four_B = true;
+    P.two_B = false;
+    P.three_A = false;
+    P.two_A = false;
     P.one = false;
     ofstream test_fit, P_fit, SR, SR_test;
     test_fit.open("stat_Ptest_fitness.txt", ofstream::out | ofstream::trunc);
@@ -53,22 +55,20 @@ int main() {
         if (P.train_and_test == true){
             P.test_train_set();
             P.three_for_three = false; //change this one
-            P.multi_var = false; //do NOT change this one
-            P.rand_start_gen = false; //change this one
-            P.rand_start_5gen = true; //change this one
             P.train();
             E.pP = &P;
             E.Run_Program();
-            P.three_for_three = false; //do NOT change this one
-            P.rand_start_gen = false; //do NOT change this one
-            if(P.te_1==true || P.te_2==true || P.te_3==true){
-                P.multi_var = false; //change this one
+            if(P.te_1==true || P.te_A==true || P.te_B==true){
                 P.test();
-                E.pP = &P;
+                //E.pP = &P;
                 E.Run_Simulation();
                 E.Evaluate();
                 E.Sort_Policies_By_Fitness();
                 cout << "BEST POLICY Test PRO-FITNESS" << "\t" << E.pro_pol.at(0).P_fitness << endl;
+                /*
+                for (int i=0; i<P.num_pol; i++) {
+                    test_fit << E.pro_pol.at(i).P_fitness << endl;
+                }*/
                 test_fit << E.pro_pol.at(0).P_fitness << endl;
                 E.Graph_test();
                 //run nn that is trained but don't evolve any further

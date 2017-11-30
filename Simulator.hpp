@@ -179,23 +179,15 @@ void Simulator::calculateFitness(Policy* pPo, Policy* aPo){
 void Simulator::Simulate(Policy* pPo, Policy* aPo)
 {
     //NOISE GRAPH
-    fstream nsensor;
-    fstream nactuator;
+    fstream nsensor, nactuator, tstep_sensor, tstep_actuator;
     nsensor.open("ave_sensor_noise.txt", fstream::app);
     nactuator.open("ave_actuator_noise.txt", fstream::app);
-    ofstream tstep_sensor;
     tstep_sensor.open("tstep_sensor.txt", ofstream::out | ofstream::trunc);
-    ofstream tstep_actuator;
     tstep_actuator.open("tstep_actuator.txt", ofstream::out | ofstream::trunc);
-    
-    fstream rand_start;
-    rand_start.open("random_starting_variables.txt", fstream::app);
     
     //STARTING POSITIONS
     MSD_initStates(pPo, aPo);
     
-    //LOGGING START POSITIONS
-    rand_start << pP->m << "\t" << pP->b << "\t" << pP->k << "\t" << pP->mu << "\t" << pP->start_x << endl;
     
     // PROTAGONIST //
     neural_network NN;

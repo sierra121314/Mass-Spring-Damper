@@ -85,7 +85,7 @@ void EA::Build_Population() {
     for (int i=0; i<pP->num_pol; i++) {
         Policy proP;
         Policy antP;
-        pro_pol.push_back(proP);
+        pro_pol.push_back(proP);    //population of primary policies
         ant_pol.push_back(antP);
         pro_pol.at(i).age = 0;
         ant_pol.at(i).age = 0;
@@ -120,6 +120,9 @@ void EA::Build_Population() {
 void EA::Run_Simulation() {
     random_shuffle ( pro_pol.begin(), pro_pol.end() );
     random_shuffle ( ant_pol.begin(), ant_pol.end() );
+    fstream rand_start, test_fit;
+    rand_start.open("random_starting_variables.txt", fstream::app);
+    test_fit.open("stat_Ptest_fitness.txt", fstream::app);
     if (pP->rand_start_gen == true){
         pP->random_variables();
     }
@@ -127,12 +130,17 @@ void EA::Run_Simulation() {
         num_loops=50;
         pP->fifty_var();    //initialize 50x3 variables
     }
-    
     else {
         num_loops=1;
     }
+    //LOGGING START POSITIONS
+    rand_start << pP->m << "\t" << pP->b << "\t" << pP->k << "\t" << pP->mu << "\t" << pP->start_x << "\t" << pP->goal_x << "\t" << pP->start_x_dot << endl;
     
     for (int i=0; i<pP->num_pol; i++) {
+        pro_pol.at(i).P_fitness = 100000000000; //changed from -1 11/15
+        ant_pol.at(i).A_fitness = 10000000;
+        pro_pol.at(i).P_fit_swap = 0;
+        ant_pol.at(i).A_fit_swap = 0;
         for (int k=0; k<num_loops; k++) {
             if (pP->multi_var==true){
                 pP->goal_x = pP->fifty_inits.at(k).at(0);       //goal from vector
@@ -140,13 +148,9 @@ void EA::Run_Simulation() {
                 pP->start_x = pP->fifty_inits.at(k).at(1);      //start x from vector
                 pP->start_x_dot = pP->fifty_inits.at(k).at(2);  //start xdot from vector
             }
-            pro_pol.at(i).P_fitness = 10000000; //changed from -1 11/15
-            ant_pol.at(i).A_fitness = 10000000;
-            pro_pol.at(i).P_fit_swap = 0;
-            ant_pol.at(i).A_fit_swap = 0;
+            
             //First we insert a policy into the simulator then we can take the objective data for that policy and store it in our data architecture
             Simulator S;
-            
             S.pP = this->pP;
             Policy* pPo;
             Policy* aPo;
@@ -162,6 +166,14 @@ void EA::Run_Simulation() {
             }
             assert(pro_pol.at(i).P_fitness>=0);
             assert(ant_pol.at(i).A_fitness>=0 && ant_pol.at(i).A_fitness<10000000);
+            /*
+            if (pP->multi_var==true) {
+                test_fit << pro_pol.at(i).P_fit_swap << "\t";
+            }*/
+        }
+        if (pP->multi_var==true) {
+            //test_fit << pro_pol.at(i).P_fit_swap << endl;
+            pro_pol.at(i).P_fitness = pro_pol.at(i).P_fit_swap;
         }
     }
     
