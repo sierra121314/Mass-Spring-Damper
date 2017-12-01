@@ -131,7 +131,7 @@ void EA::Run_Simulation() {
         pP->fifty_var();    //initialize 50x3 variables
     }
     else {
-        num_loops=1;
+        num_loops = 1;
     }
     //LOGGING START POSITIONS
     rand_start << pP->m << "\t" << pP->b << "\t" << pP->k << "\t" << pP->mu << "\t" << pP->start_x << "\t" << pP->goal_x << "\t" << pP->start_x_dot << endl;

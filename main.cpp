@@ -27,7 +27,7 @@
 #include "EA.hpp"
 
 
-int stat_runs = 30;
+int stat_runs = 1;
 
 
 int main() {
@@ -38,9 +38,10 @@ int main() {
     //TRAINING MODES
     P.train_and_test = true; //CHANGE
     
-    P.four_B = true;
+    P.five_B = false;
+    P.four_B = false;
     P.two_B = false;
-    P.three_A = false;
+    P.three_A = true;
     P.two_A = false;
     P.one = false;
     ofstream test_fit, P_fit, SR, SR_test;
@@ -51,7 +52,6 @@ int main() {
     
 
     for (int s=0; s<stat_runs; s++){
-        
         if (P.train_and_test == true){
             P.test_train_set();
             P.three_for_three = false; //change this one

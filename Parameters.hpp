@@ -105,6 +105,7 @@ public:
     // TRAINING AND TESTING MODES //
     bool train_and_test;
     void test_train_set();
+    bool five_B;            //Antagonist that manipulates starting variables
     bool four_B;          //Primary with random starting variables per generation
     bool three_A;         //train test 3 combo
     bool two_B;           //Primary ...
@@ -112,13 +113,13 @@ public:
     bool one;           //train test 1 combo
     bool tr_1;          //pro plus ant with no noise
     bool tr_2;          // pro only
-    bool tr_3;          //pro plus ant
-    bool tr_4;
+    bool tr_3;          //pro plus ant manipulating force
+    bool tr_4;          // pro and random starting variables per gen
+    bool tr_5;          //pro plus ant manipulating starting variables
     void train();
     bool te_1;          // tr_1 with noise
     bool te_A;          // Primary with no antagonist and noise
     bool te_B;          // Domain with Gaussian noise distribution on top of a sinusoidal wave and 50 sets of starting variables per policy
-    bool te_3;          // noise and no ANT
     void test();
 
     bool three_for_three;   //Reverse Leniancy
@@ -169,6 +170,10 @@ void Parameters::test_train_set(){
         te_B = true;
         cout << "train two - test B" <<endl;
     }
+    if (five_B == true){
+        tr_5 = true;
+        te_B = true;
+    }
 }
 
 void Parameters::train_para(){
@@ -180,10 +185,10 @@ void Parameters::train_para(){
     train_para << "Ant Bounds\t " << A_f_min_bound << "\t" << A_f_max_bound << endl;
     train_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
     train_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
-    train_para << "Noise\t" << sensor_NOISE << "\t" << actuator_NOISE << "\t" << sinusoidal_noise << "\t" << phase << endl;
+    train_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << "\t SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << endl;
     train_para << "Random Starts/Gen\t" << rand_start_gen << "\t" << rand_start_5gen << endl;
     train_para << "Reverse Leniency\t" << three_for_three << endl;
-    train_para << "50 Goals/Policy\t" << multi_var << endl;
+    train_para << "50 Starting Variables/Policy\t" << multi_var << endl;
     train_para.close();
 }
 
@@ -234,8 +239,20 @@ void Parameters::train(){
             rand_start_5gen = false;
             multi_var = false; //do NOT change this one
         }
+        if (tr_5 == true){
+            P_f_min_bound = -5;
+            P_f_max_bound = 5;
+            A_f_min_bound = -0;
+            A_f_max_bound = 0;
+            //ADD SOMETHING HERE ABOUT ANTAGONIST MANIPULATING VARIABLES
+            sensor_NOISE = false;
+            actuator_NOISE = false;
+            rand_start_gen = false;
+            rand_start_5gen = false;
+            multi_var = false; //do NOT change this one
+
+        }
         train_para();
-        
     }
 }
 
@@ -248,10 +265,10 @@ void Parameters::test_para(){
     test_para << "Ant Bounds\t " << A_f_min_bound << "\t" << A_f_max_bound << endl;
     test_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
     test_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
-    test_para << "Noise\t" << sensor_NOISE << "\t" << actuator_NOISE << "\t" << sinusoidal_noise << "\t" << phase << endl;
+    test_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << "\t SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << endl;
     test_para << "Random Starts/Gen\t" << rand_start_gen << "\t" << rand_start_5gen << endl;
     test_para << "Reverse Leniency\t" << three_for_three << endl;
-    test_para << "50 Goals/Policy\t" << multi_var << endl;
+    test_para << "50 Starting Variables/Policy\t" << multi_var << endl;
     
     test_para.close();
 }
