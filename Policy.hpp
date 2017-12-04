@@ -29,6 +29,7 @@ public:
     //Include all needed information about any policy here
     vector<double> P_weights;
     vector<double> A_weights;
+    vector<double> A_ICs;
     vector<double> x_history;
     vector<double> x_dot_history;
     vector<double> x_dd_history;

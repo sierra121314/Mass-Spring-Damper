@@ -95,19 +95,22 @@ void EA::Build_Population() {
         //for that policy have a vector of weights
         for (int w=0; w < pP->num_weights; w++){
             //pick random # between 0 and 1 and put into that vector
-            //double ph = dou);
-            //cout << ph << endl;
             double P_r = -1 + (2)*((double)rand()/RAND_MAX);
             double A_r = -1 + (2)*((double)rand()/RAND_MAX);
-            //double  r  = -1 + 2*ph;
             pro_pol.at(i).P_weights.push_back(P_r);
             ant_pol.at(i).A_weights.push_back(A_r);
-            //cout << r << "\t";
+
             assert(-1<=P_r && 1>=P_r);
             assert(-1<=A_r && 1>=A_r);
-            
         }
-        //cout << endl;
+        if (pP->rand_antagonist==true) { //if statement not necessary
+            double A_IC_goal = double(rand() % 6);
+            double A_IC_startx = 5 + double(rand() % 25);
+            double A_IC_startxdot = double(rand() % 5);
+            ant_pol.at(i).A_ICs.push_back(A_IC_goal); //goal_x
+            ant_pol.at(i).A_ICs.push_back(A_IC_startx); //start_x
+            ant_pol.at(i).A_ICs.push_back(A_IC_startxdot); //start_x_dot
+        }
         
     }
     assert(pro_pol.size() == pP->num_pol); // check to make sure that the policy sizes are the same
@@ -207,7 +210,6 @@ void EA::Run_Simulation() {
             
             
         }
-        //find best antagonist set out of 3
     }
      
     fstream nsensor;
@@ -313,10 +315,11 @@ void EA::Mutation(Policy &M, Policy &N) {
         assert(M.P_weights.at(x)<=1 && M.P_weights.at(x)>=-1);
         
         // ANTAGONIST //
-        if (random2 <= pP->mutation_rate) {
-            double R3 = ((double)rand()/RAND_MAX) * pP->mutate_range;
-            double R4 = ((double)rand()/RAND_MAX) * pP->mutate_range;
-            if (pP->rand_antagonist==false){
+        if (pP->tr_3==true){
+            if (random2 <= pP->mutation_rate) {
+                double R3 = ((double)rand()/RAND_MAX) * pP->mutate_range;
+                double R4 = ((double)rand()/RAND_MAX) * pP->mutate_range;
+                
                 N.A_weights.at(x) = N.A_weights.at(x) + (R3-R4);
                 if (N.A_weights.at(x)<-1) {
                     N.A_weights.at(x) = -1;
@@ -329,15 +332,33 @@ void EA::Mutation(Policy &M, Policy &N) {
         }
     }
     if (pP->rand_antagonist==true){
-        for (int y =0; y < 4; y++){
-            double random2 = ((double)rand()/RAND_MAX);
-            if (random2 <= pP->mutation_rate) {
-                double R3 = rand() % 1;
-                double R4 = rand() % 1;
-                pP->start_x = pP->start_x + R3 - R4;
-                pP->start_x_dot = pP->start_x_dot + R3 - R4;
-                pP->goal_x = pP->goal_x + R3 - R4;
-            
+        double random2 = ((double)rand()/RAND_MAX);
+        if (random2 <= pP->mutation_rate) {
+            double R3 = double(rand() % 1);
+            double R4 = double(rand() % 1);
+            //GOAL_X SET AND BOUNDARY CHECK
+            N.A_ICs.at(0) = pP->goal_x + R3 - R4;
+            if (N.A_ICs.at(0)>pP->goal_x_upper_bound){
+                N.A_ICs.at(0) =pP->goal_x_upper_bound;
+            }
+            if (N.A_ICs.at(0)<pP->goal_x_lower_bound){
+                N.A_ICs.at(0) =pP->goal_x_lower_bound;
+            }
+            //START_X SET AND BOUNDARY CHECK
+            N.A_ICs.at(1) = pP->start_x + R3 - R4;
+            if (N.A_ICs.at(1)>pP->start_x_upper_bound){
+                N.A_ICs.at(1) =pP->start_x_upper_bound;
+            }
+            if (N.A_ICs.at(1)<pP->start_x_lower_bound){
+                N.A_ICs.at(1) =pP->start_x_lower_bound;
+            }
+            //START_X_DOT SET AND BOUNDARY CHECK
+            N.A_ICs.at(2)= pP->start_x_dot + R3 - R4;
+            if (N.A_ICs.at(2)>pP->start_x_dot_upper_bound){
+                N.A_ICs.at(2) =pP->start_x_dot_upper_bound;
+            }
+            if (N.A_ICs.at(2)<pP->start_x_dot_lower_bound){
+                N.A_ICs.at(2) =pP->start_x_dot_lower_bound;
             }
         }
     }

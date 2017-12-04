@@ -32,7 +32,7 @@ protected:
     
 public:
     Parameters* pP;
-    Parameters* aP;
+    //Parameters* aP;
     
     void Simulate(Policy* pPo, Policy* aPo);
     void MSD_initStates(Policy* pPo, Policy* aPo);
@@ -50,21 +50,32 @@ public:
     void MSD_equations(Policy* pPo, Policy* aPo);
     void Pendulum_equations(Policy* pPo, Policy* aPo);
     
+    //2ND ANTAGONIST
+    void set_A_ICs(Policy* pPo, Policy* aPo);
+    
 private:
 };
 
 
 
 //------------------------------------------------------------------------------------------------------------
+void Simulator::set_A_ICs(Policy* pPo, Policy* aPo){
+    pP->goal_x = aPo->A_ICs.at(0);
+    pP->start_x = aPo->A_ICs.at(1);
+    pP->start_x_dot = aPo->A_ICs.at(2);
+}
 void Simulator::MSD_initStates(Policy* pPo, Policy* aPo){
     noise_x_sum = 0;
     noise_xdot_sum = 0;
     
     //intialize starting stuff
+    if (pP->tr_5==true){
+        set_A_ICs(pPo, aPo);
+    }
+    
     pPo->x = pP->start_x-pP->displace; //starting position minus any displacement
     pPo->x_dot = pP->start_x_dot;
     pPo->x_dd = pP->start_x_dd;
-    
     pP->P_force = pP->start_P_force;
     pP->A_force = pP->start_A_force;
 
@@ -123,9 +134,7 @@ double Simulator::generateGaussianNoise() {
 }
 
 void Simulator::MSD_equations(Policy* pPo, Policy* aPo){
-    if (pP->rand_antagonist==true){
-        pP->A_force=0;
-    }
+
     pPo->x_dd = (1/(pP->m))*((-pP->b*pPo->x_dot) - (pP->k*(pPo->x-pP->start_x)) + pP->P_force + pP->A_force - pP->mu);
     
     pPo->x_dot = pPo->x_dot + pPo->x_dd*pP->dt;
@@ -202,17 +211,13 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
     if (pP->rand_antagonist ==true) {
         
     }
-    else {
-        // ANTAGONIST //
-        
+    if (pP->tr_3==true){
         NNa.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs);
         NNa.set_in_min_max(pP->x_min_bound, pP->x_max_bound);        //displacement
         NNa.set_in_min_max(pP->x_dot_min_bound,pP->x_dot_max_bound);  //velocity
         NNa.set_out_min_max(pP->A_f_min_bound,pP->A_f_max_bound); // max forces
         NNa.set_weights(aPo->A_weights, true);
-
     }
-
 
     //CLEAR x, xdot, xdd history vector
     pPo->x_history.clear();
@@ -279,18 +284,19 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         pP->P_force = NN.get_output(0);
         assert(pP->P_force >= pP->P_f_min_bound - 0.5 && pP->P_force <= pP->P_f_max_bound + 0.5); //make sure matches NN output
         if (pP->rand_antagonist==true){
-            
+            pP->A_force = 0;
         }
-        else {
+        if (pP->tr_3==true) {
             NNa.set_vector_input(state);
             NNa.execute();
             pP->A_force = NNa.get_output(0);
             assert(pP->A_force >= pP->A_f_min_bound - 0.5 && pP->A_force <= pP->A_f_max_bound + 0.5);
-            
+        }
+        else{
+            pP->A_force = 0;
         }
         
         // UPDATE POSITION, VELOCITY, ACCELERATION //
-        
         MSD_equations(pPo, aPo);
         //Pendulum_equations(pPo, aPo);
        
