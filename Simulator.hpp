@@ -136,7 +136,6 @@ double Simulator::generateGaussianNoise() {
 void Simulator::MSD_equations(Policy* pPo, Policy* aPo){
 
     pPo->x_dd = (1/(pP->m))*((-pP->b*pPo->x_dot) - (pP->k*(pPo->x-pP->start_x)) + pP->P_force + pP->A_force - pP->mu);
-    
     pPo->x_dot = pPo->x_dot + pPo->x_dd*pP->dt;
     pPo->x = pPo->x + pPo->x_dot*pP->dt;
 }

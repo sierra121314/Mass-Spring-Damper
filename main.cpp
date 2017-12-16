@@ -38,12 +38,12 @@ int main() {
     //TRAINING MODES
     P.train_and_test = true; //CHANGE
     
-    P.five_B = true;
+    P.five_B = false;
     P.four_B = false;
     P.two_B = false;
     P.three_B = false;
-    P.three_A = false;
-    P.two_A = false;
+    P.three_A = true;   // FOR SUSHIL's paper keep this TRUE
+    P.two_A = false;     // OR keep this TRUE
     P.one = false;
     ofstream test_fit, P_fit, SR, SR_test;
     test_fit.open("stat_Ptest_fitness.txt", ofstream::out | ofstream::trunc);
@@ -72,9 +72,6 @@ int main() {
                 }*/
                 test_fit << E.pro_pol.at(0).P_fitness << endl;
                 E.Graph_test();
-                //run nn that is trained but don't evolve any further
-                //1 simulation of the best
-                //1 simulation of medium of population
                 
             }
         }
