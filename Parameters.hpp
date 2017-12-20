@@ -26,9 +26,9 @@ protected:
     
 public:
     // EA STUFF //
-    int num_pol = 100;                  //number of policies
+    int num_pol = 10;                  //number of policies
     int to_kill = num_pol/2;
-    int gen_max = 500;                  //number of generations
+    int gen_max = 200;                  //number of generations
     double total_time = 1000;            //total time steps
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range
@@ -60,11 +60,11 @@ public:
     double displace = 2;        //initial displacement
     double goal_x;              //ending position (start_x+goal_x);
     int goal_x_upper_bound = 5;     //had to use int vs double due to rand() only works with ints
-    int goal_x_lower_bound = 0;
-    int start_x_upper_bound = 20;
-    int start_x_lower_bound = 10;
+    int goal_x_lower_bound = 2;
+    int start_x_upper_bound = 17;
+    int start_x_lower_bound = 13;
     int start_x_dot_upper_bound = 5;
-    int start_x_dot_lower_bound = 0;
+    int start_x_dot_lower_bound = 2;
     double A_g = 2;             //amplifier for goal sinusoidal
     bool sinusoidal_goal = false;
     double g_phase = 0;
@@ -127,6 +127,7 @@ public:
     bool te_A;          // Primary with no antagonist and noise
     bool te_B;          // Domain with Gaussian noise distribution on top of a sinusoidal wave and 50 sets of starting variables per policy
     void test();
+    bool testperfive = false;
 
     bool three_for_three;   //Reverse Leniancy
 
@@ -161,15 +162,15 @@ void Parameters::test_train_set(){
         te_A = true;
         cout << "train two - test A" <<endl;
     }
-    if (two_B==true){
-        tr_2 = true;
-        te_B = true;
-        cout << "train two - test B" <<endl;
-    }
     if (three_A == true){
         tr_3 = true;
         te_A = true;
         cout << "train three - test A" <<endl;
+    }
+    if (two_B==true){
+        tr_2 = true;
+        te_B = true;
+        cout << "train two - test B" <<endl;
     }
     if (three_B == true){
         tr_3 = true;
@@ -332,6 +333,7 @@ void Parameters::test(){
             sensor_NOISE = true;
             actuator_NOISE = true;
             multi_var = true;       //50 rand variables per policy
+            fifty_var();
             three_for_three = false; //do NOT change this one
             rand_start_gen = false; //do NOT change this one
         }
