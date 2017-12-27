@@ -28,7 +28,7 @@ public:
     // EA STUFF //
     int num_pol = 10;                  //number of policies
     int to_kill = num_pol/2;
-    int gen_max = 200;                  //number of generations
+    int gen_max = 50;                  //number of generations
     double total_time = 1000;            //total time steps
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range

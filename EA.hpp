@@ -166,14 +166,22 @@ void EA::Run_Simulation() {
                 for (int z= 0; z<pP->num_pol; z++){
                     aPo = & ant_pol.at(z);
                     S.Simulate(pPo, aPo);
-                    if (pro_pol.at(i).P_fitness < pro_pol.at(i).P_fit_swap) { //swapped direction 11/15 at 9:50
-                        pro_pol.at(i).P_fitness = pro_pol.at(i).P_fit_swap;
+                    
+                    bool run_fit_sawp = false;
+                    if (run_fit_sawp==true){
+                        if (pro_pol.at(i).P_fitness < pro_pol.at(i).P_fit_swap) { //swapped direction 11/15 at 9:50
+                            pro_pol.at(i).P_fitness = pro_pol.at(i).P_fit_swap;
+                        }
+                        if (ant_pol.at(z).A_fitness < ant_pol.at(z).A_fit_swap) {
+                            ant_pol.at(z).A_fitness = ant_pol.at(z).A_fit_swap;
+                        }
+                        //cout << "pro_fit\t" << pro_pol.at(i).P_fitness << endl;
+                        //cout << "ant_fit\t" << ant_pol.at(z).A_fit_swap << endl;
                     }
-                    if (ant_pol.at(z).A_fitness < ant_pol.at(z).A_fit_swap) {
-                        ant_pol.at(z).A_fitness = ant_pol.at(z).A_fit_swap;
+                    else{
+                        pro_pol.at(i).P_fitness += pro_pol.at(i).P_fit_swap;
+                        ant_pol.at(z).A_fitness += ant_pol.at(z).A_fit_swap;
                     }
-                    //cout << "pro_fit\t" << pro_pol.at(i).P_fitness << endl;
-                    //cout << "ant_fit\t" << ant_pol.at(z).A_fit_swap << endl;
                 }
             }
             else{
@@ -199,7 +207,7 @@ void EA::Run_Simulation() {
             pro_pol.at(i).P_fitness = pro_pol.at(i).P_fit_swap;
         }
     }
-    if (pP->three_A==true){
+    if (pP->tr_3==true){
         for (int b=0; b<pP->num_pol; b++){
             pro_pol.at(b).P_fitness = pro_pol.at(b).P_fitness/pP->num_pol;
             ant_pol.at(b).A_fitness = ant_pol.at(b).A_fitness/pP->num_pol;
