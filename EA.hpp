@@ -172,7 +172,7 @@ void EA::Run_Simulation() {
             Policy* pPo;
             Policy* aPo;
             pPo = & pro_pol.at(i);
-            if (pP->tr_3==true){ //coevolution - each policy against each other
+            if (pP->A_f_max_bound !=0){ //coevolution - each policy against each other //should only run if there is an Antagonist
                 for (int z= 0; z<pP->num_pol; z++){
                     aPo = & ant_pol.at(z);
                     S.Simulate(pPo, aPo);

@@ -40,7 +40,7 @@ public:
     // 2ND ANTAGONIST //
     bool rand_antagonist;
     bool late_antagonist;
-    int ant_intro = 250;
+    int ant_intro = gen_max/2;
     
     // DOMAIN VARIABLES - STATIC
     double m = 7;       //mass
