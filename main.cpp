@@ -1,4 +1,4 @@
-//
+;//
 //  main.cpp
 //  Pro-Ant_EA_project
 //
@@ -27,7 +27,7 @@
 #include "EA.hpp"
 
 
-int stat_runs = 2;
+
 
 
 int main() {
@@ -42,17 +42,17 @@ int main() {
     P.four_B = false;
     P.two_B = false;
     P.three_B = false;
-    P.three_A = true;   // FOR SUSHIL's paper keep this TRUE
+    P.three_A = true;   // FOR research paper keep this TRUE
     P.two_A = false;     // OR keep this TRUE
     P.one = false;
     ofstream test_fit, P_fit, SR, SR_test;
     test_fit.open("stat_Ptest_fitness.txt", ofstream::out | ofstream::trunc);
-    P_fit.open("stat_P_fitness.txt", ofstream::out | ofstream::trunc);
+    P_fit.open("stat_ave_best_P_fitness.txt", ofstream::out | ofstream::trunc);
     SR.open("P_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);
     SR_test.open("Ptest_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);
     
     
-    for (int s=0; s<stat_runs; s++){
+    for (int s=0; s < P.stat_runs; s++){
         if (P.train_and_test == true){
             P.test_train_set();
             P.three_for_three = false; //change this one

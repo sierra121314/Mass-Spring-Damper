@@ -25,18 +25,22 @@ protected:
     
     
 public:
+    int stat_runs = 10;
     // EA STUFF //
-    int num_pol = 10;                  //number of policies
+    int num_pol = 20;                  //number of policies
     int to_kill = num_pol/2;
-    int gen_max = 50;                  //number of generations
+    int gen_max = 500;                  //number of generations
     double total_time = 1000;            //total time steps
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range
     
     double P_force;                     //Protagonist force
     double A_force;                     //Antagonist force
+    
     // 2ND ANTAGONIST //
     bool rand_antagonist;
+    bool late_antagonist;
+    int ant_intro = 250;
     
     // DOMAIN VARIABLES - STATIC
     double m = 7;       //mass
@@ -79,7 +83,7 @@ public:
     void random_variables();
     
     // WHAT TO GRAPH
-    bool best_v_median = true;
+    bool best_vs_median = true;
     
     
     // NN BOUNDARIES //
@@ -197,6 +201,7 @@ void Parameters::train_para(){
     train_para << "Pro Bounds\t " << P_f_min_bound << "\t" << P_f_max_bound << endl;
     train_para << "Ant Bounds\t " << A_f_min_bound << "\t" << A_f_max_bound << endl;
     train_para << "Random Antagonist\t" << rand_antagonist << endl;
+    train_para << "Antagonist Introduced later\t" << late_antagonist << "\t at Gen" << ant_intro << endl;
     train_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
     train_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
     train_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl << "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << endl;
@@ -227,6 +232,7 @@ void Parameters::train(){
         if (tr_2 == true){
             P_f_min_bound = -5;
             P_f_max_bound = 5;
+            late_antagonist = false;
             A_f_min_bound = -0;
             A_f_max_bound = 0;
             rand_antagonist = false;
@@ -237,10 +243,18 @@ void Parameters::train(){
             multi_var = false; //do NOT change this one
         }
         if (tr_3 == true){
+            late_antagonist = true;
             P_f_min_bound = -5;
             P_f_max_bound = 5;
-            A_f_min_bound = -1;
-            A_f_max_bound = 1;
+            if (late_antagonist==true) {
+                A_f_min_bound = -0;
+                A_f_max_bound = 0;
+            }
+            else{
+                A_f_min_bound = -1;
+                A_f_max_bound = 1;
+            }
+            
             rand_antagonist = false;
             sensor_NOISE = false;
             actuator_NOISE = false;
@@ -281,10 +295,12 @@ void Parameters::test_para(){
     ofstream test_para;
     test_para.open("testing_parameters.txt", ofstream::out | ofstream::trunc);
     
-    test_para << "# Policies\t" << num_pol << "\t # Generations\t" << gen_max << "\t Mut Rate and Range\t" << mutation_rate << "\t" << mutate_range << endl;
+    test_para << "# Policies\t" << num_pol << "\t # Generations\t" << gen_max << "\t # Stat Runs\t" << stat_runs <<endl;
+    test_para << "Mut Rate and Range\t" << mutation_rate << "\t" << mutate_range << endl;
     test_para << "Pro Bounds\t " << P_f_min_bound << "\t" << P_f_max_bound << endl;
     test_para << "Ant Bounds\t " << A_f_min_bound << "\t" << A_f_max_bound << endl;
     test_para << "Random Antagonist\t" << rand_antagonist << endl;
+    test_para << "Antagonist Introduced later\t" << late_antagonist << "\t at Gen" << ant_intro << endl;
     test_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
     test_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
     test_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl <<  "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << endl;
@@ -313,8 +329,11 @@ void Parameters::test(){
             rand_start_gen = false;  //do NOT change this one
         }
         if (te_A == true){
+            tr_3=false;
+            tr_2=false;
             P_f_min_bound = -5;
             P_f_max_bound = 5;
+            late_antagonist = false;
             A_f_min_bound = -0;
             A_f_max_bound = 0;
             rand_antagonist = false;

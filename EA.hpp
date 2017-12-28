@@ -61,10 +61,17 @@ public:
     void Run_Program();
     void Graph();
     void Graph_test();
-    double sum;
-    double ave;
+    double sum_P;
+    double sum_A;
+    double ave_P;
+    double ave_A;
     int place;
     int num_loops;
+    void init_fit();
+    
+    // Fitness//
+    void ave_fit();
+    void update_best_fit();
     
 private:
 };
@@ -117,6 +124,14 @@ void EA::Build_Population() {
     assert(ant_pol.size() == pP->num_pol);
 }
 
+void EA::init_fit(){
+    for (int i=0; i<pP->num_pol; i++) {
+        pro_pol.at(i).P_fitness = 0; //changed from -1 11/15
+        ant_pol.at(i).A_fitness = 0;
+        pro_pol.at(i).P_fit_swap = 0;
+        ant_pol.at(i).A_fit_swap = 0;
+    }
+}
 
 //////////////////////////////////////////////////////////////////////////////
 //Puts each policy into the simulation
@@ -139,12 +154,7 @@ void EA::Run_Simulation() {
     //LOGGING START POSITIONS
     rand_start << pP->m << "\t" << pP->b << "\t" << pP->k << "\t" << pP->mu << "\t" << pP->start_x << "\t" << pP->goal_x << "\t" << pP->start_x_dot << endl;
     
-    for (int i=0; i<pP->num_pol; i++) {
-        pro_pol.at(i).P_fitness = 0; //changed from -1 11/15
-        ant_pol.at(i).A_fitness = 0;
-        pro_pol.at(i).P_fit_swap = 0;
-        ant_pol.at(i).A_fit_swap = 0;
-    }
+    init_fit(); //P and A fitness and fitswap set to zero
     
     for (int i=0; i<pP->num_pol; i++) {
         
@@ -162,26 +172,14 @@ void EA::Run_Simulation() {
             Policy* pPo;
             Policy* aPo;
             pPo = & pro_pol.at(i);
-            if (pP->three_A==true){ //coevolution - each policy against each other
+            if (pP->tr_3==true){ //coevolution - each policy against each other
                 for (int z= 0; z<pP->num_pol; z++){
                     aPo = & ant_pol.at(z);
                     S.Simulate(pPo, aPo);
                     
-                    bool run_fit_sawp = false;
-                    if (run_fit_sawp==true){
-                        if (pro_pol.at(i).P_fitness < pro_pol.at(i).P_fit_swap) { //swapped direction 11/15 at 9:50
-                            pro_pol.at(i).P_fitness = pro_pol.at(i).P_fit_swap;
-                        }
-                        if (ant_pol.at(z).A_fitness < ant_pol.at(z).A_fit_swap) {
-                            ant_pol.at(z).A_fitness = ant_pol.at(z).A_fit_swap;
-                        }
-                        //cout << "pro_fit\t" << pro_pol.at(i).P_fitness << endl;
-                        //cout << "ant_fit\t" << ant_pol.at(z).A_fit_swap << endl;
-                    }
-                    else{
-                        pro_pol.at(i).P_fitness += pro_pol.at(i).P_fit_swap;
-                        ant_pol.at(z).A_fitness += ant_pol.at(z).A_fit_swap;
-                    }
+                    pro_pol.at(i).P_fitness += pro_pol.at(i).P_fit_swap;
+                    ant_pol.at(z).A_fitness += ant_pol.at(z).A_fit_swap;
+                    
                 }
             }
             else{
@@ -248,8 +246,7 @@ void EA::Run_Simulation() {
         }
     }
     
-    fstream nsensor;
-    fstream nactuator;
+    fstream nsensor, nactuator;
     nsensor.open("ave_sensor_noise.txt", fstream::app);
     nactuator.open("ave_actuator_noise.txt", fstream::app);
     nsensor << endl;
@@ -341,10 +338,10 @@ void EA::Mutation(Policy &M, Policy &N) {
             double R1 = ((double)rand()/RAND_MAX) * pP->mutate_range;
             double R2 = ((double)rand()/RAND_MAX) * pP->mutate_range;
             M.P_weights.at(x) = M.P_weights.at(x) + (R1-R2);
-            if (M.P_weights.at(x)<-1) {
+            if (M.P_weights.at(x) < -1) {
                 M.P_weights.at(x) = -1;
             }
-            if (M.P_weights.at(x)>1) {
+            if (M.P_weights.at(x) > 1) {
                 M.P_weights.at(x) = 1;
             }
         }
@@ -357,10 +354,10 @@ void EA::Mutation(Policy &M, Policy &N) {
                 double R4 = ((double)rand()/RAND_MAX) * pP->mutate_range;
                 
                 N.A_weights.at(x) = N.A_weights.at(x) + (R3-R4);
-                if (N.A_weights.at(x)<-1) {
+                if (N.A_weights.at(x) < -1) {
                     N.A_weights.at(x) = -1;
                 }
-                if (N.A_weights.at(x)>1) {
+                if (N.A_weights.at(x) > 1) {
                     N.A_weights.at(x) = 1;
                 }
                 assert(N.A_weights.at(x)<=1 && N.A_weights.at(x)>=-1);
@@ -430,8 +427,6 @@ void EA::EA_Process() {
     Run_Simulation();
     Evaluate();
     Sort_Policies_By_Fitness();
-    best_P_fitness.push_back(pro_pol.at(0).P_fitness);
-    best_A_fitness.push_back(ant_pol.at(0).A_fitness);
     Downselect();
     Repopulate();
 }
@@ -458,14 +453,39 @@ void EA::Sort_Policies_By_Fitness() {
         sort(pro_pol.begin(), pro_pol.end(), Less_Than_Policy_Fitness());
         sort(ant_pol.begin(), ant_pol.end(), Greater_Than_Policy_Fitness());
     }
+    update_best_fit();
 }
+
+//-------------------------------------------------------------------------
+void EA::update_best_fit(){
+    best_P_fitness.push_back(pro_pol.at(0).P_fitness);      // best fitness per generation
+    best_A_fitness.push_back(ant_pol.at(0).A_fitness);
+}
+
+void EA::ave_fit(){
+    ofstream P_fit, A_fit;
+    P_fit.open("stat_ave_best_P_fitness.txt", fstream::app);
+    A_fit.open("stat_ave_best_A_fitness.txt", fstream::app);
+    assert(best_P_fitness.size() == pP->gen_max);
+    for (int f = 0; f < best_P_fitness.size(); f++) { //help 11/20
+        //sum_P += pro_pol.at(f).P_fitness;
+        sum_P += best_P_fitness.at(f);
+        sum_A += best_A_fitness.at(f);
+    }
+    ave_P = sum_P/best_P_fitness.size();
+    ave_A = sum_A/best_A_fitness.size();
+    P_fit << ave_P << endl;
+    A_fit << ave_A << endl;
+}
+
+
 //-------------------------------------------------------------------------
 void EA::Graph(){
     ofstream fout;
     //NOTE
     //pro_pol.at(0) is best
     //pro_pol.size()/2 is median
-    if (pP->best_v_median==true){
+    if (pP->best_vs_median==true){
         place = 0; //graph the best
     }
     else {
@@ -549,6 +569,11 @@ void EA::Graph_test(){
         fout << pro_pol.at(0).P_force_history.at(h) << "\t";
     }
     fout.close();
+    fout.open("test_A_force_history.txt",std::ofstream::out | ofstream::trunc);
+    for (int h =0; h < pP->total_time; h++){
+        fout << ant_pol.at(0).A_force_history.at(h) << "\t";
+    }
+    fout.close();
     
     fout.open("test_P_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);
     for (int h =0; h < pP->num_pol; h++){
@@ -570,17 +595,14 @@ void EA::Graph_test(){
 //-------------------------------------------------------------------------
 //Runs the entire program
 void EA::Run_Program() {
-    ofstream nsensor;
+    ofstream nsensor, nactuator, rand_start, P_fit, A_fit;
     nsensor.open("ave_sensor_noise.txt", ofstream::out | ofstream::trunc);
-    ofstream nactuator;
     nactuator.open("ave_actuator_noise.txt", ofstream::out | ofstream::trunc);
-    
-    ofstream rand_start;
     rand_start.open("random_starting_variables.txt", ofstream::out | ofstream::trunc);
-    
-    ofstream P_fit;
-    P_fit.open("stat_P_fitness.txt", fstream::app);
-    sum=0;
+    P_fit.open("stat_ave_best_P_fitness.txt", fstream::app);
+    A_fit.open("stat_ave_best_A_fitness.txt", fstream::app);
+    sum_P=0;
+    sum_A=0;
     Build_Population();
     best_P_fitness.clear();
     best_A_fitness.clear();
@@ -593,7 +615,14 @@ void EA::Run_Program() {
         if (gen %10 ==0) {
             //cout << "GENERATION \t" << gen << endl;
         }
+        
         if (gen < pP->gen_max-1) {
+            if (gen>pP->ant_intro){
+                if (pP->late_antagonist==true) {
+                    pP->A_f_min_bound = -1;
+                    pP->A_f_max_bound = 1;
+                }
+            }
             EA_Process();
         }
         else {
@@ -604,20 +633,15 @@ void EA::Run_Program() {
             cout << "BEST POLICY PRO-FITNESS" << "\t" << pro_pol.at(0).P_fitness << endl;
             //P_fit << pro_pol.at(0).P_fitness << endl;
             
-            best_P_fitness.push_back(pro_pol.at(0).P_fitness);      // best fitness per generation
-            best_A_fitness.push_back(ant_pol.at(0).A_fitness);
-            for (int f = 0; f < best_P_fitness.size(); f++) { //help 11/20
-                //sum += pro_pol.at(f).P_fitness;
-                sum += best_P_fitness.at(f);
-            }
-            ave = sum/best_P_fitness.size();
-            P_fit << ave << endl;
+            
+            
         }
-        
-        
     }
-    
+    ave_fit();
     Graph();
+    
+    P_fit.close();
+    A_fit.close();
     nsensor.close();
     nactuator.close();
     
