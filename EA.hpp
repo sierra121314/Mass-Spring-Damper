@@ -68,10 +68,12 @@ public:
     int place;
     int num_loops;
     void init_fit();
+    void determine_num_loops();
     
     // Fitness//
     void ave_fit();
     void update_best_fit();
+    void full_leniency_ave_fit();
     
 private:
 };
@@ -133,6 +135,27 @@ void EA::init_fit(){
     }
 }
 
+void EA::determine_num_loops(){
+    if (pP->multi_var==true){
+        num_loops=50;
+        pP->fifty_var();    //initialize 50x3 variables
+    }
+    else {
+        num_loops = 1;
+    }
+}
+
+void EA::full_leniency_ave_fit(){
+    if (pP->A_f_max_bound != 0){
+        for (int b=0; b<pP->num_pol; b++){
+            pro_pol.at(b).P_fitness = pro_pol.at(b).P_fitness/pP->num_pol;
+            ant_pol.at(b).A_fitness = ant_pol.at(b).A_fitness/pP->num_pol;
+            //cout << "pro\t" << pro_pol.at(b).P_fitness << endl;
+            //cout << "ant\t" << ant_pol.at(b).A_fitness << endl;
+        }
+    }
+}
+
 //////////////////////////////////////////////////////////////////////////////
 //Puts each policy into the simulation
 void EA::Run_Simulation() {
@@ -144,13 +167,8 @@ void EA::Run_Simulation() {
     if (pP->rand_start_gen == true){
         pP->random_variables();
     }
-    if (pP->multi_var==true){
-        num_loops=50;
-        pP->fifty_var();    //initialize 50x3 variables
-    }
-    else {
-        num_loops = 1;
-    }
+    determine_num_loops();
+    
     //LOGGING START POSITIONS
     rand_start << pP->m << "\t" << pP->b << "\t" << pP->k << "\t" << pP->mu << "\t" << pP->start_x << "\t" << pP->goal_x << "\t" << pP->start_x_dot << endl;
     
@@ -196,55 +214,17 @@ void EA::Run_Simulation() {
                 assert(ant_pol.at(i).A_fitness>=0 && ant_pol.at(i).A_fitness<10000000);
 
             }
-
         }
         
         
-        if (pP->multi_var==true) {
+        if (pP->multi_var==true) { //QUESTION: what was I thinking and how does this even work?
             //test_fit << pro_pol.at(i).P_fit_swap << endl;
             pro_pol.at(i).P_fitness = pro_pol.at(i).P_fit_swap;
         }
     }
-    if (pP->tr_3==true){
-        for (int b=0; b<pP->num_pol; b++){
-            pro_pol.at(b).P_fitness = pro_pol.at(b).P_fitness/pP->num_pol;
-            ant_pol.at(b).A_fitness = ant_pol.at(b).A_fitness/pP->num_pol;
-            //cout << "pro\t" << pro_pol.at(b).P_fitness << endl;
-            //cout << "ant\t" << ant_pol.at(b).A_fitness << endl;
-        }
-    }
     
-    if (pP->three_for_three == true) {
-        //Uses the same order of Pro policies as before
-        //Copy antagonist policies into seperate vector in order to choose best performance
-        for (int j=0; j<2; j++) {
-            random_shuffle ( ant_pol.begin(), ant_pol.end() );
-            
-            for (int i=0; i<pP->num_pol; i++) {
-                pro_pol.at(i).P_fit_swap = 0;
-                ant_pol.at(i).A_fit_swap = 0;
-                
-                Simulator S;
-                S.pP = this->pP;
-                Policy* pPo;
-                Policy* aPo;
-                pPo = & pro_pol.at(i);
-                aPo = & ant_pol.at(i);
-                S.Simulate(pPo, aPo);
-                
-                if (pro_pol.at(i).P_fitness > pro_pol.at(i).P_fit_swap) { //swapped direction 11/15 at 9:50
-                    pro_pol.at(i).P_fitness = pro_pol.at(i).P_fit_swap;
-                }
-                if (ant_pol.at(i).A_fitness > ant_pol.at(i).A_fit_swap) {
-                    ant_pol.at(i).A_fitness = ant_pol.at(i).A_fit_swap;
-                }
-                assert(pro_pol.at(i).P_fitness>=0);
-                assert(ant_pol.at(i).A_fitness>=0 && ant_pol.at(i).A_fitness<10000000);
-            }
-            
-            
-        }
-    }
+    full_leniency_ave_fit(); //if there is comparison between all policies, then the fitness of one policy against all policies is summed and divided by the num_pol
+        
     
     fstream nsensor, nactuator;
     nsensor.open("ave_sensor_noise.txt", fstream::app);
@@ -285,6 +265,7 @@ int EA::P_Binary_Select() {
     }
     return loser;
 }
+
 int EA::A_Binary_Select() {
     int a_loser;
     int index_3 = rand() % ant_pol.size();
@@ -348,7 +329,7 @@ void EA::Mutation(Policy &M, Policy &N) {
         assert(M.P_weights.at(x)<=1 && M.P_weights.at(x)>=-1);
         
         // ANTAGONIST //
-        if (pP->tr_3==true){
+        if (pP->A_f_max_bound != 0){ //If there is an Antagonist... then mutate
             if (random2 <= pP->mutation_rate) {
                 double R3 = ((double)rand()/RAND_MAX) * pP->mutate_range;
                 double R4 = ((double)rand()/RAND_MAX) * pP->mutate_range;
@@ -463,6 +444,8 @@ void EA::update_best_fit(){
 }
 
 void EA::ave_fit(){
+    sum_P=0;
+    sum_A=0;
     ofstream P_fit, A_fit;
     P_fit.open("stat_ave_best_P_fitness.txt", fstream::app);
     A_fit.open("stat_ave_best_A_fitness.txt", fstream::app);
@@ -601,8 +584,7 @@ void EA::Run_Program() {
     rand_start.open("random_starting_variables.txt", ofstream::out | ofstream::trunc);
     P_fit.open("stat_ave_best_P_fitness.txt", fstream::app);
     A_fit.open("stat_ave_best_A_fitness.txt", fstream::app);
-    sum_P=0;
-    sum_A=0;
+    
     Build_Population();
     best_P_fitness.clear();
     best_A_fitness.clear();
@@ -611,6 +593,7 @@ void EA::Run_Program() {
             if (pP->rand_start_5gen==true){
                 pP->random_variables();
             }
+            
         }
         if (gen %10 ==0) {
             //cout << "GENERATION \t" << gen << endl;
@@ -624,6 +607,16 @@ void EA::Run_Program() {
                 }
             }
             EA_Process();
+            if (gen %5 == 0){
+                if (pP->testperfive == true){
+                    //run test
+                    //copy the gen?
+                    //change parameters?
+                    //Run_Simulation();
+                    //Sort_Policies_By_Fitness();//make it your own->push best fit into a file
+                    //change parameters back
+                }
+            }
         }
         else {
             

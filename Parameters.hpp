@@ -25,11 +25,11 @@ protected:
     
     
 public:
-    int stat_runs = 10;
+    int stat_runs = 1;
     // EA STUFF //
-    int num_pol = 20;                  //number of policies
+    int num_pol = 4;                  //number of policies
     int to_kill = num_pol/2;
-    int gen_max = 500;                  //number of generations
+    int gen_max = 50;                  //number of generations
     double total_time = 1000;            //total time steps
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range
@@ -211,6 +211,7 @@ void Parameters::train_para(){
     train_para << "goal upper and lower bound\t" << goal_x_upper_bound << "\t" << goal_x_lower_bound << endl;
      train_para << "start_x upper and lower bound\t" << start_x_upper_bound << "\t" << start_x_lower_bound << endl;
     train_para << "start_xdot upper and lower bound\t" << start_x_dot_upper_bound << "\t" << start_x_dot_lower_bound << endl;
+    train_para << "test every 5 generations\t" << testperfive << endl;
     train_para.close();
 }
 
@@ -232,7 +233,7 @@ void Parameters::train(){
         if (tr_2 == true){
             P_f_min_bound = -5;
             P_f_max_bound = 5;
-            late_antagonist = false;
+            late_antagonist = false; //never change this
             A_f_min_bound = -0;
             A_f_max_bound = 0;
             rand_antagonist = false;
@@ -241,13 +242,14 @@ void Parameters::train(){
             rand_start_gen = false;
             rand_start_5gen = false;
             multi_var = false; //do NOT change this one
+            testperfive = true;
         }
         if (tr_3 == true){
             late_antagonist = true;
             P_f_min_bound = -5;
             P_f_max_bound = 5;
             if (late_antagonist==true) {
-                A_f_min_bound = -0;
+                A_f_min_bound = -0; //start with this until changed later
                 A_f_max_bound = 0;
             }
             else{
@@ -261,6 +263,7 @@ void Parameters::train(){
             rand_start_gen = false;
             rand_start_5gen = false;
             multi_var = false; //do NOT change this one
+            testperfive = true;
         }
         if (tr_4 == true){
             P_f_min_bound = -5;
@@ -310,6 +313,7 @@ void Parameters::test_para(){
     test_para << "goal upper and lower bound\t" << goal_x_upper_bound << "\t" << goal_x_lower_bound << endl;
     test_para << "start_x upper and lower bound\t" << start_x_upper_bound << "\t" << start_x_lower_bound << endl;
     test_para << "start_xdot upper and lower bound\t" << start_x_dot_upper_bound << "\t" << start_x_dot_lower_bound << endl;
+    test_para << "test every 5 generations\t" << testperfive << endl;
     
     test_para.close();
 }
@@ -342,6 +346,7 @@ void Parameters::test(){
             multi_var = false;       //50 rand variables per policy
             three_for_three = false; //do NOT change this one
             rand_start_gen = false;  //do NOT change this one
+            testperfive = false;
         }
         if (te_B == true){
             P_f_min_bound = -5;
