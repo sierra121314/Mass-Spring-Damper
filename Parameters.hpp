@@ -25,11 +25,11 @@ protected:
     
     
 public:
-    int stat_runs = 1;
+    int stat_runs = 10;
     // EA STUFF //
-    int num_pol = 4;                  //number of policies
+    int num_pol = 20;                  //number of policies
     int to_kill = num_pol/2;
-    int gen_max = 50;                  //number of generations
+    int gen_max = 300;                  //number of generations
     double total_time = 1000;            //total time steps
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range
@@ -40,7 +40,8 @@ public:
     // 2ND ANTAGONIST //
     bool rand_antagonist;
     bool late_antagonist;
-    int ant_intro = gen_max/2;
+    //int ant_intro = gen_max/2;
+    int ant_intro = 200;
     
     // DOMAIN VARIABLES - STATIC
     double m = 7;       //mass
@@ -107,11 +108,12 @@ public:
     double sn = 1;                  //sensor noise magnitude
     double an = 1;                  //actuator noise magnitude
     double As = 2;
-    bool sinusoidal_noise = true;   //within sensor and actuator noise, so if those are false->sinusoidal is false
+    bool sinusoidal_noise = false;   //within sensor and actuator noise, so if those are false->sinusoidal is false
     double phase = PI/4;            //in Radians
     
     
     // TRAINING AND TESTING MODES //
+    int train_test_combo;
     bool train_and_test;
     void test_train_set();
     bool five_B;          //Antagonist that manipulates starting variables
@@ -131,7 +133,7 @@ public:
     bool te_A;          // Primary with no antagonist and noise
     bool te_B;          // Domain with Gaussian noise distribution on top of a sinusoidal wave and 50 sets of starting variables per policy
     void test();
-    bool testperfive = false;
+    bool testperfive;
 
     bool three_for_three;   //Reverse Leniancy
 
@@ -156,6 +158,10 @@ void Parameters::random_variables(){
 }
 
 void Parameters::test_train_set(){
+    
+    /*if (train_test_combo = "two_A"){
+        two_A = true;
+    }*/
     if (one ==true){
         tr_1 = true;
         te_1 = true;
@@ -233,7 +239,7 @@ void Parameters::train(){
         if (tr_2 == true){
             P_f_min_bound = -5;
             P_f_max_bound = 5;
-            late_antagonist = false; //never change this
+            late_antagonist = false; //do NOT change this one
             A_f_min_bound = -0;
             A_f_max_bound = 0;
             rand_antagonist = false;

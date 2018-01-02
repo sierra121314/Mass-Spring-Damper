@@ -34,10 +34,14 @@ int main() {
     srand(time(NULL));
     Parameters P;
     EA E;
-    
+    clock_t t1, t2;
+    t1 = clock();
     //TRAINING MODES
-    P.train_and_test = true; //CHANGE
+    P.train_and_test = true; //Determines whether to run a combo of train and test
     
+    
+    //have an input where you tell it the combo you want
+    //so we can put the below stuff into Parameters
     P.five_B = false;
     P.four_B = false;
     P.two_B = false;
@@ -45,11 +49,12 @@ int main() {
     P.three_A = true;   // FOR research paper keep this TRUE
     P.two_A = false;     // OR keep this TRUE
     P.one = false;
-    ofstream test_fit, P_fit, SR, SR_test;
+    ofstream test_fit, P_fit, SR, SR_test, P_testperfive_fit, test_para;
     test_fit.open("stat_Ptest_fitness.txt", ofstream::out | ofstream::trunc);
     P_fit.open("stat_ave_best_P_fitness.txt", ofstream::out | ofstream::trunc);
     SR.open("P_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);
     SR_test.open("Ptest_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);
+    P_testperfive_fit.open("stat_P_testperfive_fit.txt", ofstream::out | ofstream::trunc);
     
     
     for (int s=0; s < P.stat_runs; s++){
@@ -86,10 +91,18 @@ int main() {
             E.Run_Program();
         }
     }
+    t2 = clock();
+    float diff ((float)t2-(float)t1);
+    float seconds = diff / CLOCKS_PER_SEC;
+    cout << "run time" << "\t" << seconds << endl;
     
+    test_para.open("testing_parameters.txt", fstream::app);
+    test_para << "run time" << "\t" << seconds << endl;
     test_fit.close();
     P_fit.close();
     SR.close();
     SR_test.close();
+    P_testperfive_fit.close();
+    test_para.close();
     cout << "END PROGRAM" << endl;
 }
