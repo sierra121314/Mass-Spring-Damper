@@ -249,6 +249,7 @@ void EA::Run_Test_Simulation() {
     test_fit.open("stat_Ptest_fitness.txt", fstream::app);
 
     init_fit(); //P and A fitness and fitswap set to zero
+    assert(pP->A_f_max_bound ==0 && pP->A_f_min_bound ==0);
     
     for (int i=0; i<pP->num_pol; i++) {
         //First we insert a policy into the simulator then we can take the objective data for that policy and store it in our data architecture
@@ -529,7 +530,7 @@ void EA::ave_fit(){
 
 //-------------------------------------------------------------------------
 void EA::Graph(){
-    ofstream fout;
+    ofstream fout,P_fit_hist;
     //NOTE
     //pro_pol.at(0) is best
     //pro_pol.size()/2 is median
@@ -568,11 +569,12 @@ void EA::Graph(){
         fout << ant_pol.at(place).A_force_history.at(h) << "\t";
     }
     fout.close();
-    fout.open("P_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);
+    P_fit_hist.open("P_best_fitness_history.txt",fstream::app);
     for (int h =0; h < pP->gen_max; h++){
         fout << best_P_fitness.at(h) << "\t";
     }
-    fout.close();
+    P_fit_hist << endl;
+    P_fit_hist.close();
     fout.open("A_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);
     for (int h =0; h < pP->gen_max; h++){
         fout << best_A_fitness.at(h) << "\t";
@@ -592,7 +594,7 @@ void EA::Graph(){
 
 
 void EA::Graph_test(){
-    ofstream fout;
+    ofstream fout,test_P_fit_hist;
     
     fout.open("test_x_history.txt", std::ofstream::out | ofstream::trunc);
     //fout << "vector spot" << "\t" << "x" << "\t" << "x_dot" << "\t" << "x_dd" << endl;
@@ -623,11 +625,12 @@ void EA::Graph_test(){
     }
     fout.close();
     
-    fout.open("test_P_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);
+    test_P_fit_hist.open("test_P_best_fitness_history.txt",fstream::app);
     for (int h =0; h < pP->num_pol; h++){
         fout << pro_pol.at(h).P_fitness << "\t";
         
     }
+    fout << endl;
     ofstream SR_test;
     SR_test.open("Ptest_best_fitpergen_SR_history.txt", fstream::app);
     SR_test << best_P_fitness.at(0) << endl;
@@ -657,7 +660,7 @@ void EA::Run_Program() {
     for (int gen=0; gen<pP->gen_max; gen++) {
         if (gen %5 ==0){
             if (pP->rand_start_5gen==true){
-                pP->random_variables();
+                pP->random_variables(); //different every stat run
             }
             
         }
@@ -675,7 +678,14 @@ void EA::Run_Program() {
                 pP->test();//change parameters
                 Run_Test_Simulation();
                 Sort_Test_Policies_By_Fitness();//sort then push best fit into a file
-                pP->tr_3=true; //figure out a way to change this
+                if (pP->two_A==true) {
+                    pP->tr_2=true;
+                    //cout<< "train 2 chosen" << endl;
+                }
+                else if (pP->three_A==true){
+                     pP->tr_3=true;
+                    //cout<< "train 3 chosen" << endl;
+                }
                 pP->train(); //change parameters back
             }
         }

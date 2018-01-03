@@ -25,11 +25,11 @@ protected:
     
     
 public:
-    int stat_runs = 10;
+    int stat_runs = 2;
     // EA STUFF //
-    int num_pol = 20;                  //number of policies
+    int num_pol = 2;                  //number of policies
     int to_kill = num_pol/2;
-    int gen_max = 300;                  //number of generations
+    int gen_max = 50;                  //number of generations
     double total_time = 1000;            //total time steps
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range
@@ -108,7 +108,7 @@ public:
     double sn = 1;                  //sensor noise magnitude
     double an = 1;                  //actuator noise magnitude
     double As = 2;
-    bool sinusoidal_noise = false;   //within sensor and actuator noise, so if those are false->sinusoidal is false
+    bool sinusoidal_noise = true;   //within sensor and actuator noise, so if those are false->sinusoidal is false
     double phase = PI/4;            //in Radians
     
     
@@ -251,7 +251,7 @@ void Parameters::train(){
             testperfive = true;
         }
         if (tr_3 == true){
-            late_antagonist = true;
+            late_antagonist = false;
             P_f_min_bound = -5;
             P_f_max_bound = 5;
             if (late_antagonist==true) {

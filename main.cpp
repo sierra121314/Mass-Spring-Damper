@@ -46,15 +46,18 @@ int main() {
     P.four_B = false;
     P.two_B = false;
     P.three_B = false;
-    P.three_A = true;   // FOR research paper keep this TRUE
-    P.two_A = false;     // OR keep this TRUE
+    P.three_A = false;   // FOR research paper keep this TRUE
+    P.two_A = true;     // OR keep this TRUE
     P.one = false;
-    ofstream test_fit, P_fit, SR, SR_test, P_testperfive_fit, test_para;
+    ofstream test_fit, P_fit, A_fit, SR, SR_test, P_testperfive_fit, test_para, P_fit_hist,test_P_fit_hist;
     test_fit.open("stat_Ptest_fitness.txt", ofstream::out | ofstream::trunc);
     P_fit.open("stat_ave_best_P_fitness.txt", ofstream::out | ofstream::trunc);
+    A_fit.open("stat_ave_best_A_fitness.txt", ofstream::out | ofstream::trunc);
     SR.open("P_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);
     SR_test.open("Ptest_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);
+    P_fit_hist.open("P_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);
     P_testperfive_fit.open("stat_P_testperfive_fit.txt", ofstream::out | ofstream::trunc);
+    test_P_fit_hist.open("test_P_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);
     
     
     for (int s=0; s < P.stat_runs; s++){
@@ -100,6 +103,9 @@ int main() {
     test_para << "run time" << "\t" << seconds << endl;
     test_fit.close();
     P_fit.close();
+    A_fit.close();
+    P_fit_hist.close();
+    test_P_fit_hist.close();
     SR.close();
     SR_test.close();
     P_testperfive_fit.close();
