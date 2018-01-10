@@ -174,6 +174,8 @@ void EA::Run_Simulation() {
     }
     determine_num_loops();
     
+    
+    
     //LOGGING START POSITIONS
     rand_start << pP->m << "\t" << pP->b << "\t" << pP->k << "\t" << pP->mu << "\t" << pP->start_x << "\t" << pP->goal_x << "\t" << pP->start_x_dot << endl;
     
@@ -223,19 +225,11 @@ void EA::Run_Simulation() {
         
         
         if (pP->multi_var==true) { //QUESTION: what was I thinking and how does this even work?
-            //test_fit << pro_pol.at(i).P_fit_swap << endl;
             pro_pol.at(i).P_fitness = pro_pol.at(i).P_fit_swap;
         }
     }
     
     full_leniency_ave_fit(); //if there is comparison between all policies, then the fitness of one policy against all policies is summed and divided by the num_pol
-        
-    
-    fstream nsensor, nactuator;
-    nsensor.open("ave_sensor_noise.txt", fstream::app);
-    nactuator.open("ave_actuator_noise.txt", fstream::app);
-    nsensor << endl;
-    nactuator << endl;
     
     
 }
@@ -249,7 +243,7 @@ void EA::Run_Test_Simulation() {
     test_fit.open("stat_Ptest_fitness.txt", fstream::app);
 
     init_fit(); //P and A fitness and fitswap set to zero
-    assert(pP->A_f_max_bound ==0 && pP->A_f_min_bound ==0);
+    //assert(pP->A_f_max_bound ==0 && pP->A_f_min_bound ==0);
     
     for (int i=0; i<pP->num_pol; i++) {
         //First we insert a policy into the simulator then we can take the objective data for that policy and store it in our data architecture
@@ -492,7 +486,7 @@ void EA::Sort_Test_Policies_By_Fitness() {
         sort(test_pro_pol.begin(), test_pro_pol.end(), Less_Than_Policy_Fitness());
         sort(test_ant_pol.begin(), test_ant_pol.end(), Greater_Than_Policy_Fitness());
     }
-    update_best_test_fit();
+    
 }
 
 //-------------------------------------------------------------------------
@@ -530,7 +524,7 @@ void EA::ave_fit(){
 
 //-------------------------------------------------------------------------
 void EA::Graph(){
-    ofstream fout,P_fit_hist;
+    ofstream fout,P_fit_hist, A_fit_hist, SR, SR_A;
     //NOTE
     //pro_pol.at(0) is best
     //pro_pol.size()/2 is median
@@ -564,30 +558,30 @@ void EA::Graph(){
         fout << pro_pol.at(place).P_force_history.at(h) << "\t";
     }
     fout.close();
+    
     fout.open("A_force_history.txt",std::ofstream::out | ofstream::trunc);
     for (int h =0; h < pP->total_time; h++){
         fout << ant_pol.at(place).A_force_history.at(h) << "\t";
     }
     fout.close();
-    P_fit_hist.open("P_best_fitness_history.txt",fstream::app);
-    for (int h =0; h < pP->gen_max; h++){
-        fout << best_P_fitness.at(h) << "\t";
-    }
-    P_fit_hist << endl;
-    P_fit_hist.close();
-    fout.open("A_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);
-    for (int h =0; h < pP->gen_max; h++){
-        fout << best_A_fitness.at(h) << "\t";
-    }
-    fout.close();
-    ofstream SR;
-    SR.open("P_best_fitpergen_SR_history.txt", fstream::app);
+    
+    P_fit_hist.open("P_best_fitness_history.txt",fstream::app);     //best fitness out of all generations
+    assert(best_P_fitness.size() == pP->gen_max);
+    P_fit_hist << best_P_fitness.at(0) << endl;
+    
+    A_fit_hist.open("A_best_fitness_history.txt",fstream::app);     //best fitness out of all generations
+    A_fit_hist << best_A_fitness.at(0) << endl;
+    
+    SR.open("P_best_fitpergen_SR_history.txt", fstream::app);       //best fitness per generation
     for (int h =0; h < pP->gen_max; h++){
         SR << best_P_fitness.at(h) << "\t";
-        //test_fit << E.pro_pol.at(0).P_fitness << endl;
     }
     SR << endl;
-    SR.close();
+    SR_A.open("A_best_fitpergen_SR_history.txt", fstream::app);     //best fitness per generation
+    for (int h =0; h < pP->gen_max; h++){
+        SR_A << best_A_fitness.at(h) << "\t";
+    }
+    SR_A << endl;
     
 }
 
@@ -625,19 +619,48 @@ void EA::Graph_test(){
     }
     fout.close();
     
-    test_P_fit_hist.open("test_P_best_fitness_history.txt",fstream::app);
+    test_P_fit_hist.open("test_P_best_fitness_history.txt",fstream::app);       //fitness per policy
     for (int h =0; h < pP->num_pol; h++){
-        fout << pro_pol.at(h).P_fitness << "\t";
-        
+        test_P_fit_hist << pro_pol.at(h).P_fitness << "\t";
     }
-    fout << endl;
+    test_P_fit_hist << endl;
+    
     ofstream SR_test;
-    SR_test.open("Ptest_best_fitpergen_SR_history.txt", fstream::app);
-    SR_test << best_P_fitness.at(0) << endl;
+    SR_test.open("test_P_best_fitpergen_SR_history.txt", fstream::app);         //best fitness out of all policies
+    SR_test << best_P_fitness.back() << endl;
     SR_test.close();
     
-    fout.close();
     
+    // NOISE //
+    ofstream tstep_position, tstep_velocity, tstep_sensor, tstep_actuator,nsensor, nactuator, nposition, nvelocity;
+    tstep_sensor.open("tstep_sensor.txt", ofstream::app);
+    tstep_actuator.open("tstep_actuator.txt", ofstream::app);
+    tstep_position.open("tstep_position.txt", ofstream::app);
+    tstep_velocity.open("tstep_velocity.txt", ofstream::app);
+    
+    nsensor.open("ave_sensor_noise.txt", ofstream::app);
+    nactuator.open("ave_actuator_noise.txt", ofstream::app);
+    nposition.open("ave_position_noise.txt", ofstream::app);
+    nvelocity.open("ave_velocity_noise.txt", ofstream::app);
+    for (int h =0; h < pP->num_pol; h++){
+        for (int j =0; j < pP->total_time; j++){
+            // TIMESTEP NOISE HISTORY //
+            assert(pP->total_time == pro_pol.at(h).position_noise_tstep_history.size());
+            tstep_position << pro_pol.at(h).position_noise_tstep_history.at(j) << "\t";
+            tstep_velocity << pro_pol.at(h).velocity_noise_tstep_history.at(j) << "\t";
+            tstep_sensor << pro_pol.at(h).sensor_noise_tstep_history.at(j) << "\t";
+            tstep_actuator << pro_pol.at(h).actuator_noise_tstep_history.at(j) << "\t";
+        }
+        tstep_position << endl;
+        tstep_velocity << endl;
+        tstep_sensor << endl;
+        tstep_actuator << endl;
+        assert(pro_pol.at(h).ave_sensor_noise_history.size() == 1);
+        nsensor << pro_pol.at(h).ave_sensor_noise_history.at(0) << endl;
+        nactuator << pro_pol.at(h).ave_actuator_noise_history.at(0) << endl;
+        nposition << pro_pol.at(h).ave_position_noise_history.at(0) << endl;
+        nvelocity << pro_pol.at(h).ave_velocity_noise_history.at(0) << endl;
+    }
     
 }
 
@@ -646,9 +669,8 @@ void EA::Graph_test(){
 //-------------------------------------------------------------------------
 //Runs the entire program
 void EA::Run_Program() {
-    ofstream nsensor, nactuator, rand_start, P_fit, A_fit,P_testperfive_fit;
-    nsensor.open("ave_sensor_noise.txt", ofstream::out | ofstream::trunc);
-    nactuator.open("ave_actuator_noise.txt", ofstream::out | ofstream::trunc);
+    ofstream rand_start, P_fit, A_fit,P_testperfive_fit;
+    
     rand_start.open("random_starting_variables.txt", ofstream::out | ofstream::trunc);
     P_fit.open("stat_ave_best_P_fitness.txt", fstream::app);
     A_fit.open("stat_ave_best_A_fitness.txt", fstream::app);
@@ -657,6 +679,7 @@ void EA::Run_Program() {
     Build_Population();
     best_P_fitness.clear();
     best_A_fitness.clear();
+    
     for (int gen=0; gen<pP->gen_max; gen++) {
         if (gen %5 ==0){
             if (pP->rand_start_5gen==true){
@@ -678,6 +701,7 @@ void EA::Run_Program() {
                 pP->test();//change parameters
                 Run_Test_Simulation();
                 Sort_Test_Policies_By_Fitness();//sort then push best fit into a file
+                update_best_test_fit();
                 if (pP->two_A==true) {
                     pP->tr_2=true;
                     //cout<< "train 2 chosen" << endl;
@@ -687,6 +711,7 @@ void EA::Run_Program() {
                     //cout<< "train 3 chosen" << endl;
                 }
                 pP->train(); //change parameters back
+                assert(pP->actuator_NOISE==false && pP->sensor_NOISE ==false);
             }
         }
         
@@ -721,8 +746,7 @@ void EA::Run_Program() {
     //cout << endl;
     P_fit.close();
     A_fit.close();
-    nsensor.close();
-    nactuator.close();
+
     
     rand_start.close();
 }

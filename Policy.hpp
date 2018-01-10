@@ -35,21 +35,31 @@ public:
     vector<double> x_dd_history;
     vector<double> P_force_history;
     vector<double> A_force_history;
+    
+    vector<double> position_noise_tstep_history;
+    vector<double> velocity_noise_tstep_history;
+    vector<double> sensor_noise_tstep_history;
+    vector<double> actuator_noise_tstep_history;
+    
+    vector<double> ave_position_noise_history;      //for each policy
+    vector<double> ave_velocity_noise_history;
+    vector<double> ave_sensor_noise_history;
+    vector<double> ave_actuator_noise_history;
     //...
     double P_fitness;
     double A_fitness;
     double P_fit_swap;
     double A_fit_swap;
-    int age; //how long did it last?
     
-    double x; // position of mass
-    double x_dot; //velocity
-    double x_dd; //acceleration
+    int age;        //how long did it last
+    
+    double x;       // position of mass
+    double x_dot;   //velocity
+    double x_dd;    //acceleration
         
     void Init_P_policy(int num_P_weights); //initializes one policy
     void Init_A_policy(int num_A_weights);
     
-    void Calc_P_fitness();
     
 private:
 };
