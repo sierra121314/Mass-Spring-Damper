@@ -62,13 +62,21 @@ public:
     neural_network set_A_NN(neural_network NNa, Policy* aPo);
     
     // NOISE //
+    void zero_noise_sum_ave();
     double generateGaussianNoise();
     double generateActuatorNoise();
     double generateSensorNoise();
+    
     double noise_x_sum;
     double noise_xdot_sum;
     double noise_sensor_sum;
     double noise_actuator_sum;
+    
+    double noise_x_increm = 0;
+    double noise_xdot_increm = 0;
+    double noise_sensor_increm = 0;
+    double noise_actuator_increm = 0;
+    
     double ave_x_noise;
     double ave_xdot_noise;
     double ave_sensor_noise;
@@ -76,6 +84,7 @@ public:
     
     double xt =0;    //noise sinusoidal
     vector<double> noise_init(vector<double> noise);
+    vector<double> state_init(vector<double> state);
     vector<double> set_sensor_actuator_noise(vector<double> noise);
     void sum_noise(vector<double> noise);
     void ave_noise(Policy* pPo, Policy* aPo);
@@ -100,7 +109,7 @@ void Simulator::set_A_ICs(Policy* pPo, Policy* aPo){
     pP->start_x_dot = aPo->A_ICs.at(2);
 }
 
-void Simulator::MSD_initStates(Policy* pPo, Policy* aPo){
+void Simulator::zero_noise_sum_ave(){
     noise_x_sum = 0;
     noise_xdot_sum = 0;
     noise_sensor_sum = 0;
@@ -110,6 +119,12 @@ void Simulator::MSD_initStates(Policy* pPo, Policy* aPo){
     ave_sensor_noise = 0;
     ave_x_noise = 0;
     ave_xdot_noise = 0;
+    
+    xt=0;
+}
+
+void Simulator::MSD_initStates(Policy* pPo, Policy* aPo){
+    
     
     //intialize starting stuff
     if (pP->tr_5==true){
@@ -166,8 +181,16 @@ vector<double> Simulator::noise_init(vector<double> noise){
     noise.push_back(0); // x actuator
     noise.push_back(0); // xdot sensor
     noise.push_back(0); // xdot actuator
+    
     return noise;
 }
+
+vector<double> Simulator::state_init(vector<double> state){
+    state.push_back(0);     // postion
+    state.push_back(0);     // velocity
+    return state;
+}
+
 double Simulator::generateGaussianNoise() {
     const double epsilon = numeric_limits<double>::min();
     const double two_pi = 2.0*PI;
@@ -214,8 +237,8 @@ double Simulator::x_sensor_noise(){
     assert(r<=1 && r>=-1);
     
     if (pP->sinusoidal_noise==true){
-        xt = xt+pP->dt;
-        sinusoidal = pP->As*sin(PI/8*(xt+pP->dt)+pP->phase);
+        sinusoidal = pP->As*sin((PI/8)*(xt)+pP->phase);
+        assert(sinusoidal <= abs(pP->As)+abs(r) && sinusoidal >= -abs(pP->As)-abs(r));
     }
     else{
         sinusoidal = 0;
@@ -228,8 +251,8 @@ double Simulator::xdot_sensor_noise(){
     double rr = generateGaussianNoise();
     assert(rr<=1 && rr>=-1);
     if (pP->sinusoidal_noise==true){
-        xt = xt+pP->dt;
-        sinusoidal = pP->As*sin(PI/8*(xt+pP->dt)+pP->phase);
+        sinusoidal = pP->As*sin((PI/8)*(xt)+pP->phase);
+        assert(sinusoidal <= abs(pP->As)+abs(rr) && sinusoidal >= -abs(pP->As)-abs(rr));
     }
     else{
         sinusoidal = 0;
@@ -244,8 +267,8 @@ double Simulator::x_actuator_noise(){
     assert(r<=1 && r>=-1);
     
     if (pP->sinusoidal_noise==true){
-        xt = xt+pP->dt;
-        sinusoidal = pP->As*sin(PI/8*(xt+pP->dt)+pP->phase);
+        sinusoidal = pP->As*sin((PI/8)*(xt)+pP->phase);
+        assert(sinusoidal <= abs(pP->As)+abs(r) && sinusoidal >= -abs(pP->As)-abs(r));
     }
     else{
         sinusoidal = 0;
@@ -258,8 +281,8 @@ double Simulator::xdot_actuator_noise(){
     double rr = generateGaussianNoise();
     assert(rr<=1 && rr>=-1);
     if (pP->sinusoidal_noise==true){
-        xt = xt+pP->dt;
-        sinusoidal = pP->As*sin(PI/8*(xt+pP->dt)+pP->phase);
+        sinusoidal = pP->As*sin((PI/8)*(xt)+pP->phase);
+        assert(sinusoidal <= abs(pP->As)+abs(rr) && sinusoidal >= -abs(pP->As)-abs(rr));
     }
     else{
         sinusoidal = 0;
@@ -269,7 +292,7 @@ double Simulator::xdot_actuator_noise(){
 }
 
 vector<double> Simulator::set_sensor_actuator_noise(vector<double> noise){
-
+    xt = xt+pP->dt;     //increment timer for the sinewave
     if (pP->sensor_NOISE == true) {
         noise.at(0)= x_sensor_noise();
         noise.at(2)= xdot_sensor_noise();
@@ -279,16 +302,18 @@ vector<double> Simulator::set_sensor_actuator_noise(vector<double> noise){
         noise.at(3)= xdot_actuator_noise();
     }
     
-    noise.at(0) = pP->sn*noise.at(0); //sensor noise for position
-    noise.at(1) = pP->an*noise.at(1); //actuator noise for position
-    noise.at(2) = pP->sn*(1/10)*noise.at(2); //sensor noise for velocity
-    noise.at(3) = pP->an*noise.at(3); //actuator noise for velocity
+    noise.at(0) = pP->sn*noise.at(0);           //sensor noise for position
+    noise.at(1) = pP->an*noise.at(1);           //actuator noise for position
+    noise.at(2) = pP->sn*noise.at(2);    //sensor noise for velocity
+    noise.at(3) = pP->an*noise.at(3);           //actuator noise for velocity
     return noise;
 }
 
 vector<double> Simulator::set_state(vector<double> state, vector<double> noise, Policy* pPo, Policy* aPo){
-    state.push_back(pPo->x+noise.at(0)+noise.at(1));
-    state.push_back(pPo->x_dot+noise.at(2)+noise.at(3));
+    //state.push_back(pPo->x+noise.at(0)+noise.at(1));
+    state.at(0)=pPo->x+noise.at(0)+noise.at(1);
+    //state.push_back(pPo->x_dot+noise.at(2)+noise.at(3));
+    state.at(1) = pPo->x_dot+noise.at(2)+noise.at(3);
     return state;
 }
 
@@ -372,7 +397,7 @@ void Simulator::calculateFitness(Policy* pPo, Policy* aPo){
      */
     if (pP->sinusoidal_goal==true){  // SINUSOIDAL GOAL //
         g_xt = pPo->x+g_xt+pP->dt;
-        pP->goal_x = pP->start_x + pP->A_g*sin(PI/16*(g_xt+pP->dt)+pP->g_phase);
+        pP->goal_x = pP->start_x + pP->A_g*sin(PI/16*(g_xt)+pP->g_phase);
         double F_dist = (abs(pP->goal_x - pPo->x));
         pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
         aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
@@ -401,10 +426,15 @@ void Simulator::calculateFitness(Policy* pPo, Policy* aPo){
 }
 
 void Simulator::sum_noise(vector<double> noise){
-    noise_x_sum += noise.at(0)+noise.at(1); //this is x noise total- sensor plus actuator
-    noise_xdot_sum += noise.at(2)+noise.at(3); //this is velocity noise total- sensor plus actuator
+    noise_x_sum += noise.at(0) + noise.at(1);         //this is x noise total- sensor plus actuator
+    noise_xdot_sum += noise.at(2) + noise.at(3);      //this is velocity noise total- sensor plus actuator
     noise_sensor_sum += noise.at(0) + noise.at(2);
     noise_actuator_sum += noise.at(1) + noise.at(3);
+    
+    noise_x_increm = noise.at(0) + noise.at(1);
+    noise_xdot_increm = noise.at(2) + noise.at(3);
+    noise_sensor_increm =noise.at(0) + noise.at(2);
+    noise_actuator_increm = noise.at(1) + noise.at(3);
     
     //cout << "sum\t" << noise_x_sum << "\t" << noise_xdot_sum << "\t" << noise_sensor_sum << "\t" << noise_actuator_sum << endl;
 }
@@ -416,10 +446,14 @@ void Simulator::history(Policy* pPo, Policy* aPo){
     pPo->P_force_history.push_back(pP->P_force);
     aPo->A_force_history.push_back(pP->A_force);
     
-    pPo->position_noise_tstep_history.push_back(noise_x_sum);
-    pPo->velocity_noise_tstep_history.push_back(noise_xdot_sum);
-    pPo->sensor_noise_tstep_history.push_back(noise_sensor_sum);
-    pPo->actuator_noise_tstep_history.push_back(noise_actuator_sum);
+    //pPo->position_noise_tstep_history.push_back(noise_x_sum);
+    //pPo->velocity_noise_tstep_history.push_back(noise_xdot_sum);
+    //pPo->sensor_noise_tstep_history.push_back(noise_sensor_sum);
+    //pPo->actuator_noise_tstep_history.push_back(noise_actuator_sum);
+    pPo->position_noise_tstep_history.push_back(noise_x_increm);
+    pPo->velocity_noise_tstep_history.push_back(noise_xdot_increm);
+    pPo->sensor_noise_tstep_history.push_back(noise_sensor_increm);
+    pPo->actuator_noise_tstep_history.push_back(noise_actuator_increm);
 }
 
 void Simulator::ave_noise(Policy* pPo, Policy* aPo){
@@ -445,6 +479,7 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo){
     aPo->A_fit_swap = 0;
     
     // STARTING POSITIONS //
+    zero_noise_sum_ave();
     MSD_initStates(pPo, aPo);
     
     // PROTAGONIST //
@@ -465,6 +500,10 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo){
         vector<double> state;
         vector<double> noise;
         noise = noise_init(noise); //set sensor and actuator noise to zero
+        assert(noise.at(0)==0 && noise.at(1)==0 && noise.at(2)==0 && noise.at(3)==0);
+        
+        state = state_init(state);
+        
         noise = set_sensor_actuator_noise(noise); //if noise -> update noise
 
         state = set_state(state, noise, pPo, aPo); //set position and velocity with added noise
@@ -486,7 +525,7 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo){
         // SUM NOISE FOR POSITION, VELOCITY, SENSOR, AND ACTUATOR //
         sum_noise(noise);
         
-        // STORE HISTORY (STATES AND FORCES) //
+        // STORE HISTORY (STATES,FORCES, NOISE) //
         history(pPo, aPo);
 
         

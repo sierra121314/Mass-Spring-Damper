@@ -25,7 +25,7 @@ protected:
     
     
 public:
-    int stat_runs = 10;
+    int stat_runs = 5;
     // EA STUFF //
     int num_pol = 20;                  //number of policies
     int to_kill = num_pol/2;
