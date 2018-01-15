@@ -737,13 +737,14 @@ void EA::Graph_test(){
     nposition.open("ave_position_noise.txt", ofstream::app);
     nvelocity.open("ave_velocity_noise.txt", ofstream::app);
     for (int h =0; h < pP->num_pol; h++){
+        assert(pP->total_time == pro_pol.at(h).position_noise_tstep_history.size());
         for (int j =0; j < pP->total_time; j++){
             // TIMESTEP NOISE HISTORY //
-            assert(pP->total_time == pro_pol.at(h).position_noise_tstep_history.size());
-            tstep_position << pro_pol.at(h).position_noise_tstep_history.at(j)/2 << "\t";
-            tstep_velocity << pro_pol.at(h).velocity_noise_tstep_history.at(j)/2 << "\t";
-            tstep_sensor << pro_pol.at(h).sensor_noise_tstep_history.at(j)/2 << "\t";
-            tstep_actuator << pro_pol.at(h).actuator_noise_tstep_history.at(j)/2 << "\t";
+            tstep_position << pro_pol.at(h).position_noise_tstep_history.at(j) << "\t";
+            //cout << pro_pol.at(h).position_noise_tstep_history.at(j) << "\t";
+            tstep_velocity << pro_pol.at(h).velocity_noise_tstep_history.at(j) << "\t";
+            tstep_sensor << pro_pol.at(h).sensor_noise_tstep_history.at(j) << "\t";
+            tstep_actuator << pro_pol.at(h).actuator_noise_tstep_history.at(j) << "\t";
         }
         tstep_position << endl;
         tstep_velocity << endl;

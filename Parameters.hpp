@@ -46,7 +46,7 @@ public:
     
     // DOMAIN VARIABLES - STATIC
     double m = 7;       //mass
-    double b = -0.01;    //damper
+    double b = -0.05;    //damper
     double k = 1;       //spring
     double dt = 0.1;    //time step [s]
     double mu = 0;      //friction
@@ -113,7 +113,7 @@ public:
     double As = 1;
     bool sinusoidal_noise = true;   //within sensor and actuator noise, so if those are false->sinusoidal is false
     double phase = PI/4;            //in Radians
-    
+    double lambda = 0.05;              //Period - 2PI when lambda is 1
     
     // TRAINING AND TESTING MODES //
     int train_test_combo;
@@ -214,7 +214,7 @@ void Parameters::train_para(){
     train_para << "Antagonist Introduced later\t" << late_antagonist << "\t at Gen" << ant_intro << endl;
     train_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
     train_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
-    train_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl << "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << endl;
+    train_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl <<  "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << "\tPERIOD\t" << lambda << endl;
     train_para << "Random Starts/Gen\t" << rand_start_gen << "\t" << rand_start_5gen << endl;
     train_para << "Reverse Leniency\t" << three_for_three << endl;
     train_para << "50 Starting Variables/Policy\t" << multi_var << endl;
@@ -258,7 +258,7 @@ void Parameters::train(){
         }
         if (tr_3 == true){
             late_antagonist = false;
-            ANT2 = true;
+            ANT2 = false;
             P_f_min_bound = -5;
             P_f_max_bound = 5;
             if (late_antagonist==true) {
@@ -320,7 +320,7 @@ void Parameters::test_para(){
     test_para << "Antagonist Introduced later\t" << late_antagonist << "\t at Gen" << ant_intro << endl;
     test_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
     test_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
-    test_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl <<  "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << endl;
+    test_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl <<  "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << "\tPERIOD\t" << lambda << endl;
     test_para << "Random Starts/Gen\t" << rand_start_gen << "\t" << rand_start_5gen << endl;
     test_para << "Reverse Leniency\t" << three_for_three << endl;
     test_para << "50 Starting Variables/Policy\t" << multi_var << endl;

@@ -199,36 +199,35 @@ double Simulator::generateGaussianNoise() {
     double sigma = 0.4; //0.4
     //double sigma = (((double)rand() / RAND_MAX) - 0.5) * 2;
     double n = 0;
-    //cout << mu << "," << sigma << endl;
     double z0, z1;
     double u1=0, u2=0;
     
     do{
-        //cout << u1 << "," u2 << endl;
         u1 = ((double)rand() / RAND_MAX);
         u2 = ((double)rand() / RAND_MAX);
-        //cout << u1 << "," << u2 << endl;
+
     } while (u1 <= epsilon);
     z0 = sqrt(-2.0 * log(u1)) * cos(two_pi * u2);
     z1 = sqrt(-2.0 * log(u1)) * sin(two_pi * u2);
-    //cout << z0 << endl;
+
     n = z0 * sigma + mu;
     while (n>1 || n<-1){
-        //cout << "new error loop" << endl;
+
         double z0, z1;
         double u1=0, u2=0;
         
         do{
-            //cout << u1 << "," u2 << endl;
+
             u1 = ((double)rand() / RAND_MAX);
             u2 = ((double)rand() / RAND_MAX);
-            //cout << u1 << "," << u2 << endl;
+
         } while (u1 <= epsilon);
         z0 = sqrt(-2.0 * log(u1)) * cos(two_pi * u2);
         z1 = sqrt(-2.0 * log(u1)) * sin(two_pi * u2);
-        //cout << z0 << endl;
+
         n = (z0 * sigma + mu)/10;
     }
+    
     return n;
 }
 
@@ -237,7 +236,7 @@ double Simulator::x_sensor_noise(){
     assert(r<=1 && r>=-1);
     
     if (pP->sinusoidal_noise==true){
-        sinusoidal = pP->As*sin((PI/8)*(xt)+pP->phase);
+        sinusoidal = pP->As*sin((pP->lambda)*(xt)+pP->phase);
         assert(sinusoidal <= abs(pP->As)+abs(r) && sinusoidal >= -abs(pP->As)-abs(r));
     }
     else{
@@ -251,7 +250,7 @@ double Simulator::xdot_sensor_noise(){
     double rr = generateGaussianNoise();
     assert(rr<=1 && rr>=-1);
     if (pP->sinusoidal_noise==true){
-        sinusoidal = pP->As*sin((PI/8)*(xt)+pP->phase);
+        sinusoidal = pP->As*sin((pP->lambda)*(xt)+pP->phase);
         assert(sinusoidal <= abs(pP->As)+abs(rr) && sinusoidal >= -abs(pP->As)-abs(rr));
     }
     else{
@@ -267,7 +266,7 @@ double Simulator::x_actuator_noise(){
     assert(r<=1 && r>=-1);
     
     if (pP->sinusoidal_noise==true){
-        sinusoidal = pP->As*sin((PI/8)*(xt)+pP->phase);
+        sinusoidal = pP->As*sin((pP->lambda)*(xt)+pP->phase);
         assert(sinusoidal <= abs(pP->As)+abs(r) && sinusoidal >= -abs(pP->As)-abs(r));
     }
     else{
@@ -281,7 +280,7 @@ double Simulator::xdot_actuator_noise(){
     double rr = generateGaussianNoise();
     assert(rr<=1 && rr>=-1);
     if (pP->sinusoidal_noise==true){
-        sinusoidal = pP->As*sin((PI/8)*(xt)+pP->phase);
+        sinusoidal = pP->As*sin((pP->lambda)*(xt)+pP->phase);
         assert(sinusoidal <= abs(pP->As)+abs(rr) && sinusoidal >= -abs(pP->As)-abs(rr));
     }
     else{
@@ -404,7 +403,6 @@ void Simulator::calculateFitness(Policy* pPo, Policy* aPo){
     }
     else if (pP->multi_var==true){
         pP->goal_x = pP->goal_x;//goal.at(k) from list
-        //cout << pP->goal_x << endl;
         double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
         pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
         aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
@@ -414,7 +412,6 @@ void Simulator::calculateFitness(Policy* pPo, Policy* aPo){
         double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
         pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
         aPo->A_fit_swap += sqrt(pow((pPo->x - x_old),2) + pow((pPo->x_dot - x_dot_old),2));
-        //cout << aPo->A_fit_swap << endl;
     }
     else {
         pP->goal_x = 2;
