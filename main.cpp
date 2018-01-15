@@ -46,8 +46,8 @@ int main() {
     P.four_B = false;
     P.two_B = false;
     P.three_B = false;
-    P.three_A = true;   // FOR research paper keep this TRUE
-    P.two_A = false;     // OR keep this TRUE
+    P.three_A = false;   // FOR research paper keep this TRUE
+    P.two_A = true;     // OR keep this TRUE
     P.one = false;
     ofstream test_fit, P_fit, A_fit, P_testperfive_fit, test_para;
     test_fit.open("stat_Ptest_fitness.txt", ofstream::out | ofstream::trunc);
