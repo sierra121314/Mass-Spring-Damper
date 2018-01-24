@@ -50,7 +50,7 @@ public:
     vector<double> best_A_fitness;
     
     void Build_Population();
-    void Run_Simulation();
+    void Run_Simulation(deque<Policy> pro_deq,deque<Policy> ant_deq);
     void Run_Test_Simulation();
     void Evaluate();
     int P_Binary_Select();
@@ -62,8 +62,9 @@ public:
     struct Greater_Than_Policy_Fitness;
     void Sort_Policies_By_Fitness();
     void Sort_Test_Policies_By_Fitness();
-    void EA_Process();
+    void EA_Process(deque<Policy> pro_deq,deque<Policy> ant_deq);
     void Run_Program();
+    void Run_Test_Program();
     void Graph();
     void Graph_med();
     void Graph_test();
@@ -169,7 +170,7 @@ void EA::full_leniency_ave_fit(){
 
 //////////////////////////////////////////////////////////////////////////////
 //Puts each policy into the simulation
-void EA::Run_Simulation() {
+void EA::Run_Simulation(deque<Policy> pro_deq,deque<Policy> ant_deq) {
     random_shuffle ( pro_pol.begin(), pro_pol.end() );
     random_shuffle ( ant_pol.begin(), ant_pol.end() );
     fstream rand_start, test_fit;
@@ -179,8 +180,6 @@ void EA::Run_Simulation() {
         pP->random_variables();
     }
     determine_num_loops();
-    
-    
     
     //LOGGING START POSITIONS
     rand_start << pP->m << "\t" << pP->b << "\t" << pP->k << "\t" << pP->mu << "\t" << pP->start_x << "\t" << pP->goal_x << "\t" << pP->start_x_dot << endl;
@@ -204,14 +203,37 @@ void EA::Run_Simulation() {
             Policy* aPo;
             pPo = & pro_pol.at(i);
             if (pP->A_f_max_bound !=0){ //coevolution - each policy against each other //should only run if there is an Antagonist
-                for (int z= 0; z<pP->num_pol; z++){
-                    aPo = & ant_pol.at(z);
-                    S.Simulate(pPo, aPo);
+                if (pP->deque_best==true){
+                    //Pro policies against Ant archive
+                    for (int z= 0; z<5; z++){ //for the size of the deque
+                        aPo = & ant_deq[z];
+                        S.Simulate(pPo, aPo);
+                        pro_pol.at(i).P_fitness += pro_pol.at(i).P_fit_swap;
+                        
+                    }
+                    pro_pol.at(i).P_fitness = pro_pol.at(i).P_fitness/5;
                     
-                    pro_pol.at(i).P_fitness += pro_pol.at(i).P_fit_swap;
-                    ant_pol.at(z).A_fitness += ant_pol.at(z).A_fit_swap;
+                    aPo = & ant_pol.at(i);
+                    for (int z= 0; z<5; z++){ //for the size of the deque
+                        pPo = & pro_deq[z];
+                        S.Simulate(pPo, aPo);
+                        ant_pol.at(i).A_fitness += ant_pol.at(i).A_fit_swap;
+                        
+                    }
+                    ant_pol.at(i).A_fitness = ant_pol.at(i).A_fitness/5;
                     
                 }
+                else{
+                    for (int z= 0; z<pP->num_pol; z++){
+                        aPo = & ant_pol.at(z);
+                        S.Simulate(pPo, aPo);
+                        
+                        pro_pol.at(i).P_fitness += pro_pol.at(i).P_fit_swap;
+                        ant_pol.at(z).A_fitness += ant_pol.at(z).A_fit_swap;
+                        
+                    }
+                }
+                
             }
             else{
                 aPo = & ant_pol.at(i);
@@ -269,7 +291,7 @@ void EA::Run_Test_Simulation() {
             test_ant_pol.at(i).A_fitness = test_ant_pol.at(i).A_fit_swap;
         }
         assert(test_pro_pol.at(i).P_fitness>=0);
-        assert(test_ant_pol.at(i).A_fitness>=0 && test_ant_pol.at(i).A_fitness<10000000);
+        assert(test_ant_pol.at(i).A_fitness>=0 );
                 
         
     }
@@ -452,8 +474,8 @@ void EA::Repopulate() {
 
 //-------------------------------------------------------------------------
 //Runs the entire EA loop process
-void EA::EA_Process() {
-    Run_Simulation();
+void EA::EA_Process(deque<Policy> pro_deq,deque<Policy> ant_deq) {
+    Run_Simulation(pro_deq,ant_deq);
     Evaluate();
     Sort_Policies_By_Fitness();
     Downselect();
@@ -789,6 +811,15 @@ void EA::Graph_test(){
     
 }
 
+void EA::Run_Test_Program(){
+    test_pro_pol = pro_pol;
+    test_ant_pol = ant_pol;
+    Run_Test_Simulation();
+    Evaluate();
+    Sort_Test_Policies_By_Fitness();
+
+    Graph_test();
+}
 
 
 //-------------------------------------------------------------------------
@@ -855,7 +886,11 @@ void EA::Run_Program() {
                     pP->A_f_max_bound = 1;
                 }
             }
-            EA_Process();
+            if (gen>=5){
+                //set bool to true
+                pP->deque_best=true;
+            }
+            EA_Process(pro_deq,ant_deq);
             Graph_med();
             pro_deq = temporary_best_pro_policies(pro_deq);
             ant_deq = temporary_best_ant_policies(ant_deq);
@@ -863,7 +898,7 @@ void EA::Run_Program() {
         }
         else {
             
-            Run_Simulation();
+            Run_Simulation(pro_deq,ant_deq);
             Evaluate();
             Sort_Policies_By_Fitness();
             pro_deq = temporary_best_pro_policies(pro_deq);
@@ -879,13 +914,13 @@ void EA::Run_Program() {
     ave_fit();
     Graph();
     for (int i=0; i<5; i++){
-        cout << pro_deq[i].P_fitness << "\t";
+        //cout << pro_deq[i].P_fitness << "\t";
     }
-    cout << endl;
+    //cout << endl;
     for (int i=0; i<5; i++){
-        cout << ant_deq[i].A_fitness << "\t";
+        //cout << ant_deq[i].A_fitness << "\t";
     }
-    cout << endl;
+    //cout << endl;
     
     P_testperfive_fit << endl;
     //cout << endl;

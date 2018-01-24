@@ -118,13 +118,13 @@ int main() {
                 P.test();
                 //E.pP = &P;
                 assert(P.A_f_max_bound==0);
-                E.Run_Simulation(); //Should this be Run_Test_Simulation();
-                E.Evaluate();
-                E.Sort_Policies_By_Fitness();//Sort_Test_Policies_By_Fitness()
+                E.Run_Test_Program();
+                //E.Run_Simulation(); //Should this be Run_Test_Simulation();
+                //E.Evaluate();
+                //E.Sort_Policies_By_Fitness();//Sort_Test_Policies_By_Fitness()
                 cout << "BEST POLICY Test PRO-FITNESS" << "\t" << E.pro_pol.at(0).P_fitness << endl;
-
                 test_fit << E.pro_pol.at(0).P_fitness << endl;
-                E.Graph_test();
+                //E.Graph_test();
                 
             }
         }

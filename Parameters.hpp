@@ -37,6 +37,8 @@ public:
     double P_force;                     //Protagonist force
     double A_force;                     //Antagonist force
     
+    bool deque_best = false;
+    
     // 2ND ANTAGONIST //
     bool rand_antagonist;
     bool late_antagonist;
