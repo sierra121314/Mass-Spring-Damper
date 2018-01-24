@@ -186,8 +186,15 @@ vector<double> Simulator::noise_init(vector<double> noise){
 }
 
 vector<double> Simulator::state_init(vector<double> state){
-    state.push_back(0);     // postion
-    state.push_back(0);     // velocity
+    if (pP->MSD_EOM==true){
+        state.push_back(0);     // postion
+        state.push_back(0);     // velocity
+    }
+    else if (pP->Pend_EOM==true){
+        state.push_back(0);     //theta
+        state.push_back(0);     //theta_dot
+    }
+    
     return state;
 }
 
