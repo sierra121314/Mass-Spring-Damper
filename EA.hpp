@@ -926,7 +926,7 @@ void EA::Run_Program() {
     //cout << endl;
     P_fit.close();
     A_fit.close();
-
+    pP->deque_best=false;
     
     rand_start.close();
 }
