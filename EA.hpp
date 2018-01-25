@@ -708,12 +708,12 @@ void EA::Graph_test(){
     SR_test_best.open("test_P_best_fitpergen_SR_history.txt", fstream::app);         //best fitness out of all policies
     
     for (int f =0; f < pP->total_time; f++){
-        best_tx << pro_pol.at(0).x_history.at(f) << "\t";
-        best_txdot << pro_pol.at(0).x_dot_history.at(f) << "\t";
-        best_txdd << pro_pol.at(0).x_dd_history.at(f) << "\t";
+        best_tx << test_pro_pol.at(0).x_history.at(f) << "\t";
+        best_txdot << test_pro_pol.at(0).x_dot_history.at(f) << "\t";
+        best_txdd << test_pro_pol.at(0).x_dd_history.at(f) << "\t";
         
-        best_Pt_force << pro_pol.at(0).P_force_history.at(f) << "\t";
-        best_At_force << ant_pol.at(0).A_force_history.at(f) << "\t";
+        best_Pt_force << test_pro_pol.at(0).P_force_history.at(f) << "\t";
+        best_At_force << test_ant_pol.at(0).A_force_history.at(f) << "\t";
 
     }
     
@@ -733,7 +733,7 @@ void EA::Graph_test(){
  
     
     for (int h =0; h < pP->num_pol; h++){
-        test_P_fit_hist << pro_pol.at(h).P_fitness << "\t";
+        test_P_fit_hist << test_pro_pol.at(h).P_fitness << "\t";
         
     }
     test_P_fit_hist << endl;
@@ -749,16 +749,16 @@ void EA::Graph_test(){
     SR_test_med.open("test_P_med_fitpergen_SR_history.txt", fstream::app);
     
     for (int f =0; f < pP->total_time; f++){
-        med_tx << pro_pol.at(pro_pol.size()/2).x_history.at(f) << "\t";
-        med_txdot << pro_pol.at(pro_pol.size()/2).x_dot_history.at(f) << "\t";
-        med_txdd << pro_pol.at(pro_pol.size()/2).x_dd_history.at(f) << "\t";
+        med_tx << test_pro_pol.at(pro_pol.size()/2).x_history.at(f) << "\t";
+        med_txdot << test_pro_pol.at(pro_pol.size()/2).x_dot_history.at(f) << "\t";
+        med_txdd << test_pro_pol.at(pro_pol.size()/2).x_dd_history.at(f) << "\t";
         
-        med_Pt_force << pro_pol.at(pro_pol.size()/2).P_force_history.at(f) << "\t";
-        med_At_force << ant_pol.at(pro_pol.size()/2).A_force_history.at(f) << "\t";
+        med_Pt_force << test_pro_pol.at(pro_pol.size()/2).P_force_history.at(f) << "\t";
+        med_At_force << test_ant_pol.at(pro_pol.size()/2).A_force_history.at(f) << "\t";
         
     }
     
-    SR_test_med << pro_pol.at(pro_pol.size()/2).P_fitness << "\t";
+    SR_test_med << test_pro_pol.at(pro_pol.size()/2).P_fitness << "\t";
     
     
     med_tx.close();
@@ -786,21 +786,21 @@ void EA::Graph_test(){
         assert(pP->total_time == pro_pol.at(h).position_noise_tstep_history.size());
         for (int j =0; j < pP->total_time; j++){
             // TIMESTEP NOISE HISTORY //
-            tstep_position << pro_pol.at(h).position_noise_tstep_history.at(j) << "\t";
+            tstep_position << test_pro_pol.at(h).position_noise_tstep_history.at(j) << "\t";
             //cout << pro_pol.at(h).position_noise_tstep_history.at(j) << "\t";
-            tstep_velocity << pro_pol.at(h).velocity_noise_tstep_history.at(j) << "\t";
-            tstep_sensor << pro_pol.at(h).sensor_noise_tstep_history.at(j) << "\t";
-            tstep_actuator << pro_pol.at(h).actuator_noise_tstep_history.at(j) << "\t";
+            tstep_velocity << test_pro_pol.at(h).velocity_noise_tstep_history.at(j) << "\t";
+            tstep_sensor << test_pro_pol.at(h).sensor_noise_tstep_history.at(j) << "\t";
+            tstep_actuator << test_pro_pol.at(h).actuator_noise_tstep_history.at(j) << "\t";
         }
         tstep_position << endl;
         tstep_velocity << endl;
         tstep_sensor << endl;
         tstep_actuator << endl;
-        assert(pro_pol.at(h).ave_sensor_noise_history.size() == 1);
-        nsensor << pro_pol.at(h).ave_sensor_noise_history.at(0) << "\t";
-        nactuator << pro_pol.at(h).ave_actuator_noise_history.at(0) << "\t";
-        nposition << pro_pol.at(h).ave_position_noise_history.at(0) << "\t";
-        nvelocity << pro_pol.at(h).ave_velocity_noise_history.at(0) << "\t";
+        assert(test_pro_pol.at(h).ave_sensor_noise_history.size() == 1);
+        nsensor << test_pro_pol.at(h).ave_sensor_noise_history.at(0) << "\t";
+        nactuator << test_pro_pol.at(h).ave_actuator_noise_history.at(0) << "\t";
+        nposition << test_pro_pol.at(h).ave_position_noise_history.at(0) << "\t";
+        nvelocity << test_pro_pol.at(h).ave_velocity_noise_history.at(0) << "\t";
     }
     nsensor << endl;
     nactuator << endl;
@@ -836,8 +836,8 @@ void EA::Run_Program() {
     best_P_fitness.clear();
     best_A_fitness.clear();
     
-    deque<Policy> pro_deq;
-    deque<Policy> ant_deq;
+    deque<Policy> pro_deq(5);
+    deque<Policy> ant_deq(5);
     for (int i=0; i<5; i++){
         //pro_deq[i]=0;
     }

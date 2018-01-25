@@ -371,6 +371,10 @@ void Simulator::MSD_equations(Policy* pPo, Policy* aPo){
     pPo->x_dot = x_dot_old + pPo->x_dd*pP->dt;
     //pPo->x = pPo->x + pPo->x_dot*pP->dt;
     pPo->x = x_old + pPo->x_dot*pP->dt;
+    if(pPo->x<0){
+        pPo->x = 0;
+        pPo->x_dot = 0;
+    }
 }
 
 void Simulator::Pendulum_equations(Policy *pPo, Policy *aPo){
@@ -401,6 +405,7 @@ void Simulator::calculateFitness(Policy* pPo, Policy* aPo){
      ss_penalty = 1; //want closest to 0 displacement and penalize for not being at Steady state
      }
      */
+
     if (pP->sinusoidal_goal==true){  // SINUSOIDAL GOAL //
         g_xt = pPo->x+g_xt+pP->dt;
         pP->goal_x = pP->start_x + pP->A_g*sin(PI/16*(g_xt)+pP->g_phase);
