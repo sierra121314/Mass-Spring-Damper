@@ -737,7 +737,7 @@ void EA::Graph_test(){
         
     }
     test_P_fit_hist << endl;
-    SR_test_best << best_P_fitness.back() << endl;
+    SR_test_best << test_pro_pol.at(0).P_fitness << endl;
     
     ofstream med_tx,med_txdot,med_txdd, med_Pt_force,med_At_force, SR_test_med;
     

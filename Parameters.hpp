@@ -48,8 +48,8 @@ public:
     
     // DOMAIN VARIABLES - STATIC
     double m = 7;       //mass
-    double b = 1;    //damper
-    double k = -0.001;       //spring
+    double b = -0.01;    //damper
+    double k = 1;       //spring
     double dt = 0.1;    //time step [s]
     double mu = 0;      //friction
     bool MSD_EOM = true;    //Mass Spring Damper equations
