@@ -894,7 +894,7 @@ void EA::Run_Program() {
                     pP->A_f_max_bound = 1;
                 }
             }
-            if (gen>=5 && pP->deque_on){
+            if (gen>=5 && pP->deque_on==true){
                 //set bool to true
                 pP->deque_best=true; // DEQUES ON //
             }

@@ -25,11 +25,11 @@ protected:
     
     
 public:
-    int stat_runs = 5;
+    int stat_runs = 1;
     // EA STUFF //
-    int num_pol = 20;                  //number of policies
+    int num_pol = 2;                  //number of policies
     int to_kill = num_pol/2;
-    int gen_max = 500;                  //number of generations
+    int gen_max = 50;                  //number of generations
     double total_time = 1000;            //total time steps
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range
@@ -38,7 +38,7 @@ public:
     double A_force;                     //Antagonist force
     
     bool deque_best = false;            // DO NOT CHANGE //
-    bool deque_on = true;               // change when you want full leniency all the time
+    bool deque_on = false;               // change when you want full leniency all the time
     
     
     // 2ND ANTAGONIST //
