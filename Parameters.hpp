@@ -37,7 +37,9 @@ public:
     double P_force;                     //Protagonist force
     double A_force;                     //Antagonist force
     
-    bool deque_best = false;
+    bool deque_best = false;            // DO NOT CHANGE //
+    bool deque_on = true;               // change when you want full leniency all the time
+    
     
     // 2ND ANTAGONIST //
     bool rand_antagonist;
@@ -48,7 +50,7 @@ public:
     
     // DOMAIN VARIABLES - STATIC
     double m = 7;       //mass
-    double b = -0.01;    //damper
+    double b = 1;    //damper
     double k = 1;       //spring
     double dt = 0.1;    //time step [s]
     double mu = 0;      //friction

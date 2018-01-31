@@ -123,7 +123,7 @@ int main() {
                 //E.Evaluate();
                 //E.Sort_Policies_By_Fitness();//Sort_Test_Policies_By_Fitness()
                 cout << "BEST POLICY Test PRO-FITNESS" << "\t" << E.pro_pol.at(0).P_fitness << "\t" << E.test_pro_pol.at(0).P_fitness << endl;
-                test_fit << E.pro_pol.at(0).P_fitness  << endl;
+                test_fit << E.test_pro_pol.at(0).P_fitness  << endl;
                 //E.Graph_test();
                 
             }

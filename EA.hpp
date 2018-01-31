@@ -163,11 +163,13 @@ void EA::determine_num_loops(){
 
 void EA::full_leniency_ave_fit(){
     if (pP->A_f_max_bound != 0){
-        for (int b=0; b<pP->num_pol; b++){
-            pro_pol.at(b).P_fitness = pro_pol.at(b).P_fitness/pP->num_pol;
-            ant_pol.at(b).A_fitness = ant_pol.at(b).A_fitness/pP->num_pol;
-            //cout << "pro\t" << pro_pol.at(b).P_fitness << endl;
-            //cout << "ant\t" << ant_pol.at(b).A_fitness << endl;
+        if (pP->deque_best==false){
+            for (int b=0; b<pP->num_pol; b++){
+                pro_pol.at(b).P_fitness = pro_pol.at(b).P_fitness/pP->num_pol;
+                ant_pol.at(b).A_fitness = ant_pol.at(b).A_fitness/pP->num_pol;
+                //cout << "pro\t" << pro_pol.at(b).P_fitness << endl;
+                //cout << "ant\t" << ant_pol.at(b).A_fitness << endl;
+            }
         }
     }
 }
@@ -206,8 +208,10 @@ void EA::Run_Simulation(deque<Policy> pro_deq,deque<Policy> ant_deq) {
             Policy* pPo;
             Policy* aPo;
             pPo = & pro_pol.at(i);
+            
             if (pP->A_f_max_bound !=0){ //coevolution - each policy against each other //should only run if there is an Antagonist
                 if (pP->deque_best==true){
+                    // DEQUES //
                     //Pro policies against Ant archive
                     for (int z= 0; z<5; z++){ //for the size of the deque
                         aPo = & ant_deq[z];
@@ -890,9 +894,9 @@ void EA::Run_Program() {
                     pP->A_f_max_bound = 1;
                 }
             }
-            if (gen>=5){
+            if (gen>=5 && pP->deque_on){
                 //set bool to true
-                pP->deque_best=true;
+                pP->deque_best=true; // DEQUES ON //
             }
             EA_Process(pro_deq,ant_deq);
             Graph_med();
@@ -930,7 +934,8 @@ void EA::Run_Program() {
     //cout << endl;
     P_fit.close();
     A_fit.close();
-    pP->deque_best=false;
+    
+    pP->deque_best=false;   //For the testing scenario
     
     rand_start.close();
 }
