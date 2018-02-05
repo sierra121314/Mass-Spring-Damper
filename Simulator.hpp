@@ -344,7 +344,7 @@ vector<double> Simulator::set_A_state(vector<double> A_state, vector<double> noi
     A_state.at(0) = pPo->x+noise.at(0)+noise.at(1);
     
     A_state.at(1) = pPo->x_dot+noise.at(2)+noise.at(3);
-    A_state.at(2) = pPo->x_dot;
+    A_state.at(2) = pPo->P_force_history.back();
     
     return A_state;
 }
@@ -550,9 +550,8 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo){
         pP->P_force = set_P_force(NN, state);
         pPo->P_force_history.push_back(pP->P_force);
         
-        
-        A_state = set_A_state(A_state,noise, pPo,aPo);
         /////// ANTAGONIST ///////
+        A_state = set_A_state(A_state,noise, pPo,aPo);
         pP->A_force = set_Ant_force(NNa, A_state);
         
         // UPDATE POSITION, VELOCITY, ACCELERATION //

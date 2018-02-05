@@ -213,22 +213,24 @@ void EA::Run_Simulation(deque<Policy> pro_deq,deque<Policy> ant_deq) {
                 if (pP->deque_best==true){
                     // DEQUES //
                     //Pro policies against Ant archive
-                    for (int z= 0; z<5; z++){ //for the size of the deque
+                    for (int z= 0; z < ant_deq.size(); z++){ //for the size of the deque
                         aPo = & ant_deq[z];
                         S.Simulate(pPo, aPo);
                         pro_pol.at(i).P_fitness += pro_pol.at(i).P_fit_swap;
+                        assert(ant_deq.size()<=5);
                         
                     }
-                    pro_pol.at(i).P_fitness = pro_pol.at(i).P_fitness/5;
+                    
+                    pro_pol.at(i).P_fitness = pro_pol.at(i).P_fitness/pro_deq.size();
                     
                     aPo = & ant_pol.at(i);
-                    for (int z= 0; z<5; z++){ //for the size of the deque
+                    for (int z= 0; z < pro_deq.size(); z++){ //for the size of the deque
                         pPo = & pro_deq[z];
                         S.Simulate(pPo, aPo);
                         ant_pol.at(i).A_fitness += ant_pol.at(i).A_fit_swap;
-                        
+                        assert(pro_deq.size()<=5);
                     }
-                    ant_pol.at(i).A_fitness = ant_pol.at(i).A_fitness/5;
+                    ant_pol.at(i).A_fitness = ant_pol.at(i).A_fitness/ant_deq.size();
                     
                 }
                 else{
@@ -536,17 +538,21 @@ void EA::update_best_fit(){
 deque<Policy> EA::temporary_best_pro_policies(deque<Policy> pro_deq){
     pro_deq.push_front(pro_pol.at(0)); //saves best per gen of last 5 generations
     //cout << pro_deq.at(0).P_fitness << "\t";
-    pro_deq.resize(5);
     
-    assert(pro_deq.size()==5);
+    if (pro_deq.size()>=5) {
+        pro_deq.resize(5);
+    }
+    assert(pro_deq.size()<=5);
     return pro_deq;
 }
 deque<Policy> EA::temporary_best_ant_policies(deque<Policy> ant_deq){
     
     ant_deq.push_front(ant_pol.at(0)); // this push front then resize, gives you the last 5 like this: 100 99 98 97 96 instead of flipped
-    ant_deq.resize(5);
     
-    assert(ant_deq.size()==5);
+    if (ant_deq.size()>=5) {
+        ant_deq.resize(5);
+    }
+    assert(ant_deq.size()<=5);
     return ant_deq;
 }
 
@@ -844,12 +850,8 @@ void EA::Run_Program() {
     best_P_fitness.clear();
     best_A_fitness.clear();
     
-    deque<Policy> pro_deq(5);
-    deque<Policy> ant_deq(5);
-    for (int i=0; i<5; i++){
-        //pro_deq[i]=0;
-    }
-    //assert(pro_deq.size()==5);
+    deque<Policy> pro_deq;
+    deque<Policy> ant_deq;
     
     for (int gen=0; gen<pP->gen_max; gen++) {
         if (gen %5 ==0){
@@ -894,7 +896,7 @@ void EA::Run_Program() {
                     pP->A_f_max_bound = 1;
                 }
             }
-            if (gen>=5 && pP->deque_on==true){
+            if (gen>=1 && pP->deque_on==true){
                 //set bool to true
                 pP->deque_best=true; // DEQUES ON //
             }
@@ -902,6 +904,10 @@ void EA::Run_Program() {
             Graph_med();
             pro_deq = temporary_best_pro_policies(pro_deq);
             ant_deq = temporary_best_ant_policies(ant_deq);
+            for(int i=0; i<pro_deq.size(); i++){
+                //cout << pro_deq.size() << "\t" << pro_deq[i].P_fitness << endl;
+            }
+            //cout << endl;
 
         }
         else {
@@ -921,14 +927,7 @@ void EA::Run_Program() {
     }
     ave_fit();
     Graph();
-    for (int i=0; i<5; i++){
-        //cout << pro_deq[i].P_fitness << "\t";
-    }
-    //cout << endl;
-    for (int i=0; i<5; i++){
-        //cout << ant_deq[i].A_fitness << "\t";
-    }
-    //cout << endl;
+    
     
     P_testperfive_fit << endl;
     //cout << endl;

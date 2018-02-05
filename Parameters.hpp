@@ -25,11 +25,11 @@ protected:
     
     
 public:
-    int stat_runs = 1;
+    int stat_runs = 5;
     // EA STUFF //
-    int num_pol = 2;                  //number of policies
+    int num_pol = 20;                  //number of policies
     int to_kill = num_pol/2;
-    int gen_max = 50;                  //number of generations
+    int gen_max = 500;                  //number of generations
     double total_time = 1000;            //total time steps
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range
@@ -38,7 +38,7 @@ public:
     double A_force;                     //Antagonist force
     
     bool deque_best = false;            // DO NOT CHANGE //
-    bool deque_on = false;               // change when you want full leniency all the time
+    bool deque_on = true;               // change when you want full leniency all the time - only works with Antagonist (T3)
     
     
     // 2ND ANTAGONIST //
@@ -51,7 +51,7 @@ public:
     // DOMAIN VARIABLES - STATIC
     double m = 7;       //mass
     double b = 1;    //damper
-    double k = 1;       //spring
+    double k = -0.001;       //spring
     double dt = 0.1;    //time step [s]
     double mu = 0;      //friction
     bool MSD_EOM = true;    //Mass Spring Damper equations
@@ -229,6 +229,7 @@ void Parameters::train_para(){
     train_para << "start_xdot upper and lower bound\t" << start_x_dot_upper_bound << "\t" << start_x_dot_lower_bound << endl;
     train_para << "test every 5 generations\t" << testperfive << endl;
     train_para << "graph best or median(true is best)\t" << best_vs_median << endl;
+    train_para << "Run deques or full leniency(true is deques\t" << deque_on << endl;
     train_para.close();
 }
 
@@ -335,6 +336,7 @@ void Parameters::test_para(){
     test_para << "start_xdot upper and lower bound\t" << start_x_dot_upper_bound << "\t" << start_x_dot_lower_bound << endl;
     test_para << "test every 5 generations\t" << testperfive << endl;
     test_para << "graph best or median(true is best)\t" << best_vs_median << endl;
+    test_para << "Run deques or full leniency(true is deques\t" << deque_on << endl;
     
     test_para.close();
 }

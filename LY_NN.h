@@ -318,7 +318,7 @@ void neural_network::execute(){
         if(i<input_number-1){
             input.layer_nodes.at(i).inp = (input_values.at(i)-input_minimums.at(i))/(input_maximums.at(i)-input_minimums.at(i));
         }
-        input.layer_nodes.at(i).sigmoid(); //changed from sigmoid to true_sigmoid
+        input.layer_nodes.at(i).true_sigmoid(); //changed from sigmoid to true_sigmoid
         //cout << "INPUT LAYER: " << input.layer_nodes.at(i).outp<< endl;
     }
     input.layer_nodes.back().outp=1;
