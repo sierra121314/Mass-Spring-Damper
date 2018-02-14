@@ -155,7 +155,13 @@ neural_network Simulator::set_A_NN(neural_network NNa, Policy* aPo){
     NNa.setup(pP->A_num_inputs,pP->num_nodes,pP->num_outputs);
     NNa.set_in_min_max(pP->x_min_bound, pP->x_max_bound);        //displacement
     NNa.set_in_min_max(pP->x_dot_min_bound,pP->x_dot_max_bound);  //velocity
-    NNa.set_in_min_max(pP->P_f_min_bound, pP->P_f_max_bound); //Primary information
+    if (pP->A_num_inputs>=3){
+        NNa.set_in_min_max(pP->P_f_min_bound, pP->P_f_max_bound); //Primary information
+        if (pP->A_num_inputs==4){
+            NNa.set_in_min_max(pP->A_f_min_bound, pP->A_f_max_bound); //Primary information
+        }
+    }
+    
     NNa.set_out_min_max(pP->A_f_min_bound,pP->A_f_max_bound); // max forces
     NNa.set_weights(aPo->A_weights, true);
     return NNa;
@@ -176,6 +182,9 @@ void Simulator::clear_history(Policy* pPo, Policy* aPo){
     pPo->ave_velocity_noise_history.clear();
     pPo->ave_sensor_noise_history.clear();
     pPo->ave_actuator_noise_history.clear();
+    
+    pPo->P_force_history.push_back(0);
+    aPo->A_force_history.push_back(0);
 }
 
 
@@ -204,8 +213,15 @@ vector<double> Simulator::A_state_init(vector<double> A_state){
     if (pP->MSD_EOM==true){
         A_state.push_back(0);     // postion
         A_state.push_back(0);     // velocity
-        A_state.push_back(0);     // P-force
-        assert(A_state.size()==3);
+        if (pP->A_num_inputs>=3){
+            A_state.push_back(0);     // P-force
+            if (pP->A_num_inputs==4){
+                A_state.push_back(0); //A-force
+            }
+            
+        }
+        assert(A_state.size()==pP->A_num_inputs);
+        
     }
     else if (pP->Pend_EOM==true){
         A_state.push_back(0);     //theta
@@ -342,9 +358,15 @@ vector<double> Simulator::set_state(vector<double> state,vector<double> noise, P
 }
 vector<double> Simulator::set_A_state(vector<double> A_state, vector<double> noise, Policy* pPo, Policy* aPo){
     A_state.at(0) = pPo->x+noise.at(0)+noise.at(1);
-    
     A_state.at(1) = pPo->x_dot+noise.at(2)+noise.at(3);
-    A_state.at(2) = pPo->P_force_history.back();
+    
+    if (pP->A_num_inputs>=3){
+        A_state.at(2) = pPo->P_force_history.back();
+        if (pP->A_num_inputs==4){
+            A_state.at(3) = aPo->A_force_history.back();
+        }
+    }
+    
     
     return A_state;
 }

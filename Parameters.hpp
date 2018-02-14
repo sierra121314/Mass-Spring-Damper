@@ -60,10 +60,10 @@ public:
     // NEURAL NETWORK STUFF //
     int num_weights;
     int A_num_weights;
-    int A_num_inputs = 3;
+    int A_num_inputs = 4;
     int num_inputs = 2;
     int num_outputs = 1;
-    int num_nodes = 10;
+    int num_nodes = 2;
     
     // GOAL VARIABLES //
     double start_x = 15;
@@ -220,6 +220,7 @@ void Parameters::train_para(){
     train_para << "Antagonist Introduced later\t" << late_antagonist << "\t at Gen" << ant_intro << endl;
     train_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
     train_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
+    train_para << "# Ant NN Input-Output-Nodes\t" << A_num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
     train_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl <<  "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << "\tPERIOD\t" << lambda << endl;
     train_para << "Random Starts/Gen\t" << rand_start_gen << "\t" << rand_start_5gen << endl;
     train_para << "Reverse Leniency\t" << three_for_three << endl;
@@ -327,6 +328,7 @@ void Parameters::test_para(){
     test_para << "Antagonist Introduced later\t" << late_antagonist << "\t at Gen" << ant_intro << endl;
     test_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
     test_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
+    test_para << "# Ant NN Input-Output-Nodes\t" << A_num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
     test_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl <<  "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << "\tPERIOD\t" << lambda << endl;
     test_para << "Random Starts/Gen\t" << rand_start_gen << "\t" << rand_start_5gen << endl;
     test_para << "Reverse Leniency\t" << three_for_three << endl;
