@@ -25,11 +25,11 @@ protected:
     
     
 public:
-    int stat_runs = 5;
+    int stat_runs = 1;
     // EA STUFF //
-    int num_pol = 20;                  //number of policies
+    int num_pol = 2;                  //number of policies
     int to_kill = num_pol/2;
-    int gen_max = 500;                  //number of generations
+    int gen_max = 10;                  //number of generations
     double total_time = 1000;            //total time steps
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range
@@ -38,8 +38,17 @@ public:
     double A_force;                     //Antagonist force
     
     bool deque_best = false;            // DO NOT CHANGE //
-    bool deque_on = true;               // change when you want full leniency all the time - only works with Antagonist (T3)
+    bool deque_on = false;               // change when you want full leniency all the time - only works with Antagonist (T3)
     
+    bool overlord_ANT = true;           //If true, a set of sub ANTs will be made so the overlord ANT can choose from their actions.
+    bool sub_ANT;   //DO NOT CHANGE
+    int num_sub_ANT = 3;
+    int num_sub_gen = 50;
+    bool sub_ANT_up;
+    bool sub_ANT_down;
+    bool sub_ANT_zero;
+    double sub_A_f_min_bound = -1;
+    double sub_A_f_max_bound = 1;
     
     // 2ND ANTAGONIST //
     bool rand_antagonist;
@@ -47,6 +56,7 @@ public:
     bool ANT2;
     //int ant_intro = gen_max/2;
     int ant_intro = 200;
+    
     
     // DOMAIN VARIABLES - STATIC
     double m = 7;       //mass
@@ -60,10 +70,10 @@ public:
     // NEURAL NETWORK STUFF //
     int num_weights;
     int A_num_weights;
-    int A_num_inputs = 4;
+    int A_num_inputs = 3;
     int num_inputs = 2;
     int num_outputs = 1;
-    int num_nodes = 2;
+    int num_nodes = 10;
     
     // GOAL VARIABLES //
     double start_x = 15;
@@ -135,6 +145,7 @@ public:
     bool tr_1;          //pro plus ant with no noise
     bool tr_2;          // pro only
     bool tr_3;          //pro plus ant manipulating force
+    
     bool tr_4;          // pro and random starting variables per gen
     bool tr_5;          //pro plus ant manipulating starting variables
     void train();
@@ -182,10 +193,17 @@ void Parameters::test_train_set(){
         cout << "train two - test A" <<endl;
     }
     if (three_A == true){
-        tr_3 = true;
+        if (overlord_ANT == true){
+            sub_ANT = true;
+        }
+        else{
+            tr_3 = true;
+        }
+        
         te_A = true;
         cout << "train three - test A" <<endl;
     }
+
     if (two_B==true){
         tr_2 = true;
         te_B = true;
@@ -217,6 +235,7 @@ void Parameters::train_para(){
     train_para << "Ant Bounds\t " << A_f_min_bound << "\t" << A_f_max_bound << endl;
     train_para << "Random Antagonist\t" << rand_antagonist << endl;
     train_para << "ANT2\t" << ANT2 << endl;
+    train_para << "Overlord ANT\t" << overlord_ANT << "\t" << sub_ANT << endl;
     train_para << "Antagonist Introduced later\t" << late_antagonist << "\t at Gen" << ant_intro << endl;
     train_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
     train_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
@@ -276,6 +295,32 @@ void Parameters::train(){
             else{
                 A_f_min_bound = -1;
                 A_f_max_bound = 1;
+                assert(A_f_min_bound != A_f_max_bound);
+            }
+            
+            rand_antagonist = false;
+            sensor_NOISE = false;
+            actuator_NOISE = false;
+            rand_start_gen = false;
+            rand_start_5gen = false;
+            multi_var = false; //do NOT change this one
+            testperfive = false;
+        }
+        if (sub_ANT==true){
+            late_antagonist = false;
+            ANT2 = false;
+            P_f_min_bound = 0;
+            P_f_max_bound = 0;
+            if (late_antagonist==true) {
+                A_f_min_bound = -0; //start with this until changed later
+                A_f_max_bound = 0;
+            }
+            else{
+                sub_A_f_min_bound = -1;
+                sub_A_f_max_bound = 1;
+                A_f_min_bound = 0;
+                A_f_max_bound = 1;
+                assert(A_f_min_bound != A_f_max_bound);
             }
             
             rand_antagonist = false;
@@ -325,6 +370,7 @@ void Parameters::test_para(){
     test_para << "Ant Bounds\t " << A_f_min_bound << "\t" << A_f_max_bound << endl;
     test_para << "Random Antagonist\t" << rand_antagonist << endl;
     test_para << "ANT2\t" << ANT2 << endl;
+    test_para << "Overlord ANT\t" << overlord_ANT << "\t" << sub_ANT << endl;
     test_para << "Antagonist Introduced later\t" << late_antagonist << "\t at Gen" << ant_intro << endl;
     test_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
     test_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
@@ -367,6 +413,8 @@ void Parameters::test(){
             A_f_min_bound = -0;         //change back to zero
             A_f_max_bound = 0;
             rand_antagonist = false;
+            overlord_ANT = false;
+            sub_ANT = false;
             sensor_NOISE = true;
             actuator_NOISE = true;
             multi_var = false;       //50 rand variables per policy

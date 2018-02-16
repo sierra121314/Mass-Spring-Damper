@@ -48,6 +48,7 @@ public:
     vector<Policy> test_ant_pol;
     vector<double> best_P_fitness;
     vector<double> best_A_fitness;
+    vector<vector<double>> sub_ANT_NN_weights;
     
     void Build_Population();
     void Run_Simulation(deque<Policy> pro_deq,deque<Policy> ant_deq);
@@ -60,6 +61,7 @@ public:
     void Repopulate();
     struct Less_Than_Policy_Fitness;
     struct Greater_Than_Policy_Fitness;
+    struct subANT_Less_Than_Policy_Fitness;
     void Sort_Policies_By_Fitness();
     void Sort_Test_Policies_By_Fitness();
     void EA_Process(deque<Policy> pro_deq,deque<Policy> ant_deq);
@@ -76,6 +78,15 @@ public:
     int num_loops;
     void init_fit();
     void determine_num_loops();
+    
+    void Run_subANT_Program();
+    void EA_subANT_Process(deque<Policy> pro_deq,deque<Policy> ant_deq);
+    void Sort_Policies_By_subANT_Fitness();
+    void Downselect_subANT();
+    int subA_Binary_Select();
+    int subA_up_Binary_Select();
+    int subA_down_Binary_Select();
+
     
     // Fitness//
     void ave_fit();
@@ -209,13 +220,28 @@ void EA::Run_Simulation(deque<Policy> pro_deq,deque<Policy> ant_deq) {
             Policy* aPo;
             pPo = & pro_pol.at(i);
             
+            if (pP->sub_ANT==true){
+                pP->A_f_max_bound = pP->sub_A_f_max_bound;
+                pP->A_f_min_bound = pP->sub_A_f_min_bound;
+                cout << "max\t" << pP->A_f_max_bound << "\t";
+                cout << "min\t" << pP->A_f_min_bound << endl;
+                assert(pP->A_f_max_bound==1 && pP->A_f_min_bound==-1);
+                assert(pP->sub_A_f_max_bound==1 && pP->sub_A_f_min_bound==-1);
+            }
+            if (pP->sub_ANT==false && pP->overlord_ANT==true){
+                pP->A_f_max_bound = 1;
+                pP->A_f_min_bound = 0;
+                assert(pP->A_f_max_bound==1 && pP->A_f_min_bound==0);
+                assert(pP->sub_A_f_max_bound==1 && pP->sub_A_f_min_bound==-1);
+            }
+            
             if (pP->A_f_max_bound !=0){ //coevolution - each policy against each other //should only run if there is an Antagonist
                 if (pP->deque_best==true){
                     // DEQUES //
                     //Pro policies against Ant archive
                     for (int z= 0; z < ant_deq.size(); z++){ //for the size of the deque
                         aPo = & ant_deq[z];
-                        S.Simulate(pPo, aPo);
+                        S.Simulate(pPo, aPo, sub_ANT_NN_weights);
                         pro_pol.at(i).P_fitness += pro_pol.at(i).P_fit_swap;
                         assert(ant_deq.size()<=5);
                         
@@ -226,7 +252,7 @@ void EA::Run_Simulation(deque<Policy> pro_deq,deque<Policy> ant_deq) {
                     aPo = & ant_pol.at(i);
                     for (int z= 0; z < pro_deq.size(); z++){ //for the size of the deque
                         pPo = & pro_deq[z];
-                        S.Simulate(pPo, aPo);
+                        S.Simulate(pPo, aPo, sub_ANT_NN_weights);
                         ant_pol.at(i).A_fitness += ant_pol.at(i).A_fit_swap;
                         assert(pro_deq.size()<=5);
                     }
@@ -236,7 +262,7 @@ void EA::Run_Simulation(deque<Policy> pro_deq,deque<Policy> ant_deq) {
                 else{
                     for (int z= 0; z<pP->num_pol; z++){
                         aPo = & ant_pol.at(z);
-                        S.Simulate(pPo, aPo);
+                        S.Simulate(pPo, aPo, sub_ANT_NN_weights);
                         
                         pro_pol.at(i).P_fitness += pro_pol.at(i).P_fit_swap;
                         ant_pol.at(z).A_fitness += ant_pol.at(z).A_fit_swap;
@@ -247,7 +273,7 @@ void EA::Run_Simulation(deque<Policy> pro_deq,deque<Policy> ant_deq) {
             }
             else{
                 aPo = & ant_pol.at(i);
-                S.Simulate(pPo, aPo);
+                S.Simulate(pPo, aPo, sub_ANT_NN_weights);
                 
                 if (pro_pol.at(i).P_fitness < pro_pol.at(i).P_fit_swap) { //swapped direction 11/15 at 9:50
                     pro_pol.at(i).P_fitness = pro_pol.at(i).P_fit_swap;
@@ -292,7 +318,7 @@ void EA::Run_Test_Simulation() {
         pPo = & test_pro_pol.at(i);
         
         aPo = & test_ant_pol.at(i);
-        S.Simulate(pPo, aPo);
+        S.Simulate(pPo, aPo, sub_ANT_NN_weights);
                 
         if (test_pro_pol.at(i).P_fitness < test_pro_pol.at(i).P_fit_swap) { //swapped direction 11/15 at 9:50
             test_pro_pol.at(i).P_fitness = test_pro_pol.at(i).P_fit_swap;
@@ -322,6 +348,42 @@ void EA::Evaluate() {
     //might not need
     for (int i=0; i< pP->num_pol; i++) {
         
+    }
+}
+//////////////////////////////////////////////////////////////////////////////
+
+
+
+
+void EA::Downselect_subANT(){
+    int pro_kill;
+    int ant_kill;
+    for(int k=0; k<pP->to_kill; k++) {
+        pro_kill = P_Binary_Select();               //Protagonist
+        pro_pol.erase(pro_pol.begin() + pro_kill);
+        
+        if(pP->sub_ANT_up == true){
+            ant_kill = A_Binary_Select();               //Antagonist
+            ant_pol.erase(ant_pol.begin() + ant_kill);
+        }
+        else if(pP->sub_ANT_zero == true || pP->sub_ANT_down == true){ //choose the smallest value (abs vs neg)
+            ant_kill = subA_Binary_Select();               //Antagonist
+            ant_pol.erase(ant_pol.begin() + ant_kill);
+        }
+        else {
+            cout << "NO SPECIFIED subANT" << endl;
+            ant_kill = A_Binary_Select();               //Antagonist
+            ant_pol.erase(ant_pol.begin() + ant_kill);
+        }
+        
+        
+    }
+    
+    assert(pro_pol.size() == pP->to_kill);
+    assert(ant_pol.size() == pP->to_kill);
+    for(int i=0; i<pP->to_kill; i++) {
+        pro_pol.at(i).age += 1;
+        ant_pol.at(i).age += 1;
     }
 }
 
@@ -356,6 +418,24 @@ int EA::A_Binary_Select() {
     
     //winner is one with higher fitness
     if(ant_pol.at(index_3).A_fitness > ant_pol.at(index_4).A_fitness) {
+        a_loser = index_4;
+    }
+    else {
+        a_loser = index_3;
+    }
+    return a_loser;
+}
+
+int EA::subA_Binary_Select() { //push to zero
+    int a_loser;
+    int index_3 = rand() % ant_pol.size();
+    int index_4 = rand() % ant_pol.size();
+    while (index_3 == index_4) {
+        index_4 = rand() % ant_pol.size();
+    }
+    
+    //winner is one with higher fitness
+    if(ant_pol.at(index_3).A_fitness < ant_pol.at(index_4).A_fitness) {
         a_loser = index_4;
     }
     else {
@@ -492,6 +572,13 @@ void EA::EA_Process(deque<Policy> pro_deq,deque<Policy> ant_deq) {
     Repopulate();
 }
 
+void EA::EA_subANT_Process(deque<Policy> pro_deq,deque<Policy> ant_deq){
+    Run_Simulation(pro_deq,ant_deq);
+    Sort_Policies_By_subANT_Fitness();
+    Downselect_subANT();
+    Repopulate();
+}
+
 
 //-------------------------------------------------------------------------
 //Sorts the population based on their fitness from lowest to highest
@@ -504,6 +591,11 @@ struct EA::Less_Than_Policy_Fitness {
 struct EA::Greater_Than_Policy_Fitness {
     inline bool operator() (const Policy& struct3, const Policy& struct4) {
         return (struct3.A_fitness > struct4.A_fitness);
+    }
+};
+struct EA::subANT_Less_Than_Policy_Fitness {
+    inline bool operator() (const Policy& struct3, const Policy& struct4) {
+        return (struct3.A_fitness < struct4.A_fitness);
     }
 };
 
@@ -525,6 +617,19 @@ void EA::Sort_Test_Policies_By_Fitness() {
         sort(test_ant_pol.begin(), test_ant_pol.end(), Greater_Than_Policy_Fitness());
     }
     
+}
+void EA::Sort_Policies_By_subANT_Fitness(){
+    for (int i=0; i<pP->num_pol; i++) {
+        sort(pro_pol.begin(), pro_pol.end(), Less_Than_Policy_Fitness());
+        if (pP->sub_ANT_down==true || pP->sub_ANT_zero==true){
+            sort(ant_pol.begin(), ant_pol.end(), subANT_Less_Than_Policy_Fitness());
+        }
+        if (pP->sub_ANT_up==true){
+            sort(ant_pol.begin(), ant_pol.end(), Greater_Than_Policy_Fitness());
+        }
+        
+    }
+    update_best_fit();
 }
 
 //-------------------------------------------------------------------------
@@ -834,11 +939,81 @@ void EA::Run_Test_Program(){
 
     Graph_test();
 }
+//-------------------------------------------------------------------------
+//Creates sub_ANTs for later use for Overlord
+void EA::Run_subANT_Program(){
+    //create a vector of sub_ANTs NN information
+    for (int sub_ANT=0; sub_ANT < pP->num_sub_ANT; sub_ANT++){
+        cout << "sub_ANT\t" << sub_ANT << endl;
+        Build_Population();
+        best_P_fitness.clear();
+        best_A_fitness.clear();
+        deque<Policy> pro_deq;
+        deque<Policy> ant_deq;
+        for (int sub_gen = 0; sub_gen < pP->num_sub_gen; sub_gen++){
+            pP->sub_ANT=true;
+            cout << "sub_gen\t" << sub_gen << endl;
+            if (sub_ANT == 0){
+                //set first sub_ANT fitness
+                pP->sub_ANT_up = true;
+                pP->sub_ANT_down = false;
+                pP->sub_ANT_zero = false;
+            }
+            else if(sub_ANT == 1){
+                //set 2nd sub_ANT fitness
+                pP->sub_ANT_up = false;
+                pP->sub_ANT_down = true;
+                pP->sub_ANT_zero = false;
+            }
+            else if(sub_ANT == 2){
+                //set 3rd sub_ANT fitness
+                pP->sub_ANT_up = false;
+                pP->sub_ANT_down = false;
+                pP->sub_ANT_zero = true;
+            }
+            else{
+                cout << "NO FITNESS FUNCTION SET FOR SUB ANT " << endl;
+            }
+            if (sub_gen < pP->gen_max-1) {
+                
+                if (sub_gen>=1 && pP->deque_on==true){
+                    //set bool to true
+                    pP->deque_best=true; // DEQUES ON //
+                }
+                EA_subANT_Process(pro_deq,ant_deq);
+                //EA_Process(pro_deq,ant_deq);
+                pro_deq = temporary_best_pro_policies(pro_deq);
+                ant_deq = temporary_best_ant_policies(ant_deq);
+                
+            }
+            else {
+                
+                Run_Simulation(pro_deq,ant_deq);
+                Sort_Policies_By_subANT_Fitness();
+                pro_deq = temporary_best_pro_policies(pro_deq);
+                ant_deq = temporary_best_ant_policies(ant_deq);
+                
+                cout << "BEST POLICY sub_ANT -FITNESS" << "\t" << ant_pol.at(0).A_fitness << endl;
+                
+                //Save NN
+                sub_ANT_NN_weights.push_back(ant_pol.at(0).A_weights); //save the NN weights of the sub_ANT
+                
+            }
+        }
+    }
+    pP->sub_ANT=false;
+    assert(sub_ANT_NN_weights.size() == pP->num_sub_ANT);
+}
 
 
 //-------------------------------------------------------------------------
 //Runs the entire program
 void EA::Run_Program() {
+    if (pP->overlord_ANT==true){
+        Run_subANT_Program();
+        //set up overlord NN
+    }
+    
     ofstream rand_start, P_fit, A_fit,P_testperfive_fit;
     
     rand_start.open("random_starting_variables.txt", ofstream::out | ofstream::trunc);

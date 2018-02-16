@@ -34,11 +34,13 @@ public:
     Parameters* pP;
     //Parameters* aP;
     
-    void Simulate(Policy* pPo, Policy* aPo);
+    void Simulate(Policy* pPo, Policy* aPo, vector<vector<double>> sub_ANT_NN_weights);
+    void subANT_Simulate(Policy* pPo, Policy* aPo,vector<vector<double>> sub_ANT_NN_weights);
     vector<double> set_state(vector<double> state, vector<double> noise, Policy* pPo, Policy* aPo);
     vector<double> set_A_state(vector<double> A_state, vector<double> noise, Policy* pPo, Policy* aPo);
     void MSD_initStates(Policy* pPo, Policy* aPo);
     void Pendulum_initStates(Policy* pPo, Policy* aPo);
+    
     
     void calculateFitness(Policy* pPo, Policy* aPo);
     double x_old;
@@ -59,8 +61,9 @@ public:
     
     // ANTAGONIST //
     void set_A_ICs(Policy* pPo, Policy* aPo); //2nd Antagonist
-    double set_Ant_force(neural_network NNa, vector<double> A_state);
+    double set_Ant_force(neural_network NNa,neural_network sub_NNa, vector<double> A_state, vector<vector<double>> sub_ANT_NN_weights);
     neural_network set_A_NN(neural_network NNa, Policy* aPo);
+    neural_network set_subA_NN(neural_network sub_NNa, Policy* aPo);
     
     // NOISE //
     void zero_noise_sum_ave();
@@ -153,11 +156,11 @@ neural_network Simulator::set_P_NN(neural_network NN, Policy* pPo){
 
 neural_network Simulator::set_A_NN(neural_network NNa, Policy* aPo){
     NNa.setup(pP->A_num_inputs,pP->num_nodes,pP->num_outputs);
-    NNa.set_in_min_max(pP->x_min_bound, pP->x_max_bound);        //displacement
-    NNa.set_in_min_max(pP->x_dot_min_bound,pP->x_dot_max_bound);  //velocity
-    if (pP->A_num_inputs>=3){
-        NNa.set_in_min_max(pP->P_f_min_bound, pP->P_f_max_bound); //Primary information
-        if (pP->A_num_inputs==4){
+    NNa.set_in_min_max(pP->x_min_bound, pP->x_max_bound);           //displacement
+    NNa.set_in_min_max(pP->x_dot_min_bound,pP->x_dot_max_bound);    //velocity
+    if (pP->A_num_inputs>=3){                                       //if NNa has 3 inputs take in the Primary force information
+        NNa.set_in_min_max(pP->P_f_min_bound, pP->P_f_max_bound);   //Primary information
+        if (pP->A_num_inputs==4){                                   //if NNa has 4 inputs take in the last Antagonist force information
             NNa.set_in_min_max(pP->A_f_min_bound, pP->A_f_max_bound); //Primary information
         }
     }
@@ -166,6 +169,22 @@ neural_network Simulator::set_A_NN(neural_network NNa, Policy* aPo){
     NNa.set_weights(aPo->A_weights, true);
     return NNa;
 }
+neural_network Simulator::set_subA_NN(neural_network sub_NNa, Policy* aPo){
+    sub_NNa.setup(pP->A_num_inputs,pP->num_nodes,pP->num_outputs);
+    sub_NNa.set_in_min_max(pP->x_min_bound, pP->x_max_bound);        //displacement
+    sub_NNa.set_in_min_max(pP->x_dot_min_bound,pP->x_dot_max_bound);  //velocity
+    if (pP->A_num_inputs>=3){
+        sub_NNa.set_in_min_max(pP->P_f_min_bound, pP->P_f_max_bound); //Primary information
+        if (pP->A_num_inputs==4){
+            sub_NNa.set_in_min_max(pP->A_f_min_bound, pP->A_f_max_bound); //Primary information
+        }
+    }
+    
+    sub_NNa.set_out_min_max(pP->sub_A_f_min_bound,pP->sub_A_f_max_bound); // max forces
+    
+    return sub_NNa;
+}
+
 
 void Simulator::clear_history(Policy* pPo, Policy* aPo){
     pPo->x_history.clear();
@@ -374,16 +393,54 @@ vector<double> Simulator::set_A_state(vector<double> A_state, vector<double> noi
 double Simulator::set_P_force(neural_network NN, vector<double> state){
     NN.set_vector_input(state);
     NN.execute();
-    pP->P_force = NN.get_output(0);
+    if(pP->P_f_max_bound != 0){
+        pP->P_force = NN.get_output(0);
+    }
+    else{
+        pP->P_force = 0;
+    }
     assert(pP->P_force >= pP->P_f_min_bound - 0.5 && pP->P_force <= pP->P_f_max_bound + 0.5); //make sure matches NN output
     return pP->P_force;
 }
 
-double Simulator::set_Ant_force(neural_network NNa, vector<double> A_state){
-    if (pP->tr_3==true) {
+double Simulator::set_Ant_force(neural_network NNa,neural_network sub_NNa, vector<double> A_state, vector<vector<double>> sub_ANT_NN_weights){
+    if (pP->tr_3==true || pP->sub_ANT==true) {
         NNa.set_vector_input(A_state);
         NNa.execute();
         pP->A_force = NNa.get_output(0);
+        cout << NNa.get_output(0) << endl;
+        assert(pP->A_force >= pP->A_f_min_bound - 0.5 && pP->A_force <= pP->A_f_max_bound + 0.5);
+    }
+    else if (pP->overlord_ANT==true && pP->sub_ANT==false){
+        NNa.set_vector_input(A_state);
+        NNa.execute();
+        cout << NNa.get_output(0) << endl;
+        if (NNa.get_output(0)<=1/3){
+            //sub_ANT with NN weights of subANT_up
+            
+            sub_NNa.set_weights(sub_ANT_NN_weights.at(0), true); //check that this is the right index of the weight vector, pass in vector of vector of weights
+            sub_NNa.set_vector_input(A_state);
+            sub_NNa.execute();
+            pP->A_force = sub_NNa.get_output(0);
+        }
+        else if ( NNa.get_output(0) <= 2/3){
+            //sub_ANT with NN weights of subANT_down
+            sub_NNa.set_weights(sub_ANT_NN_weights.at(1), true); //check that this is the right index of the weight vector, pass in vector of vector of weights
+            sub_NNa.set_vector_input(A_state);
+            sub_NNa.execute();
+            pP->A_force = sub_NNa.get_output(0);
+        }
+        else if (NNa.get_output(0)<=1){
+            //sub_ANT with NN weights of subANT_zero
+            sub_NNa.set_weights(sub_ANT_NN_weights.at(2), true); //check that this is the right index of the weight vector, pass in vector of vector of weights
+            sub_NNa.set_vector_input(A_state);
+            sub_NNa.execute();
+            pP->A_force = sub_NNa.get_output(0);
+        }
+        else{
+            pP->A_force = NNa.get_output(0);
+        }
+        cout << pP->A_force << endl;
         assert(pP->A_force >= pP->A_f_min_bound - 0.5 && pP->A_force <= pP->A_f_max_bound + 0.5);
     }
     else if (pP->rand_antagonist==true){
@@ -473,6 +530,18 @@ void Simulator::calculateFitness(Policy* pPo, Policy* aPo){
         pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
         aPo->A_fit_swap += sqrt(pow((pPo->x - x_old),2) + pow((pPo->x_dot - x_dot_old),2));
     }
+    else if (pP->sub_ANT_up==true || pP->sub_ANT_down==true){
+        pP->goal_x = 2;
+        double F_dist = pP->goal_x + pP->start_x - pPo->x; //2 + resting position
+        pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+        aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+    }
+    else if (pP->sub_ANT_zero==true){
+        pP->goal_x = 2;
+        double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
+        pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+        aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+    }
     else {
         pP->goal_x = 2;
         double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
@@ -527,11 +596,7 @@ void Simulator::ave_noise(Policy* pPo, Policy* aPo){
     pPo->ave_actuator_noise_history.push_back(ave_actuator_noise);
 }
 
-
-//-------------------------------------------------------------------------
-// RUNS ENTIRE SIMULATION PROCESS //
-void Simulator::Simulate(Policy* pPo, Policy* aPo){
-    
+void Simulator::subANT_Simulate(Policy* pPo, Policy* aPo, vector<vector<double>> sub_ANT_NN_weights){
     pPo->P_fit_swap = 0;
     aPo->A_fit_swap = 0;
     
@@ -541,14 +606,21 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo){
     
     // PROTAGONIST //
     neural_network NN;
+    
     NN = set_P_NN(NN, pPo);
     
     // ANTAGONIST //
     neural_network NNa;
+    neural_network sub_NNa;
     if (pP->tr_3==true){
         NNa = set_A_NN(NNa, aPo);
     }
-
+    if (pP->overlord_ANT==true){
+        //NNa = a selection of the sub_ANTs
+        NNa = set_A_NN(NNa, aPo);
+        sub_NNa = set_subA_NN(sub_NNa, aPo);
+    }
+    
     //CLEAR x, xdot, xdd history vector
     clear_history(pPo, aPo);
     
@@ -565,6 +637,81 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo){
         A_state = A_state_init(A_state);
         
         noise = set_sensor_actuator_noise(noise); //if noise -> update noise
+        
+        state = set_state(state, noise, pPo, aPo); //set position and velocity with added noise
+        
+        /////// PRIMARY ///////
+        pP->P_force = set_P_force(NN, state);
+        pPo->P_force_history.push_back(pP->P_force);
+        
+        /////// ANTAGONIST ///////
+        A_state = set_A_state(A_state,noise, pPo,aPo);
+        pP->A_force = set_Ant_force(sub_NNa,NNa, A_state, sub_ANT_NN_weights);
+        
+        // UPDATE POSITION, VELOCITY, ACCELERATION //
+        call_EOM(pPo,aPo);
+        //MSD_equations(pPo, aPo);
+        //Pendulum_equations(pPo, aPo);
+        
+        // CALCULATE FITNESS //
+        calculateFitness(pPo, aPo);
+        
+        // SUM NOISE FOR POSITION, VELOCITY, SENSOR, AND ACTUATOR //
+        sum_noise(noise);
+        
+        // STORE HISTORY (STATES,FORCES, NOISE) //
+        history(pPo, aPo);
+        
+    }
+    
+    ave_noise(pPo, aPo);
+}
+
+//-------------------------------------------------------------------------
+// RUNS ENTIRE SIMULATION PROCESS //
+void Simulator::Simulate(Policy* pPo, Policy* aPo, vector<vector<double>> sub_ANT_NN_weights){
+    
+    pPo->P_fit_swap = 0;
+    aPo->A_fit_swap = 0;
+    
+    // STARTING POSITIONS //
+    zero_noise_sum_ave();
+    MSD_initStates(pPo, aPo);
+    
+    // PROTAGONIST //
+    neural_network NN;
+    NN = set_P_NN(NN, pPo);
+    
+    // ANTAGONIST //
+    neural_network NNa;
+    neural_network sub_NNa;
+    if (pP->tr_3==true || pP->sub_ANT==true){
+        NNa = set_A_NN(NNa, aPo);
+    }
+    else if (pP->overlord_ANT==true && pP->sub_ANT==false){
+        //NNa = a selection of the sub_ANTs
+        NNa = set_A_NN(NNa, aPo);
+        sub_NNa = set_subA_NN(sub_NNa, aPo);
+    }
+
+    //CLEAR x, xdot, xdd history vector
+    clear_history(pPo, aPo);
+    
+    for (int i = 0; i < pP->total_time; i++) { // has to run long enough to change directions
+        //give state vector to give to NN in order to update P_force
+        vector<double> state;
+        vector<double> A_state;
+        vector<double> noise;
+        noise = noise_init(noise); //set sensor and actuator noise to zero
+        assert(noise.at(0)==0 && noise.at(1)==0 && noise.at(2)==0 && noise.at(3)==0);
+        
+        //clear sub_NNa weights or declare again
+        
+        state = state_init(state);
+        
+        A_state = A_state_init(A_state);
+        
+        noise = set_sensor_actuator_noise(noise); //if noise -> update noise
 
         state = set_state(state, noise, pPo, aPo); //set position and velocity with added noise
 
@@ -574,7 +721,7 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo){
         
         /////// ANTAGONIST ///////
         A_state = set_A_state(A_state,noise, pPo,aPo);
-        pP->A_force = set_Ant_force(NNa, A_state);
+        pP->A_force = set_Ant_force(sub_NNa,NNa, A_state, sub_ANT_NN_weights);
         
         // UPDATE POSITION, VELOCITY, ACCELERATION //
         call_EOM(pPo,aPo);
