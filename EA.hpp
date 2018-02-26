@@ -669,46 +669,124 @@ void EA::Graph_med(){
 
 
 void EA::Graph_test(){
-    ofstream fout;
+    // BEST //
+    ofstream best_tx,best_txdot,best_txdd, best_Pt_force,best_At_force;
     
-    fout.open("test_x_history.txt", std::ofstream::out | ofstream::trunc);
-    //fout << "vector spot" << "\t" << "x" << "\t" << "x_dot" << "\t" << "x_dd" << endl;
+    best_tx.open("test_x_history.txt", fstream::app);
+    best_txdot.open("test_x_dot_history.txt",fstream::app);
+    best_txdd.open("test_x_dd_history.txt",fstream::app);
+    
+    best_Pt_force.open("test_P_force_history.txt",fstream::app);
+    best_At_force.open("test_A_force_history.txt",fstream::app);
+    
+    ofstream SR_test_best, test_P_fit_hist;
+    test_P_fit_hist.open("test_P_best_fitness_history.txt",fstream::app);       //fitness per policy
+    SR_test_best.open("test_P_best_fitpergen_SR_history.txt", fstream::app);         //best fitness out of all policies
+    
     for (int f =0; f < pP->total_time; f++){
-        fout << pro_pol.at(0).x_history.at(f) << "\t";
+        best_tx << test_pro_pol.at(0).x_history.at(f) << "\t";
+        best_txdot << test_pro_pol.at(0).x_dot_history.at(f) << "\t";
+        best_txdd << test_pro_pol.at(0).x_dd_history.at(f) << "\t";
+        
+        best_Pt_force << test_pro_pol.at(0).P_force_history.at(f) << "\t";
+        best_At_force << test_ant_pol.at(0).A_force_history.at(f) << "\t";
+        
     }
-    fout.close();
     
-    fout.open("test_x_dot_history.txt",std::ofstream::out | ofstream::trunc);
-    for (int g =0; g < pP->total_time; g++){
-        fout << pro_pol.at(0).x_dot_history.at(g) << "\t";
-    }
-    fout.close();
+    best_tx << endl;
+    best_txdot << endl;
+    best_txdd << endl;
     
-    fout.open("test_x_dd_history.txt",std::ofstream::out | ofstream::trunc);
-    for (int h =0; h < pP->total_time; h++){
-        fout << pro_pol.at(0).x_dd_history.at(h) << "\t";
-    }
-    fout.close();
-    fout.open("test_P_force_history.txt",std::ofstream::out | ofstream::trunc);
-    for (int h =0; h < pP->total_time; h++){
-        fout << pro_pol.at(0).P_force_history.at(h) << "\t";
-    }
-    fout.close();
+    best_Pt_force << endl;
+    best_At_force << endl;
     
-    fout.open("test_P_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);
+    best_tx.close();
+    best_txdot.close();
+    best_txdd.close();
+    
+    best_Pt_force.close();
+    best_At_force.close();
+    
+    
     for (int h =0; h < pP->num_pol; h++){
-        fout << pro_pol.at(h).P_fitness << "\t";
-
+        test_P_fit_hist << test_pro_pol.at(h).P_fitness << "\t";
+        
     }
-    ofstream SR_test;
-    SR_test.open("Ptest_best_fitpergen_SR_history.txt", fstream::app);
-    SR_test << best_P_fitness.at(0) << endl;
-    SR_test.close();
+    test_P_fit_hist << endl;
+    SR_test_best << test_pro_pol.at(0).P_fitness << endl;
     
-    fout.close();
+    ofstream med_tx,med_txdot,med_txdd, med_Pt_force,med_At_force, SR_test_med;
+    
+    med_tx.open("med_test_x_history.txt", fstream::app);
+    med_txdot.open("med_test_x_dot_history.txt",fstream::app);
+    med_txdd.open("med_test_x_dd_history.txt",fstream::app);
+    med_Pt_force.open("med_test_P_force_history.txt",fstream::app);
+    med_At_force.open("med_test_A_force_history.txt",fstream::app);
+    SR_test_med.open("test_P_med_fitpergen_SR_history.txt", fstream::app);
+    
+    for (int f =0; f < pP->total_time; f++){
+        med_tx << test_pro_pol.at(pro_pol.size()/2).x_history.at(f) << "\t";
+        med_txdot << test_pro_pol.at(pro_pol.size()/2).x_dot_history.at(f) << "\t";
+        med_txdd << test_pro_pol.at(pro_pol.size()/2).x_dd_history.at(f) << "\t";
+        
+        med_Pt_force << test_pro_pol.at(pro_pol.size()/2).P_force_history.at(f) << "\t";
+        med_At_force << test_ant_pol.at(pro_pol.size()/2).A_force_history.at(f) << "\t";
+        
+    }
+    
+    SR_test_med << test_pro_pol.at(pro_pol.size()/2).P_fitness << "\t";
+    
+    
+    med_tx.close();
+    med_txdot.close();
+    med_txdd.close();
+    
+    med_Pt_force.close();
+    med_At_force.close();
+    
+    
+    
+    
+    // ALL NOISE //
+    ofstream tstep_position, tstep_velocity, tstep_sensor, tstep_actuator,nsensor, nactuator, nposition, nvelocity;
+    tstep_sensor.open("tstep_sensor.txt", ofstream::app);
+    tstep_actuator.open("tstep_actuator.txt", ofstream::app);
+    tstep_position.open("tstep_position.txt", ofstream::app);
+    tstep_velocity.open("tstep_velocity.txt", ofstream::app);
+    
+    nsensor.open("ave_sensor_noise.txt", ofstream::app);
+    nactuator.open("ave_actuator_noise.txt", ofstream::app);
+    nposition.open("ave_position_noise.txt", ofstream::app);
+    nvelocity.open("ave_velocity_noise.txt", ofstream::app);
+    for (int h =0; h < pP->num_pol; h++){
+        assert(pP->total_time == pro_pol.at(h).position_noise_tstep_history.size());
+        for (int j =0; j < pP->total_time; j++){
+            // TIMESTEP NOISE HISTORY //
+            tstep_position << test_pro_pol.at(h).position_noise_tstep_history.at(j) << "\t";
+            //cout << pro_pol.at(h).position_noise_tstep_history.at(j) << "\t";
+            tstep_velocity << test_pro_pol.at(h).velocity_noise_tstep_history.at(j) << "\t";
+            tstep_sensor << test_pro_pol.at(h).sensor_noise_tstep_history.at(j) << "\t";
+            tstep_actuator << test_pro_pol.at(h).actuator_noise_tstep_history.at(j) << "\t";
+        }
+        tstep_position << endl;
+        tstep_velocity << endl;
+        tstep_sensor << endl;
+        tstep_actuator << endl;
+        assert(test_pro_pol.at(h).ave_sensor_noise_history.size() == 1);
+        nsensor << test_pro_pol.at(h).ave_sensor_noise_history.at(0) << "\t";
+        nactuator << test_pro_pol.at(h).ave_actuator_noise_history.at(0) << "\t";
+        nposition << test_pro_pol.at(h).ave_position_noise_history.at(0) << "\t";
+        nvelocity << test_pro_pol.at(h).ave_velocity_noise_history.at(0) << "\t";
+    }
+    nsensor << endl;
+    nactuator << endl;
+    nposition << endl;
+    nvelocity << endl;
+    
     
     
 }
+
 //-------------------------------------------------------------------------
 void EA::Run_Test_Program(){
     test_pro_pol = pro_pol;
