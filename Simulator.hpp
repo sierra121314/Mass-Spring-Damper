@@ -48,8 +48,12 @@ public:
     void MSD_equations(Policy* pPo, Policy* aPo);
     void Pendulum_equations(Policy* pPo, Policy* aPo);
     
+    //PRIMARY
+    neural_network set_P_NN(neural_network NN, Policy* pPo);
+    
     //2ND ANTAGONIST
     void set_A_ICs(Policy* pPo, Policy* aPo);
+    neural_network set_A_NN(neural_network NNa, Policy* aPo);
     
     //NOISE
     double xt =0;    //noise sinusoidal
@@ -79,6 +83,25 @@ public:
 private:
 };
 //------------------------------------------------------------------------------------------------------------
+void Simulator::clear_history(Policy* pPo, Policy* aPo){
+    pPo->x_history.clear();
+    pPo->x_dot_history.clear();
+    pPo->x_dd_history.clear();
+    pPo->P_force_history.clear();
+    aPo->A_force_history.clear();
+    pPo->position_noise_tstep_history.clear();
+    pPo->velocity_noise_tstep_history.clear();
+    pPo->sensor_noise_tstep_history.clear();
+    pPo->actuator_noise_tstep_history.clear();
+    
+    pPo->ave_position_noise_history.clear();
+    pPo->ave_velocity_noise_history.clear();
+    pPo->ave_sensor_noise_history.clear();
+    pPo->ave_actuator_noise_history.clear();
+    
+    pPo->P_force_history.push_back(0);
+    aPo->A_force_history.push_back(0);
+}
 void Simulator::history(Policy* pPo, Policy* aPo){
     pPo->x_history.push_back(pPo->x);
     pPo->x_dot_history.push_back(pPo->x_dot);
@@ -128,6 +151,33 @@ void Simulator::Pendulum_initStates(Policy *pPo, Policy *aPo){
     
     pP->P_force = pP->start_P_force;
     pP->A_force = pP->start_A_force;
+}
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+neural_network Simulator::set_P_NN(neural_network NN, Policy* pPo){
+    NN.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs); //2 input, 10 hidden, 1 output
+    NN.set_in_min_max(pP->x_min_bound, pP->x_max_bound);        //displacement
+    NN.set_in_min_max(pP->x_dot_min_bound,pP->x_dot_max_bound); //velocity
+    NN.set_out_min_max(pP->P_f_min_bound,pP->P_f_max_bound); // max forces
+    NN.set_weights(pPo->P_weights, true);
+    return NN;
+}
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+neural_network Simulator::set_A_NN(neural_network NNa, Policy* aPo){
+    NNa.setup(pP->A_num_inputs,pP->num_nodes,pP->num_outputs);
+    NNa.set_in_min_max(pP->x_min_bound, pP->x_max_bound);        //displacement
+    NNa.set_in_min_max(pP->x_dot_min_bound,pP->x_dot_max_bound);  //velocity
+    if (pP->A_num_inputs>=3){
+        NNa.set_in_min_max(pP->P_f_min_bound, pP->P_f_max_bound); //Primary information
+        if (pP->A_num_inputs==4){
+            NNa.set_in_min_max(pP->A_f_min_bound, pP->A_f_max_bound); //Primary information
+        }
+    }
+    
+    NNa.set_out_min_max(pP->A_f_min_bound,pP->A_f_max_bound); // max forces
+    NNa.set_weights(aPo->A_weights, true);
+    return NNa;
 }
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -272,14 +322,9 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
     //STARTING POSITIONS
     MSD_initStates(pPo, aPo);
     
-    
     // PROTAGONIST //
     neural_network NN;
-    NN.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs); //2 input, 10 hidden, 1 output
-    NN.set_in_min_max(pP->x_min_bound, pP->x_max_bound);        //displacement
-    NN.set_in_min_max(pP->x_dot_min_bound,pP->x_dot_max_bound); //velocity
-    NN.set_out_min_max(pP->P_f_min_bound,pP->P_f_max_bound); // max forces
-    NN.set_weights(pPo->P_weights, true);
+    NN = set_P_NN(NN, pPo);
     
     // ANTAGONIST //
     neural_network NNa;
@@ -287,20 +332,11 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         
     }
     if (pP->tr_3==true){
-        NNa.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs);
-        NNa.set_in_min_max(pP->x_min_bound, pP->x_max_bound);        //displacement
-        NNa.set_in_min_max(pP->x_dot_min_bound,pP->x_dot_max_bound);  //velocity
-        NNa.set_out_min_max(pP->A_f_min_bound,pP->A_f_max_bound); // max forces
-        NNa.set_weights(aPo->A_weights, true);
+        NNa = set_A_NN(NNa, aPo);
     }
 
     //CLEAR x, xdot, xdd history vector
-    pPo->x_history.clear();
-    pPo->x_dot_history.clear();
-    pPo->x_dd_history.clear();
-    pPo->P_force_history.clear();
-    aPo->A_force_history.clear();
-    //cout << pPo->x_history.size() << endl;
+    clear_history(pPo, aPo);
     
     for (int i = 0; i < pP->total_time; i++) { // has to run long enough to change directions
         

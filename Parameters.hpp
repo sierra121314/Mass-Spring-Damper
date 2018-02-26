@@ -37,6 +37,7 @@ public:
     double A_force;                     //Antagonist force
     // 2ND ANTAGONIST //
     bool rand_antagonist;
+    double num_loops;
     
     // DOMAIN VARIABLES - STATIC
     double m = 7;       //mass
@@ -49,6 +50,7 @@ public:
     
     // NEURAL NETWORK STUFF //
     int num_weights;
+    int A_num_inputs = 2;
     int num_inputs = 2;
     int num_outputs = 1;
     int num_nodes = 10;
@@ -134,6 +136,7 @@ public:
     // GRAPHS //
     void train_para();
     void test_para();
+    void trunc_Graphs();
     
 private:
 };
@@ -367,6 +370,57 @@ void Parameters::moving_goal(){
         //goal_x = sin(2*PI*(g_xt+dt)+phase);
         
     }
+}
+
+void Parameters::trunc_Graphs(){
+    // TRAIN //
+    ofstream x_best,xdot_best,xdd_best, best_P_force,best_A_force, P_fit_hist, A_fit_hist, SR, SR_A;
+    x_best.open("x_history.txt", std::ofstream::out | ofstream::trunc);
+    xdot_best.open("x_dot_history.txt",std::ofstream::out | ofstream::trunc);
+    xdd_best.open("x_dd_history.txt",std::ofstream::out | ofstream::trunc);
+    best_P_force.open("P_force_history.txt",std::ofstream::out | ofstream::trunc);
+    best_A_force.open("A_force_history.txt",std::ofstream::out | ofstream::trunc);
+    P_fit_hist.open("P_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);             //overall best fitness per stat run
+    A_fit_hist.open("A_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);
+    SR.open("P_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);                    //best fitness per generation for all SR
+    SR_A.open("A_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);
+    
+    ofstream x_med,xdot_med,xdd_med, med_P_force,med_A_force, SR_med, SR_A_med;
+    x_med.open("med_x_history.txt", std::ofstream::out | ofstream::trunc);
+    xdot_med.open("med_x_dot_history.txt",std::ofstream::out | ofstream::trunc);
+    xdd_med.open("med_x_dd_history.txt",std::ofstream::out | ofstream::trunc);
+    med_P_force.open("med_P_force_history.txt",std::ofstream::out | ofstream::trunc);
+    med_A_force.open("med_A_force_history.txt",std::ofstream::out | ofstream::trunc);
+    SR_med.open("P_med_fitpergen_SR_history.txt", std::ofstream::out | ofstream::trunc);       //best fitness per generation
+    SR_A_med.open("A_med_fitpergen_SR_history.txt", std::ofstream::out | ofstream::trunc);
+    
+    // TEST //
+    ofstream fout,best_tx,best_txdot,best_txdd, best_Pt_force,best_At_force,SR_test_best, test_P_fit_hist;
+    best_tx.open("test_x_history.txt", std::ofstream::out | ofstream::trunc);
+    best_txdot.open("test_x_dot_history.txt",std::ofstream::out | ofstream::trunc);
+    best_txdd.open("test_x_dd_history.txt",std::ofstream::out | ofstream::trunc);
+    best_Pt_force.open("test_P_force_history.txt",std::ofstream::out | ofstream::trunc);
+    best_At_force.open("test_A_force_history.txt",std::ofstream::out | ofstream::trunc);
+    test_P_fit_hist.open("test_P_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);               //best fitness per policy of single gen
+    SR_test_best.open("test_P_best_fitpergen_SR_history.txt", std::ofstream::out | ofstream::trunc);           //best fitness out of all policies
+    
+    ofstream med_tx,med_txdot,med_txdd, med_Pt_force,med_At_force, SR_test_med;
+    med_tx.open("med_test_x_history.txt", std::ofstream::out | ofstream::trunc);
+    med_txdot.open("med_test_x_dot_history.txt",std::ofstream::out | ofstream::trunc);
+    med_txdd.open("med_test_x_dd_history.txt",std::ofstream::out | ofstream::trunc);
+    med_Pt_force.open("med_test_P_force_history.txt",std::ofstream::out | ofstream::trunc);
+    med_At_force.open("med_test_A_force_history.txt",std::ofstream::out | ofstream::trunc);
+    SR_test_med.open("test_P_med_fitpergen_SR_history.txt", std::ofstream::out | ofstream::trunc);
+    
+    ofstream nsensor, nactuator, nposition, nvelocity, tstep_sensor, tstep_actuator,tstep_position, tstep_velocity;
+    nsensor.open("ave_sensor_noise.txt", ofstream::out | ofstream::trunc);
+    nactuator.open("ave_actuator_noise.txt", ofstream::out | ofstream::trunc);
+    nposition.open("ave_position_noise.txt", ofstream::out | ofstream::trunc);
+    nvelocity.open("ave_velocity_noise.txt", ofstream::out | ofstream::trunc);
+    tstep_sensor.open("tstep_sensor.txt", ofstream::out | ofstream::trunc);
+    tstep_actuator.open("tstep_actuator.txt", ofstream::out | ofstream::trunc);
+    tstep_position.open("tstep_position.txt", ofstream::out | ofstream::trunc);
+    tstep_velocity.open("tstep_velocity.txt", ofstream::out | ofstream::trunc);
 }
 
 

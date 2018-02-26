@@ -59,12 +59,32 @@ public:
     void Sort_Policies_By_Fitness();
     void EA_Process();
     void Run_Program();
-    void Graph();
+    
     void Graph_test();
     double sum;
     double ave;
     int place;
-    int num_loops;
+    
+    
+    //TEST
+    void Run_Test_Program();
+    void Run_Test_Simulation();
+    void Sort_Test_Policies_By_Fitness();
+    void test_init_fit();
+    vector<Policy> test_pro_pol;
+    vector<Policy> test_ant_pol;
+    
+    //Fitness
+     void update_best_fit();
+    void ave_fit();
+    double sum_P;
+    double sum_A;
+    double ave_P;
+    double ave_A;
+    
+    //Graph
+    void Graph();
+    void Graph_med();
     
 private:
 };
@@ -116,7 +136,75 @@ void EA::Build_Population() {
     assert(pro_pol.size() == pP->num_pol); // check to make sure that the policy sizes are the same
     assert(ant_pol.size() == pP->num_pol);
 }
+//----------------------------------------------
+void EA::test_init_fit(){
+    for (int i=0; i<pP->num_pol; i++) {
+        test_pro_pol.at(i).P_fitness = 0; //changed from -1 11/15
+        test_ant_pol.at(i).A_fitness = 0;
+        test_pro_pol.at(i).P_fit_swap = 0;
+        test_ant_pol.at(i).A_fit_swap = 0;
+    }
+}
+//////////////////////////////////////////////////////////////////////////////
+void EA::Run_Test_Simulation() {
+    random_shuffle ( test_pro_pol.begin(), test_pro_pol.end() );
+    random_shuffle ( test_ant_pol.begin(), test_ant_pol.end() );
+    fstream test_fit;
+    test_fit.open("stat_Ptest_fitness.txt", fstream::app);
+    
+    test_init_fit(); //P and A fitness and fitswap set to zero
+    //assert(pP->A_f_max_bound ==0 && pP->A_f_min_bound ==0);
+    
+    if (pP->multi_var==true){
+        pP->num_loops=50;
+        pP->fifty_var();    //initialize 50x3 variables
+    }
+    
+    for (int i=0; i<pP->num_pol; i++) {
+        //First we insert a policy into the simulator then we can take the objective data for that policy and store it in our data architecture
+        //test_init_fit(); //P and A fitness and fitswap set to zero
+        for(int k=0; k<pP->num_loops; k++){
+            if (pP->multi_var==true){
+                pP->goal_x = pP->fifty_inits.at(k).at(0);       //goal from vector
+                //cout << pP->goal_x << endl;
+                pP->start_x = pP->fifty_inits.at(k).at(1);      //start x from vector
+                pP->start_x_dot = pP->fifty_inits.at(k).at(2);  //start xdot from vector
+            }
+            Simulator S;
+            S.pP = this->pP;
+            Policy* pPo;
+            Policy* aPo;
+            pPo = & test_pro_pol.at(i);
+            
+            aPo = & test_ant_pol.at(i);
+            S.Simulate(pPo, aPo);
+            
+            if (test_pro_pol.at(i).P_fitness < test_pro_pol.at(i).P_fit_swap) { //swapped direction 11/15 at 9:50
+                test_pro_pol.at(i).P_fitness = test_pro_pol.at(i).P_fit_swap;
+            }
+            if (test_ant_pol.at(i).A_fitness < test_ant_pol.at(i).A_fit_swap) {
+                test_ant_pol.at(i).A_fitness = test_ant_pol.at(i).A_fit_swap;
+            }
+            assert(test_pro_pol.at(i).P_fitness>=0);
+            assert(test_ant_pol.at(i).A_fitness>=0 );
 
+        }
+        if (pP->multi_var==true) {
+            //test_fit << pro_pol.at(i).P_fit_swap << endl;
+            test_pro_pol.at(i).P_fitness = test_pro_pol.at(i).P_fit_swap;
+        }
+        
+        
+    }
+    
+    fstream nsensor, nactuator;
+    nsensor.open("ave_sensor_noise.txt", fstream::app);
+    nactuator.open("ave_actuator_noise.txt", fstream::app);
+    nsensor << endl;
+    nactuator << endl;
+    
+    
+}
 
 //////////////////////////////////////////////////////////////////////////////
 //Puts each policy into the simulation
@@ -130,11 +218,11 @@ void EA::Run_Simulation() {
         pP->random_variables();
     }
     if (pP->multi_var==true){
-        num_loops=50;
+        pP->num_loops=50;
         pP->fifty_var();    //initialize 50x3 variables
     }
     else {
-        num_loops = 1;
+        pP->num_loops = 1;
     }
     //LOGGING START POSITIONS
     rand_start << pP->m << "\t" << pP->b << "\t" << pP->k << "\t" << pP->mu << "\t" << pP->start_x << "\t" << pP->goal_x << "\t" << pP->start_x_dot << endl;
@@ -144,7 +232,7 @@ void EA::Run_Simulation() {
         ant_pol.at(i).A_fitness = 10000000;
         pro_pol.at(i).P_fit_swap = 0;
         ant_pol.at(i).A_fit_swap = 0;
-        for (int k=0; k<num_loops; k++) {
+        for (int k=0; k<pP->num_loops; k++) {
             if (pP->multi_var==true){
                 pP->goal_x = pP->fifty_inits.at(k).at(0);       //goal from vector
                 //cout << pP->goal_x << endl;
@@ -394,8 +482,6 @@ void EA::EA_Process() {
     Run_Simulation();
     Evaluate();
     Sort_Policies_By_Fitness();
-    best_P_fitness.push_back(pro_pol.at(0).P_fitness);
-    best_A_fitness.push_back(ant_pol.at(0).A_fitness);
     Downselect();
     Repopulate();
 }
@@ -422,6 +508,41 @@ void EA::Sort_Policies_By_Fitness() {
         sort(pro_pol.begin(), pro_pol.end(), Less_Than_Policy_Fitness());
         sort(ant_pol.begin(), ant_pol.end(), Greater_Than_Policy_Fitness());
     }
+    update_best_fit();
+}
+//-------------------------------------------------------------------------
+//Sorts population
+void EA::Sort_Test_Policies_By_Fitness() {
+    for (int i=0; i<pP->num_pol; i++) {
+        sort(test_pro_pol.begin(), test_pro_pol.end(), Less_Than_Policy_Fitness());
+        sort(test_ant_pol.begin(), test_ant_pol.end(), Greater_Than_Policy_Fitness());
+    }
+    
+}
+//-------------------------------------------------------------------------
+void EA::update_best_fit(){
+    best_P_fitness.push_back(pro_pol.at(0).P_fitness);      // best fitness per generation
+    best_A_fitness.push_back(ant_pol.at(0).A_fitness);
+    
+    
+}
+
+void EA::ave_fit(){
+    sum_P=0;
+    sum_A=0;
+    ofstream P_fit, A_fit;
+    P_fit.open("stat_ave_best_P_fitness.txt", fstream::app);
+    A_fit.open("stat_ave_best_A_fitness.txt", fstream::app);
+    assert(best_P_fitness.size() == pP->gen_max);
+    for (int f = 0; f < best_P_fitness.size(); f++) { //help 11/20
+        //sum_P += pro_pol.at(f).P_fitness;
+        sum_P += best_P_fitness.at(f);
+        sum_A += best_A_fitness.at(f);
+    }
+    ave_P = sum_P/best_P_fitness.size();
+    ave_A = sum_A/best_A_fitness.size();
+    P_fit << ave_P << endl;
+    A_fit << ave_A << endl;
 }
 //-------------------------------------------------------------------------
 void EA::Graph(){
@@ -509,6 +630,42 @@ void EA::Graph(){
     SR_A_med << endl;
 }
 
+void EA::Graph_med(){
+    // MEDIAN //
+    ofstream med_x,med_xdot,med_xdd, med_P_force,med_A_force, SR_med, SR_A_med;
+    
+    med_x.open("med_x_history.txt", fstream::app);
+    med_xdot.open("med_x_dot_history.txt",fstream::app);
+    med_xdd.open("med_x_dd_history.txt",fstream::app);
+    
+    med_P_force.open("med_P_force_history.txt",fstream::app);
+    med_A_force.open("med_A_force_history.txt",fstream::app);
+    
+    SR_med.open("P_med_fitpergen_SR_history.txt", fstream::app);
+    SR_A_med.open("A_med_fitpergen_SR_history.txt", fstream::app);     //best fitness per generation
+    
+    for (int f =0; f < pP->total_time; f++){
+        med_x << pro_pol.at(pro_pol.size()/2).x_history.at(f) << "\t";
+        med_xdot << pro_pol.at(pro_pol.size()/2).x_dot_history.at(f) << "\t";
+        med_xdd << pro_pol.at(pro_pol.size()/2).x_dd_history.at(f) << "\t";
+        
+        med_P_force << pro_pol.at(pro_pol.size()/2).P_force_history.at(f) << "\t";
+        med_A_force << ant_pol.at(pro_pol.size()/2).A_force_history.at(f) << "\t";
+        
+    }
+    
+    SR_med << pro_pol.at(pro_pol.size()/2).P_fitness << "\t";
+    SR_A_med << ant_pol.at(ant_pol.size()/2).A_fitness << "\t";
+    
+    
+    med_x.close();
+    med_xdot.close();
+    med_xdd.close();
+    
+    med_P_force.close();
+    med_A_force.close();
+}
+
 
 
 void EA::Graph_test(){
@@ -552,7 +709,16 @@ void EA::Graph_test(){
     
     
 }
-
+//-------------------------------------------------------------------------
+void EA::Run_Test_Program(){
+    test_pro_pol = pro_pol;
+    test_ant_pol = ant_pol;
+    Run_Test_Simulation();
+    Evaluate();
+    Sort_Test_Policies_By_Fitness();
+    
+    Graph_test();
+}
 
 
 //-------------------------------------------------------------------------
@@ -563,15 +729,15 @@ void EA::Run_Program() {
     ofstream nactuator;
     nactuator.open("ave_actuator_noise.txt", ofstream::out | ofstream::trunc);
     
-    ofstream rand_start;
+    ofstream rand_start,A_fit,P_fit;
     rand_start.open("random_starting_variables.txt", ofstream::out | ofstream::trunc);
-    
-    ofstream P_fit;
-    P_fit.open("stat_P_fitness.txt", fstream::app);
+    P_fit.open("stat_ave_best_P_fitness.txt", fstream::app);
+    A_fit.open("stat_ave_best_A_fitness.txt", fstream::app);
     sum=0;
     Build_Population();
     best_P_fitness.clear();
     best_A_fitness.clear();
+    assert(best_P_fitness.size()==0);
     for (int gen=0; gen<pP->gen_max; gen++) {
         if (gen %5 ==0){
             if (pP->rand_start_5gen==true){
@@ -583,6 +749,7 @@ void EA::Run_Program() {
         }
         if (gen < pP->gen_max-1) {
             EA_Process();
+            Graph_med();
         }
         else {
             
@@ -591,21 +758,18 @@ void EA::Run_Program() {
             Sort_Policies_By_Fitness();
             cout << "BEST POLICY PRO-FITNESS" << "\t" << pro_pol.at(0).P_fitness << endl;
             //P_fit << pro_pol.at(0).P_fitness << endl;
+            Graph_med();
             
-            best_P_fitness.push_back(pro_pol.at(0).P_fitness);      // best fitness per generation
-            best_A_fitness.push_back(ant_pol.at(0).A_fitness);
-            for (int f = 0; f < best_P_fitness.size(); f++) { //help 11/20
-                //sum += pro_pol.at(f).P_fitness;
-                sum += best_P_fitness.at(f);
-            }
-            ave = sum/best_P_fitness.size();
-            P_fit << ave << endl;
+            
         }
         
 
     }
-    
+    ave_fit();
     Graph();
+    P_fit.close();
+    A_fit.close();
+    
     nsensor.close();
     nactuator.close();
     
