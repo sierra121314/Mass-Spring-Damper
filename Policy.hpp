@@ -45,6 +45,17 @@ public:
     double x; // position of mass
     double x_dot; //velocity
     double x_dd; //acceleration
+    
+    // NOISE
+    vector<double> position_noise_tstep_history;
+    vector<double> velocity_noise_tstep_history;
+    vector<double> sensor_noise_tstep_history;
+    vector<double> actuator_noise_tstep_history;
+    
+    vector<double> ave_position_noise_history;      //for each policy
+    vector<double> ave_velocity_noise_history;
+    vector<double> ave_sensor_noise_history;
+    vector<double> ave_actuator_noise_history;
         
     void Init_P_policy(int num_P_weights); //initializes one policy
     void Init_A_policy(int num_A_weights);

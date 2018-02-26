@@ -42,8 +42,7 @@ public:
     double generateSensorNoise();
     void calculateFitness(Policy* pPo, Policy* aPo);
     double Fh = 60; //Frequency in hertz
-    double noise_x_sum;
-    double noise_xdot_sum;
+
     double g_xt = 0; //goal sinusoidal
     double sinusoidal=0;
     void MSD_equations(Policy* pPo, Policy* aPo);
@@ -55,11 +54,47 @@ public:
     //NOISE
     double xt =0;    //noise sinusoidal
     vector<double> noise_init(vector<double> noise);
+    void sum_noise(vector<double> noise);
+    void ave_noise(Policy* pPo, Policy* aPo);
+    
+    double noise_x_sum;
+    double noise_xdot_sum;
+    double noise_sensor_sum;
+    double noise_actuator_sum;
+    
+    double noise_x_increm = 0;
+    double noise_xdot_increm = 0;
+    double noise_sensor_increm = 0;
+    double noise_actuator_increm = 0;
+    
+    double ave_x_noise;
+    double ave_xdot_noise;
+    double ave_sensor_noise;
+    double ave_actuator_noise;
+    
+    // HISTORY
+    void history(Policy* pPo, Policy* aPo);
+    void clear_history(Policy* pPo, Policy* aPo);
     
 private:
 };
-
-
+//------------------------------------------------------------------------------------------------------------
+void Simulator::history(Policy* pPo, Policy* aPo){
+    pPo->x_history.push_back(pPo->x);
+    pPo->x_dot_history.push_back(pPo->x_dot);
+    pPo->x_dd_history.push_back(pPo->x_dd);
+    pPo->P_force_history.push_back(pP->P_force);
+    aPo->A_force_history.push_back(pP->A_force);
+    
+    //pPo->position_noise_tstep_history.push_back(noise_x_sum);
+    //pPo->velocity_noise_tstep_history.push_back(noise_xdot_sum);
+    //pPo->sensor_noise_tstep_history.push_back(noise_sensor_sum);
+    //pPo->actuator_noise_tstep_history.push_back(noise_actuator_sum);
+    pPo->position_noise_tstep_history.push_back(noise_x_increm);
+    pPo->velocity_noise_tstep_history.push_back(noise_xdot_increm);
+    pPo->sensor_noise_tstep_history.push_back(noise_sensor_increm);
+    pPo->actuator_noise_tstep_history.push_back(noise_actuator_increm);
+}
 
 //------------------------------------------------------------------------------------------------------------
 void Simulator::set_A_ICs(Policy* pPo, Policy* aPo){
@@ -96,6 +131,31 @@ void Simulator::Pendulum_initStates(Policy *pPo, Policy *aPo){
 }
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+void Simulator::ave_noise(Policy* pPo, Policy* aPo){
+    ave_x_noise = noise_x_sum/(2*pP->total_time);
+    ave_xdot_noise = noise_xdot_sum/(2*pP->total_time);
+    ave_sensor_noise = noise_sensor_sum/(2*pP->total_time);
+    ave_actuator_noise = noise_actuator_sum/(2*pP->total_time);
+    
+    
+    pPo->ave_position_noise_history.push_back(ave_x_noise);
+    pPo->ave_velocity_noise_history.push_back(ave_xdot_noise);
+    pPo->ave_sensor_noise_history.push_back(ave_sensor_noise);
+    pPo->ave_actuator_noise_history.push_back(ave_actuator_noise);
+}
+void Simulator::sum_noise(vector<double> noise){
+    noise_x_sum += noise.at(0) + noise.at(1);         //this is x noise total- sensor plus actuator
+    noise_xdot_sum += noise.at(2) + noise.at(3);      //this is velocity noise total- sensor plus actuator
+    noise_sensor_sum += noise.at(0) + noise.at(2);
+    noise_actuator_sum += noise.at(1) + noise.at(3);
+    
+    noise_x_increm = noise.at(0) + noise.at(1);
+    noise_xdot_increm = noise.at(2) + noise.at(3);
+    noise_sensor_increm =noise.at(0) + noise.at(2);
+    noise_actuator_increm = noise.at(1) + noise.at(3);
+    
+    //cout << "sum\t" << noise_x_sum << "\t" << noise_xdot_sum << "\t" << noise_sensor_sum << "\t" << noise_actuator_sum << endl;
+}
 double Simulator::generateGaussianNoise() {
     const double epsilon = numeric_limits<double>::min();
     const double two_pi = 2.0*PI;
@@ -318,17 +378,17 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         // CALCULATE FITNESS //
         calculateFitness(pPo, aPo);
         
-        pPo->x_history.push_back(pPo->x);
-        pPo->x_dot_history.push_back(pPo->x_dot);
-        pPo->x_dd_history.push_back(pPo->x_dd);
-        pPo->P_force_history.push_back(pP->P_force);
-        aPo->A_force_history.push_back(pP->A_force);
+        // SUM NOISE FOR POSITION, VELOCITY, SENSOR, AND ACTUATOR //
+        sum_noise(noise);
         
-        noise_x_sum += noise.at(0)+noise.at(1);
-        noise_xdot_sum += noise.at(2)+noise.at(3);
+        // STORE HISTORY (STATES,FORCES, NOISE) //
+        history(pPo, aPo);
+        
         tstep_sensor << noise.at(0)+noise.at(1) << "\t";
         tstep_actuator << noise.at(2)+noise.at(3) << "\t";
     }
+    
+    ave_noise(pPo, aPo);
     
     nsensor << (noise_x_sum/(2*pP->total_time)) << "\t";
     nactuator << (noise_xdot_sum/(2*pP->total_time)) << "\t";
