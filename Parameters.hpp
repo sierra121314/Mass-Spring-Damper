@@ -83,7 +83,6 @@ public:
     // WHAT TO GRAPH
     bool best_v_median = true;
     
-    
     // NN BOUNDARIES //
     double P_f_min_bound; //set in main
     double P_f_max_bound;

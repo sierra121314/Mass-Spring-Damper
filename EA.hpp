@@ -425,63 +425,88 @@ void EA::Sort_Policies_By_Fitness() {
 }
 //-------------------------------------------------------------------------
 void EA::Graph(){
-    ofstream fout;
+    
+    // BEST //
+    ofstream x_best,xdot_best,xdd_best, best_P_force,best_A_force, P_fit_hist, A_fit_hist, SR, SR_A;
     //NOTE
     //pro_pol.at(0) is best
+    int best = 0;
     //pro_pol.size()/2 is median
+    int median = pro_pol.size()/2;
+    
     if (pP->best_v_median==true){
-        place = 0; //graph the best
+        place = best; //graph the best
     }
     else {
-        place = pro_pol.size()/2; //graph the median
+        place = median; //graph the median
     }
     
-    fout.open("x_history.txt", std::ofstream::out | ofstream::trunc);
+    x_best.open("x_history.txt", fstream::app);
+    xdot_best.open("x_dot_history.txt",fstream::app);
+    xdd_best.open("x_dd_history.txt",fstream::app);
+    
+    best_P_force.open("P_force_history.txt",fstream::app);
+    best_A_force.open("A_force_history.txt",fstream::app);
+    
     //fout << "vector spot" << "\t" << "x" << "\t" << "x_dot" << "\t" << "x_dd" << endl;
     for (int f =0; f < pP->total_time; f++){
-        fout << pro_pol.at(place).x_history.at(f) << "\t";
+        x_best << pro_pol.at(best).x_history.at(f) << "\t";
+        xdot_best << pro_pol.at(best).x_dot_history.at(f) << "\t";
+        xdd_best << pro_pol.at(best).x_dd_history.at(f) << "\t";
+        
+        best_P_force << pro_pol.at(best).P_force_history.at(f) << "\t";
+        best_A_force << ant_pol.at(best).A_force_history.at(f) << "\t";
     }
-    fout.close();
     
-    fout.open("x_dot_history.txt",std::ofstream::out | ofstream::trunc);
-    for (int g =0; g < pP->total_time; g++){
-        fout << pro_pol.at(place).x_dot_history.at(g) << "\t";
-    }
-    fout.close();
+    x_best << endl;
+    xdot_best << endl;
+    xdd_best << endl;
+    best_P_force << endl;
+    best_A_force << endl;
     
-    fout.open("x_dd_history.txt",std::ofstream::out | ofstream::trunc);
-    for (int h =0; h < pP->total_time; h++){
-        fout << pro_pol.at(place).x_dd_history.at(h) << "\t";
-    }
-    fout.close();
-    fout.open("P_force_history.txt",std::ofstream::out | ofstream::trunc);
-    for (int h =0; h < pP->total_time; h++){
-        fout << pro_pol.at(place).P_force_history.at(h) << "\t";
-    }
-    fout.close();
-    fout.open("A_force_history.txt",std::ofstream::out | ofstream::trunc);
-    for (int h =0; h < pP->total_time; h++){
-        fout << ant_pol.at(place).A_force_history.at(h) << "\t";
-    }
-    fout.close();
-    fout.open("P_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);
-    for (int h =0; h < pP->gen_max; h++){
-        fout << best_P_fitness.at(h) << "\t";
-    }
-    fout.close();
-    fout.open("A_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);
-    for (int h =0; h < pP->gen_max; h++){
-        fout << best_A_fitness.at(h) << "\t";
-    }
-    fout.close();
-    ofstream SR;
-    SR.open("P_best_fitpergen_SR_history.txt", fstream::app);
+    x_best.close();
+    xdot_best.close();
+    xdd_best.close();
+    
+    best_P_force.close();
+    best_A_force.close();
+    
+    P_fit_hist.open("P_best_fitness_history.txt",fstream::app);     //best fitness out of all generations
+    A_fit_hist.open("A_best_fitness_history.txt",fstream::app);     //best fitness out of all generations
+    assert(best_P_fitness.size() == pP->gen_max);
+    P_fit_hist << best_P_fitness.at(0) << endl;
+    A_fit_hist << best_A_fitness.at(0) << endl;
+    
+    SR.open("P_best_fitpergen_SR_history.txt", fstream::app);       //best fitness per generation
+    SR_A.open("A_best_fitpergen_SR_history.txt", fstream::app);     //best fitness per generation
     for (int h =0; h < pP->gen_max; h++){
         SR << best_P_fitness.at(h) << "\t";
+        SR_A << best_A_fitness.at(h) << "\t";
     }
     SR << endl;
-    SR.close();
+    SR_A << endl;
     
+    // MEDIAN //
+    ofstream x_med,xdot_med,xdd_med, med_P_force,med_A_force, SR_med, SR_A_med;
+    x_med.open("med_x_history.txt", fstream::app);
+    xdot_med.open("med_x_dot_history.txt",fstream::app);
+    xdd_med.open("med_x_dd_history.txt",fstream::app);
+    
+    med_P_force.open("med_P_force_history.txt",fstream::app);
+    med_A_force.open("med_A_force_history.txt",fstream::app);
+    
+    x_med << endl;
+    xdot_med  << endl;
+    xdd_med  << endl;
+    med_P_force << endl;
+    med_A_force << endl;
+    
+    
+    
+    SR_med.open("P_med_fitpergen_SR_history.txt", fstream::app);       //best fitness per generation
+    SR_A_med.open("A_med_fitpergen_SR_history.txt", fstream::app);     //best fitness per generation
+    SR_med << endl;
+    SR_A_med << endl;
 }
 
 

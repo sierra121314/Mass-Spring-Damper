@@ -383,16 +383,12 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         
         // STORE HISTORY (STATES,FORCES, NOISE) //
         history(pPo, aPo);
-        
-        tstep_sensor << noise.at(0)+noise.at(1) << "\t";
-        tstep_actuator << noise.at(2)+noise.at(3) << "\t";
+
     }
     
     ave_noise(pPo, aPo);
     
-    nsensor << (noise_x_sum/(2*pP->total_time)) << "\t";
-    nactuator << (noise_xdot_sum/(2*pP->total_time)) << "\t";
-    
+
     tstep_sensor.close();
     tstep_actuator.close();
 }
