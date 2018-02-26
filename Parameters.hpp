@@ -25,9 +25,8 @@ protected:
     
     
 public:
-    int stat_runs = 5;
     // EA STUFF //
-    int num_pol = 20;                  //number of policies
+    int num_pol = 100;                  //number of policies
     int to_kill = num_pol/2;
     int gen_max = 500;                  //number of generations
     double total_time = 1000;            //total time steps
@@ -36,34 +35,23 @@ public:
     
     double P_force;                     //Protagonist force
     double A_force;                     //Antagonist force
-    
-    bool deque_best = false;            // DO NOT CHANGE //
-    bool deque_on = true;               // change when you want full leniency all the time - only works with Antagonist (T3)
-    
-    
     // 2ND ANTAGONIST //
     bool rand_antagonist;
-    bool late_antagonist;
-    bool ANT2;
-    //int ant_intro = gen_max/2;
-    int ant_intro = 200;
     
     // DOMAIN VARIABLES - STATIC
     double m = 7;       //mass
-    double b = 1;    //damper
-    double k = -0.001;       //spring
+    double b = 0.05;    //damper
+    double k = 1;       //spring
     double dt = 0.1;    //time step [s]
     double mu = 0;      //friction
-    bool MSD_EOM = true;    //Mass Spring Damper equations
-    bool Pend_EOM = false;  // Pendulum equations
+    bool MSD_EOM = true;
+    bool Pend_EOM = false;
     
     // NEURAL NETWORK STUFF //
     int num_weights;
-    int A_num_weights;
-    int A_num_inputs = 4;
     int num_inputs = 2;
     int num_outputs = 1;
-    int num_nodes = 2;
+    int num_nodes = 10;
     
     // GOAL VARIABLES //
     double start_x = 15;
@@ -74,11 +62,11 @@ public:
     double displace = 2;        //initial displacement
     double goal_x;              //ending position (start_x+goal_x);
     int goal_x_upper_bound = 5;     //had to use int vs double due to rand() only works with ints
-    int goal_x_lower_bound = 2;
-    int start_x_upper_bound = 17;
-    int start_x_lower_bound = 13;
+    int goal_x_lower_bound = 0;
+    int start_x_upper_bound = 20;
+    int start_x_lower_bound = 10;
     int start_x_dot_upper_bound = 5;
-    int start_x_dot_lower_bound = 2;
+    int start_x_dot_lower_bound = 0;
     double A_g = 2;             //amplifier for goal sinusoidal
     bool sinusoidal_goal = false;
     double g_phase = 0;
@@ -93,7 +81,7 @@ public:
     void random_variables();
     
     // WHAT TO GRAPH
-    bool best_vs_median = true;
+    bool best_v_median = true;
     
     
     // NN BOUNDARIES //
@@ -116,13 +104,12 @@ public:
     bool actuator_NOISE = false;    //Determined by train-test otherwise default
     double sn = 1;                  //sensor noise magnitude
     double an = 1;                  //actuator noise magnitude
-    double As = 1;
+    double As = 2;
     bool sinusoidal_noise = true;   //within sensor and actuator noise, so if those are false->sinusoidal is false
     double phase = PI/4;            //in Radians
-    double lambda = 0.05;              //Period - 2PI when lambda is 1
+    
     
     // TRAINING AND TESTING MODES //
-    int train_test_combo;
     bool train_and_test;
     void test_train_set();
     bool five_B;          //Antagonist that manipulates starting variables
@@ -142,7 +129,6 @@ public:
     bool te_A;          // Primary with no antagonist and noise
     bool te_B;          // Domain with Gaussian noise distribution on top of a sinusoidal wave and 50 sets of starting variables per policy
     void test();
-    bool testperfive;
 
     bool three_for_three;   //Reverse Leniancy
 
@@ -167,10 +153,6 @@ void Parameters::random_variables(){
 }
 
 void Parameters::test_train_set(){
-    
-    /*if (train_test_combo = "two_A"){
-        two_A = true;
-    }*/
     if (one ==true){
         tr_1 = true;
         te_1 = true;
@@ -181,15 +163,15 @@ void Parameters::test_train_set(){
         te_A = true;
         cout << "train two - test A" <<endl;
     }
-    if (three_A == true){
-        tr_3 = true;
-        te_A = true;
-        cout << "train three - test A" <<endl;
-    }
     if (two_B==true){
         tr_2 = true;
         te_B = true;
         cout << "train two - test B" <<endl;
+    }
+    if (three_A == true){
+        tr_3 = true;
+        te_A = true;
+        cout << "train three - test A" <<endl;
     }
     if (three_B == true){
         tr_3 = true;
@@ -216,21 +198,15 @@ void Parameters::train_para(){
     train_para << "Pro Bounds\t " << P_f_min_bound << "\t" << P_f_max_bound << endl;
     train_para << "Ant Bounds\t " << A_f_min_bound << "\t" << A_f_max_bound << endl;
     train_para << "Random Antagonist\t" << rand_antagonist << endl;
-    train_para << "ANT2\t" << ANT2 << endl;
-    train_para << "Antagonist Introduced later\t" << late_antagonist << "\t at Gen" << ant_intro << endl;
     train_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
     train_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
-    train_para << "# Ant NN Input-Output-Nodes\t" << A_num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
-    train_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl <<  "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << "\tPERIOD\t" << lambda << endl;
+    train_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl << "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << endl;
     train_para << "Random Starts/Gen\t" << rand_start_gen << "\t" << rand_start_5gen << endl;
     train_para << "Reverse Leniency\t" << three_for_three << endl;
     train_para << "50 Starting Variables/Policy\t" << multi_var << endl;
     train_para << "goal upper and lower bound\t" << goal_x_upper_bound << "\t" << goal_x_lower_bound << endl;
      train_para << "start_x upper and lower bound\t" << start_x_upper_bound << "\t" << start_x_lower_bound << endl;
     train_para << "start_xdot upper and lower bound\t" << start_x_dot_upper_bound << "\t" << start_x_dot_lower_bound << endl;
-    train_para << "test every 5 generations\t" << testperfive << endl;
-    train_para << "graph best or median(true is best)\t" << best_vs_median << endl;
-    train_para << "Run deques or full leniency(true is deques\t" << deque_on << endl;
     train_para.close();
 }
 
@@ -252,8 +228,6 @@ void Parameters::train(){
         if (tr_2 == true){
             P_f_min_bound = -5;
             P_f_max_bound = 5;
-            ANT2 = false;
-            late_antagonist = false; //do NOT change this one
             A_f_min_bound = -0;
             A_f_max_bound = 0;
             rand_antagonist = false;
@@ -262,29 +236,18 @@ void Parameters::train(){
             rand_start_gen = false;
             rand_start_5gen = false;
             multi_var = false; //do NOT change this one
-            testperfive = false;
         }
         if (tr_3 == true){
-            late_antagonist = false;
-            ANT2 = false;
             P_f_min_bound = -5;
             P_f_max_bound = 5;
-            if (late_antagonist==true) {
-                A_f_min_bound = -0; //start with this until changed later
-                A_f_max_bound = 0;
-            }
-            else{
-                A_f_min_bound = -1;
-                A_f_max_bound = 1;
-            }
-            
+            A_f_min_bound = -1;
+            A_f_max_bound = 1;
             rand_antagonist = false;
             sensor_NOISE = false;
             actuator_NOISE = false;
             rand_start_gen = false;
             rand_start_5gen = false;
             multi_var = false; //do NOT change this one
-            testperfive = false;
         }
         if (tr_4 == true){
             P_f_min_bound = -5;
@@ -319,26 +282,19 @@ void Parameters::test_para(){
     ofstream test_para;
     test_para.open("testing_parameters.txt", ofstream::out | ofstream::trunc);
     
-    test_para << "# Policies\t" << num_pol << "\t # Generations\t" << gen_max << "\t # Stat Runs\t" << stat_runs <<endl;
-    test_para << "Mut Rate and Range\t" << mutation_rate << "\t" << mutate_range << endl;
+    test_para << "# Policies\t" << num_pol << "\t # Generations\t" << gen_max << "\t Mut Rate and Range\t" << mutation_rate << "\t" << mutate_range << endl;
     test_para << "Pro Bounds\t " << P_f_min_bound << "\t" << P_f_max_bound << endl;
     test_para << "Ant Bounds\t " << A_f_min_bound << "\t" << A_f_max_bound << endl;
     test_para << "Random Antagonist\t" << rand_antagonist << endl;
-    test_para << "ANT2\t" << ANT2 << endl;
-    test_para << "Antagonist Introduced later\t" << late_antagonist << "\t at Gen" << ant_intro << endl;
     test_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
     test_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
-    test_para << "# Ant NN Input-Output-Nodes\t" << A_num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
-    test_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl <<  "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << "\tPERIOD\t" << lambda << endl;
+    test_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl <<  "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << endl;
     test_para << "Random Starts/Gen\t" << rand_start_gen << "\t" << rand_start_5gen << endl;
     test_para << "Reverse Leniency\t" << three_for_three << endl;
     test_para << "50 Starting Variables/Policy\t" << multi_var << endl;
     test_para << "goal upper and lower bound\t" << goal_x_upper_bound << "\t" << goal_x_lower_bound << endl;
     test_para << "start_x upper and lower bound\t" << start_x_upper_bound << "\t" << start_x_lower_bound << endl;
     test_para << "start_xdot upper and lower bound\t" << start_x_dot_upper_bound << "\t" << start_x_dot_lower_bound << endl;
-    test_para << "test every 5 generations\t" << testperfive << endl;
-    test_para << "graph best or median(true is best)\t" << best_vs_median << endl;
-    test_para << "Run deques or full leniency(true is deques\t" << deque_on << endl;
     
     test_para.close();
 }
@@ -358,13 +314,9 @@ void Parameters::test(){
             rand_start_gen = false;  //do NOT change this one
         }
         if (te_A == true){
-            tr_3=false;
-            tr_2=false;
             P_f_min_bound = -5;
             P_f_max_bound = 5;
-            ANT2 = false;               //do NOT change this
-            late_antagonist = false;    //do NOT change this one
-            A_f_min_bound = -0;         //change back to zero
+            A_f_min_bound = -0;
             A_f_max_bound = 0;
             rand_antagonist = false;
             sensor_NOISE = true;
@@ -372,7 +324,6 @@ void Parameters::test(){
             multi_var = false;       //50 rand variables per policy
             three_for_three = false; //do NOT change this one
             rand_start_gen = false;  //do NOT change this one
-            testperfive = false;    //do NOT change this one
         }
         if (te_B == true){
             P_f_min_bound = -5;
@@ -383,7 +334,6 @@ void Parameters::test(){
             sensor_NOISE = true;
             actuator_NOISE = true;
             multi_var = true;       //50 rand variables per policy
-            fifty_var();
             three_for_three = false; //do NOT change this one
             rand_start_gen = false; //do NOT change this one
         }
