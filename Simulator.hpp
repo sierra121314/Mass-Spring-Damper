@@ -53,6 +53,7 @@ public:
     
     //PRIMARY
     neural_network set_P_NN(neural_network NN, Policy* pPo);
+    double set_P_force(neural_network NN, vector<double> state);
     
     //2ND ANTAGONIST
     void set_A_ICs(Policy* pPo, Policy* aPo);
@@ -63,6 +64,7 @@ public:
     vector<double> noise_init(vector<double> noise);
     void sum_noise(vector<double> noise);
     void ave_noise(Policy* pPo, Policy* aPo);
+    void zero_noise_sum_ave();
     
     double noise_x_sum;
     double noise_xdot_sum;
@@ -129,11 +131,9 @@ void Simulator::set_A_ICs(Policy* pPo, Policy* aPo){
     pP->start_x_dot = aPo->A_ICs.at(2);
 }
 void Simulator::MSD_initStates(Policy* pPo, Policy* aPo){
-    noise_x_sum = 0;
-    noise_xdot_sum = 0;
     
     //intialize starting stuff
-    if (pP->tr_5==true){
+    if (pP->tr_5==true){    //Why not rand_antagonist==true??
         set_A_ICs(pPo, aPo);
     }
     
@@ -165,6 +165,13 @@ neural_network Simulator::set_P_NN(neural_network NN, Policy* pPo){
     NN.set_weights(pPo->P_weights, true);
     return NN;
 }
+double Simulator::set_P_force(neural_network NN, vector<double> state){
+    NN.set_vector_input(state);
+    NN.execute();
+    pP->P_force = NN.get_output(0);
+    assert(pP->P_force >= pP->P_f_min_bound - 0.5 && pP->P_force <= pP->P_f_max_bound + 0.5); //make sure matches NN output
+    return pP->P_force;
+}
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 neural_network Simulator::set_A_NN(neural_network NNa, Policy* aPo){
@@ -184,6 +191,19 @@ neural_network Simulator::set_A_NN(neural_network NNa, Policy* aPo){
 }
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+void Simulator::zero_noise_sum_ave(){
+    noise_x_sum = 0;
+    noise_xdot_sum = 0;
+    noise_sensor_sum = 0;
+    noise_actuator_sum = 0;
+    
+    ave_actuator_noise = 0;
+    ave_sensor_noise = 0;
+    ave_x_noise = 0;
+    ave_xdot_noise = 0;
+    
+    xt=0;
+}
 void Simulator::ave_noise(Policy* pPo, Policy* aPo){
     ave_x_noise = noise_x_sum/(2*pP->total_time);
     ave_xdot_noise = noise_xdot_sum/(2*pP->total_time);
@@ -324,6 +344,9 @@ void Simulator::calculateFitness(Policy* pPo, Policy* aPo){
 //Runs the entire simulation process
 void Simulator::Simulate(Policy* pPo, Policy* aPo)
 {
+    pPo->P_fit_swap = 0;
+    aPo->A_fit_swap = 0;
+    
     //NOISE GRAPH
     fstream nsensor, nactuator, tstep_sensor, tstep_actuator;
     nsensor.open("ave_sensor_noise.txt", fstream::app);
@@ -332,19 +355,17 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
     tstep_actuator.open("tstep_actuator.txt", ofstream::out | ofstream::trunc);
     
     //STARTING POSITIONS
-    MSD_initStates(pPo, aPo);
+    zero_noise_sum_ave();       //Zero outs all sums and averages of noise
+    MSD_initStates(pPo, aPo);   //Set Starting values
     
     // PROTAGONIST //
     neural_network NN;
-    NN = set_P_NN(NN, pPo);
+    NN = set_P_NN(NN, pPo);     //Setup, set ins and outs, set weights
     
     // ANTAGONIST //
     neural_network NNa;
-    if (pP->rand_antagonist ==true) {
-        
-    }
     if (pP->tr_3==true){
-        NNa = set_A_NN(NNa, aPo);
+        NNa = set_A_NN(NNa, aPo);   //Setup, set ins and outs, set weights
     }
 
     //CLEAR x, xdot, xdd history vector
@@ -402,14 +423,12 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         state.push_back(pPo->x+noise.at(0)+noise.at(1));
         state.push_back(pPo->x_dot+noise.at(2)+noise.at(3));
         
-        NN.set_vector_input(state);
-        NN.execute();
-        pP->P_force = NN.get_output(0);
-        assert(pP->P_force >= pP->P_f_min_bound - 0.5 && pP->P_force <= pP->P_f_max_bound + 0.5); //make sure matches NN output
+        pP->P_force = set_P_force(NN, state);
+    
         if (pP->rand_antagonist==true){
             pP->A_force = 0;
         }
-        if (pP->tr_3==true) {
+        else if (pP->tr_3==true) {
             NNa.set_vector_input(state);
             NNa.execute();
             pP->A_force = NNa.get_output(0);

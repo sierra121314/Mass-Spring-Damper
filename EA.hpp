@@ -179,19 +179,20 @@ void EA::Run_Test_Simulation() {
             aPo = & test_ant_pol.at(i);
             S.Simulate(pPo, aPo);
             
-            if (test_pro_pol.at(i).P_fitness < test_pro_pol.at(i).P_fit_swap) { //swapped direction 11/15 at 9:50
+            if (pP->multi_var==true) {
+                //test_fit << pro_pol.at(i).P_fit_swap << endl;
+                test_pro_pol.at(i).P_fitness += test_pro_pol.at(i).P_fit_swap;
+            }
+            
+            else if (test_pro_pol.at(i).P_fitness < test_pro_pol.at(i).P_fit_swap) { //swapped direction 11/15 at 9:50
                 test_pro_pol.at(i).P_fitness = test_pro_pol.at(i).P_fit_swap;
             }
-            if (test_ant_pol.at(i).A_fitness < test_ant_pol.at(i).A_fit_swap) {
+            else if (test_ant_pol.at(i).A_fitness < test_ant_pol.at(i).A_fit_swap) {
                 test_ant_pol.at(i).A_fitness = test_ant_pol.at(i).A_fit_swap;
             }
             assert(test_pro_pol.at(i).P_fitness>=0);
             assert(test_ant_pol.at(i).A_fitness>=0 );
 
-        }
-        if (pP->multi_var==true) {
-            //test_fit << pro_pol.at(i).P_fit_swap << endl;
-            test_pro_pol.at(i).P_fitness = test_pro_pol.at(i).P_fit_swap;
         }
         
         

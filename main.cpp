@@ -40,9 +40,9 @@ int main() {
     //TRAINING MODES
     P.train_and_test = true; //CHANGE
     
-    P.five_B = true;
+    P.five_B = false;
     P.four_B = false;
-    P.two_B = false;
+    P.two_B = true;
     P.three_B = false;
     P.three_A = false;
     P.two_A = false;
