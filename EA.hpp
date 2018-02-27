@@ -184,7 +184,7 @@ void EA::Run_Test_Simulation() {
                 test_pro_pol.at(i).P_fitness += test_pro_pol.at(i).P_fit_swap;
             }
             
-            else if (test_pro_pol.at(i).P_fitness < test_pro_pol.at(i).P_fit_swap) { //swapped direction 11/15 at 9:50
+            else if (test_pro_pol.at(i).P_fitness < test_pro_pol.at(i).P_fit_swap) { //if > then make sure P_fitness is set to a very high number
                 test_pro_pol.at(i).P_fitness = test_pro_pol.at(i).P_fit_swap;
             }
             else if (test_ant_pol.at(i).A_fitness < test_ant_pol.at(i).A_fit_swap) {
@@ -193,6 +193,10 @@ void EA::Run_Test_Simulation() {
             assert(test_pro_pol.at(i).P_fitness>=0);
             assert(test_ant_pol.at(i).A_fitness>=0 );
 
+        }
+        if (pP->multi_var==true) {
+            assert(pP->num_loops == 50);
+            //test_pro_pol.at(i).P_fitness = test_pro_pol.at(i).P_fitness/pP->num_loops;
         }
         
         
