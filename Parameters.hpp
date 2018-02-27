@@ -333,8 +333,8 @@ void Parameters::test(){
             A_f_min_bound = -0;
             A_f_max_bound = 0;
             rand_antagonist = false;
-            sensor_NOISE = true;
-            actuator_NOISE = true;
+            sensor_NOISE = true;       //Changed from True to test
+            actuator_NOISE = true;      // Changed from True to test
             multi_var = true;       //50 rand variables per policy
             three_for_three = false; //do NOT change this one
             rand_start_gen = false; //do NOT change this one

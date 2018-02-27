@@ -42,6 +42,9 @@ public:
     double generateSensorNoise();
     void calculateFitness(Policy* pPo, Policy* aPo);
     double Fh = 60; //Frequency in hertz
+    double x_old;
+    double x_dot_old;
+    double x_dd_old;
 
     double g_xt = 0; //goal sinusoidal
     double sinusoidal=0;
@@ -259,10 +262,19 @@ vector<double> Simulator::noise_init(vector<double> noise){
 
 void Simulator::MSD_equations(Policy* pPo, Policy* aPo){
 
-    pPo->x_dd = (1/(pP->m))*((-pP->b*pPo->x_dot) - (pP->k*(pPo->x-pP->start_x)) + pP->P_force + pP->A_force - pP->mu);
-    
-    pPo->x_dot = pPo->x_dot + pPo->x_dd*pP->dt;
-    pPo->x = pPo->x + pPo->x_dot*pP->dt;
+    x_old = pPo->x;
+    x_dot_old = pPo->x_dot;
+    x_dd_old = pPo->x_dd;
+    //pPo->x_dd = (1/(pP->m))*((-pP->b*pPo->x_dot) - (pP->k*(pPo->x-pP->start_x)) + pP->P_force + pP->A_force - pP->mu);
+    pPo->x_dd = (1/(pP->m))*((-pP->b*x_dot_old) - (pP->k*(x_old-pP->start_x)) + pP->P_force + pP->A_force - pP->mu);
+    //pPo->x_dot = pPo->x_dot + pPo->x_dd*pP->dt;
+    pPo->x_dot = x_dot_old + pPo->x_dd*pP->dt;
+    //pPo->x = pPo->x + pPo->x_dot*pP->dt;
+    pPo->x = x_old + pPo->x_dot*pP->dt;
+    if(pPo->x<0){
+        pPo->x = 0;
+        pPo->x_dot = 0;
+    }
 }
 
 void Simulator::Pendulum_equations(Policy *pPo, Policy *aPo){
