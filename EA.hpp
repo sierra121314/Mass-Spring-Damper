@@ -237,7 +237,7 @@ void EA::Run_Simulation() {
     rand_start.open("random_starting_variables.txt", fstream::app);
     test_fit.open("stat_Ptest_fitness.txt", fstream::app);
     if (pP->rand_start_gen == true){
-        pP->random_variables();
+        pP->random_start_end_variables();
     }
     if (pP->multi_var==true){
         pP->num_loops=50;
@@ -268,17 +268,31 @@ void EA::Run_Simulation() {
             Policy* pPo;
             Policy* aPo;
             pPo = & pro_pol.at(i);
-            aPo = & ant_pol.at(i);
-            S.Simulate(pPo, aPo);
+            if (pP->full_leniency==true){
+                for (int z= 0; z<pP->num_pol; z++){
+                    aPo = & ant_pol.at(z);
+                    S.Simulate(pPo, aPo);
+                    
+                    pro_pol.at(i).P_fitness += pro_pol.at(i).P_fit_swap;
+                    ant_pol.at(z).A_fitness += ant_pol.at(z).A_fit_swap;
+                    
+                }
+            }
+            else{
+                aPo = & ant_pol.at(i);
+                S.Simulate(pPo, aPo);
+                
+                if (pro_pol.at(i).P_fitness > pro_pol.at(i).P_fit_swap) { //swapped direction 11/15 at 9:50
+                    pro_pol.at(i).P_fitness = pro_pol.at(i).P_fit_swap;
+                }
+                if (ant_pol.at(i).A_fitness > ant_pol.at(i).A_fit_swap) {
+                    ant_pol.at(i).A_fitness = ant_pol.at(i).A_fit_swap;
+                }
+                assert(pro_pol.at(i).P_fitness>=0);
+                assert(ant_pol.at(i).A_fitness>=0 && ant_pol.at(i).A_fitness<10000000);
+            }
             
-            if (pro_pol.at(i).P_fitness > pro_pol.at(i).P_fit_swap) { //swapped direction 11/15 at 9:50
-                pro_pol.at(i).P_fitness = pro_pol.at(i).P_fit_swap;
-            }
-            if (ant_pol.at(i).A_fitness > ant_pol.at(i).A_fit_swap) {
-                ant_pol.at(i).A_fitness = ant_pol.at(i).A_fit_swap;
-            }
-            assert(pro_pol.at(i).P_fitness>=0);
-            assert(ant_pol.at(i).A_fitness>=0 && ant_pol.at(i).A_fitness<10000000);
+            
             /*
             if (pP->multi_var==true) {
                 test_fit << pro_pol.at(i).P_fit_swap << "\t";
@@ -856,7 +870,7 @@ void EA::Run_Program() {
     for (int gen=0; gen<pP->gen_max; gen++) {
         if (gen %5 ==0){
             if (pP->rand_start_5gen==true){
-                pP->random_variables();
+                pP->random_start_end_variables();
             }
         }
         if (gen %10 ==0) {

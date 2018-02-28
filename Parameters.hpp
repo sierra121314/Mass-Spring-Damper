@@ -47,6 +47,7 @@ public:
     double mu = 0;      //friction
     bool MSD_EOM = true;
     bool Pend_EOM = false;
+    bool full_leniency = false;
     
     // NEURAL NETWORK STUFF //
     int num_weights;
@@ -81,7 +82,7 @@ public:
     // RANDOMIZING STARTS //
     bool rand_start_gen;
     bool rand_start_5gen;
-    void random_variables();
+    void random_start_end_variables();
     
     // WHAT TO GRAPH
     bool best_v_median = true;
@@ -142,7 +143,7 @@ public:
 private:
 };
 
-void Parameters::random_variables(){
+void Parameters::random_start_end_variables(){
     
     // DOMAIN VARIABLES - STATIC
     //m = 7 + rand() % 2;       //mass
