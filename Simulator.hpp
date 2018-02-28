@@ -387,6 +387,7 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
             if (pP->sinusoidal_noise==true){
                 xt = xt+pP->dt;
                 sinusoidal = pP->As*sin(PI/8*(xt+pP->dt)+pP->phase);
+                //sinusoidal = pP->As*sin((pP->lambda)*(xt)+pP->phase);
             }
             
             double yt = r + sinusoidal;

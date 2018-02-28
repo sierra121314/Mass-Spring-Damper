@@ -105,10 +105,10 @@ public:
     bool actuator_NOISE = false;    //Determined by train-test otherwise default
     double sn = 1;                  //sensor noise magnitude
     double an = 1;                  //actuator noise magnitude
-    double As = 2;
+    double As = 2;//should be 1
     bool sinusoidal_noise = true;   //within sensor and actuator noise, so if those are false->sinusoidal is false
     double phase = PI/4;            //in Radians
-    
+    double lambda = 0.05;              //Period - 2PI when lambda is 1
     
     // TRAINING AND TESTING MODES //
     bool train_and_test;
@@ -346,7 +346,7 @@ void Parameters::test(){
 void Parameters::fifty_var(){
     if (multi_var==true) {
         fstream fifty_history;
-        fifty_history.open("fiftysets_init.txt", ofstream::out | ofstream::trunc);
+        fifty_history.open("fiftysets_init.txt", fstream::app);
         for (int i=0; i<50; i++) {
             vector<int> three_inits;
             
@@ -360,6 +360,7 @@ void Parameters::fifty_var(){
             fifty_history << endl;
             fifty_inits.push_back(three_inits);
         }
+        fifty_history << "___________________________________________" << endl;
         fifty_history.close();
     }
 }
@@ -395,7 +396,7 @@ void Parameters::trunc_Graphs(){
     SR_A_med.open("A_med_fitpergen_SR_history.txt", std::ofstream::out | ofstream::trunc);
     
     // TEST //
-    ofstream fout,best_tx,best_txdot,best_txdd, best_Pt_force,best_At_force,SR_test_best, test_P_fit_hist;
+    ofstream fout,best_tx,best_txdot,best_txdd, best_Pt_force,best_At_force,SR_test_best, test_P_fit_hist,fifty_history,fifty_var_test_x;
     best_tx.open("test_x_history.txt", std::ofstream::out | ofstream::trunc);
     best_txdot.open("test_x_dot_history.txt",std::ofstream::out | ofstream::trunc);
     best_txdd.open("test_x_dd_history.txt",std::ofstream::out | ofstream::trunc);
@@ -403,6 +404,8 @@ void Parameters::trunc_Graphs(){
     best_At_force.open("test_A_force_history.txt",std::ofstream::out | ofstream::trunc);
     test_P_fit_hist.open("test_P_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);               //best fitness per policy of single gen
     SR_test_best.open("test_P_best_fitpergen_SR_history.txt", std::ofstream::out | ofstream::trunc);           //best fitness out of all policies
+    fifty_history.open("fiftysets_init.txt", ofstream::out | ofstream::trunc);
+    fifty_var_test_x.open("best_50_var_x_history.txt",ofstream::out | ofstream::trunc);
     
     ofstream med_tx,med_txdot,med_txdd, med_Pt_force,med_At_force, SR_test_med;
     med_tx.open("med_test_x_history.txt", std::ofstream::out | ofstream::trunc);

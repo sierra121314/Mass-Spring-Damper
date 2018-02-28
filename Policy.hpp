@@ -31,6 +31,7 @@ public:
     vector<double> A_weights;
     vector<double> A_ICs;
     vector<double> x_history;
+    vector<vector<double>> loop_x_history;
     vector<double> x_dot_history;
     vector<double> x_dd_history;
     vector<double> P_force_history;

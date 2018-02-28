@@ -79,7 +79,6 @@ int main() {
                     test_fit << E.pro_pol.at(i).P_fitness << endl;
                 }*/
                 test_fit << E.test_pro_pol.at(0).P_fitness << endl;
-                E.Graph_test();
                 //run nn that is trained but don't evolve any further
                 //1 simulation of the best
                 //1 simulation of medium of population

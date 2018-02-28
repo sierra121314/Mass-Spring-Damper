@@ -86,6 +86,7 @@ public:
     void Graph();
     void Graph_med();
     
+    
 private:
 };
 
@@ -152,6 +153,9 @@ void EA::Run_Test_Simulation() {
     fstream test_fit;
     test_fit.open("stat_Ptest_fitness.txt", fstream::app);
     
+    
+    
+    
     test_init_fit(); //P and A fitness and fitswap set to zero
     //assert(pP->A_f_max_bound ==0 && pP->A_f_min_bound ==0);
     
@@ -163,6 +167,9 @@ void EA::Run_Test_Simulation() {
     for (int i=0; i<pP->num_pol; i++) {
         //First we insert a policy into the simulator then we can take the objective data for that policy and store it in our data architecture
         //test_init_fit(); //P and A fitness and fitswap set to zero
+        
+        test_pro_pol.at(i).loop_x_history.clear();
+        assert(test_pro_pol.at(i).loop_x_history.size()==0);
         for(int k=0; k<pP->num_loops; k++){
             if (pP->multi_var==true){
                 pP->goal_x = pP->fifty_inits.at(k).at(0);       //goal from vector
@@ -192,11 +199,17 @@ void EA::Run_Test_Simulation() {
             }
             assert(test_pro_pol.at(i).P_fitness>=0);
             assert(test_ant_pol.at(i).A_fitness>=0 );
+            
+            if (pP->multi_var==true){
+                test_pro_pol.at(i).loop_x_history.push_back(pPo->x_history);
+                assert(test_pro_pol.at(i).loop_x_history.at(k).size() == pP->total_time);
+            }
 
         }
         if (pP->multi_var==true) {
             assert(pP->num_loops == 50);
             //test_pro_pol.at(i).P_fitness = test_pro_pol.at(i).P_fitness/pP->num_loops;
+            assert(test_pro_pol.at(i).loop_x_history.size() == pP->num_loops);
         }
         
         
@@ -584,6 +597,7 @@ void EA::Graph(){
         best_A_force << ant_pol.at(best).A_force_history.at(f) << "\t";
     }
     
+    
     x_best << endl;
     xdot_best << endl;
     xdd_best << endl;
@@ -675,7 +689,7 @@ void EA::Graph_med(){
 
 void EA::Graph_test(){
     // BEST //
-    ofstream best_tx,best_txdot,best_txdd, best_Pt_force,best_At_force;
+    ofstream best_tx,best_txdot,best_txdd, best_Pt_force,best_At_force,fifty_var_test_x;
     
     best_tx.open("test_x_history.txt", fstream::app);
     best_txdot.open("test_x_dot_history.txt",fstream::app);
@@ -683,6 +697,8 @@ void EA::Graph_test(){
     
     best_Pt_force.open("test_P_force_history.txt",fstream::app);
     best_At_force.open("test_A_force_history.txt",fstream::app);
+    
+    fifty_var_test_x.open("best_50_var_x_history.txt",fstream::app);
     
     ofstream SR_test_best, test_P_fit_hist;
     test_P_fit_hist.open("test_P_best_fitness_history.txt",fstream::app);       //fitness per policy
@@ -695,6 +711,17 @@ void EA::Graph_test(){
         
         best_Pt_force << test_pro_pol.at(0).P_force_history.at(f) << "\t";
         best_At_force << test_ant_pol.at(0).A_force_history.at(f) << "\t";
+        
+    }
+    
+    if(pP->multi_var==true){
+        for (int z=0;z<pP->num_loops;z++){
+            for(int y=0; y<pP->total_time;y++){
+                fifty_var_test_x << test_pro_pol.at(0).loop_x_history.at(z).at(y) << "\t";
+            }
+            fifty_var_test_x << endl;
+            
+        }
         
     }
     
