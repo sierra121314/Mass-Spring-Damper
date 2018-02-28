@@ -50,6 +50,7 @@ public:
     
     // NEURAL NETWORK STUFF //
     int num_weights;
+    int A_num_weights;
     int A_num_inputs = 2;
     int num_inputs = 2;
     int num_outputs = 1;

@@ -97,9 +97,11 @@ private:
 //////////////////////////////////////////////////////////////////////////////
 //Builds population of policies
 void EA::Build_Population() {
-    neural_network PNN;
+    neural_network PNN, ANN;
     PNN.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs);
     pP->num_weights = PNN.intended_size;
+    ANN.setup(pP->A_num_inputs,pP->num_nodes,pP->num_outputs);
+    pP->A_num_weights = ANN.intended_size;
     //cout << pP->num_weights << endl;
     pro_pol.clear();
     ant_pol.clear();
@@ -117,11 +119,13 @@ void EA::Build_Population() {
         for (int w=0; w < pP->num_weights; w++){
             //pick random # between 0 and 1 and put into that vector
             double P_r = -1 + (2)*((double)rand()/RAND_MAX);
-            double A_r = -1 + (2)*((double)rand()/RAND_MAX);
             pro_pol.at(i).P_weights.push_back(P_r);
-            ant_pol.at(i).A_weights.push_back(A_r);
-
             assert(-1<=P_r && 1>=P_r);
+            
+        }
+        for (int v=0; v< pP->A_num_weights; v++) {
+            double A_r = -1 + (2)*((double)rand()/RAND_MAX);
+            ant_pol.at(i).A_weights.push_back(A_r);
             assert(-1<=A_r && 1>=A_r);
         }
         if (pP->rand_antagonist==true) { //if statement not necessary
@@ -848,6 +852,7 @@ void EA::Run_Program() {
     best_P_fitness.clear();
     best_A_fitness.clear();
     assert(best_P_fitness.size()==0);
+    
     for (int gen=0; gen<pP->gen_max; gen++) {
         if (gen %5 ==0){
             if (pP->rand_start_5gen==true){
