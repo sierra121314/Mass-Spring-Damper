@@ -133,7 +133,7 @@ void Simulator::set_A_ICs(Policy* pPo, Policy* aPo){
 void Simulator::MSD_initStates(Policy* pPo, Policy* aPo){
     
     //intialize starting stuff
-    if (pP->tr_5==true){    //Why not rand_antagonist==true??
+    if (pP->rand_antagonist==true){    //Why not rand_antagonist==true??
         set_A_ICs(pPo, aPo);
     }
     
