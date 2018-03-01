@@ -305,6 +305,11 @@ void Parameters::test_para(){
 
 void Parameters::test(){
     if (train_and_test == true){
+        tr_5 = false;
+        tr_4 = false;
+        tr_3 = false;
+        tr_2 = false;
+        
         if (te_1 == true){
             P_f_min_bound = -5;
             P_f_max_bound = 5;
@@ -330,6 +335,7 @@ void Parameters::test(){
             rand_start_gen = false;  //do NOT change this one
         }
         if (te_B == true){
+            
             P_f_min_bound = -5;
             P_f_max_bound = 5;
             A_f_min_bound = -0;
