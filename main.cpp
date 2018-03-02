@@ -35,7 +35,7 @@ int main() {
     clock_t t1, t2,t3;
     t1 = clock();
     Parameters P;
-    EA E;
+    
     
     //TRAINING MODES
     P.train_and_test = true; //CHANGE
@@ -57,6 +57,7 @@ int main() {
     P.trunc_Graphs();
     
     for (int s=0; s<stat_runs; s++){
+        EA E;
         if (P.train_and_test == true){
             P.test_train_set();
             P.three_for_three = false; //change this one
