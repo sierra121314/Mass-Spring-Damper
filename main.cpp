@@ -51,6 +51,7 @@ int main() {
     test_fit.open("stat_Ptest_fitness.txt", ofstream::out | ofstream::trunc);
     P_fit.open("stat_P_fitness.txt", ofstream::out | ofstream::trunc);
     A_fit.open("stat_ave_best_A_fitness.txt", ofstream::out | ofstream::trunc);
+    
     SR.open("P_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);
     SR_test.open("Ptest_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);
     
@@ -71,14 +72,8 @@ int main() {
                 
                 E.Run_Test_Program();
                 
-                //E.Run_Simulation();
-                //E.Evaluate();
-                //E.Sort_Policies_By_Fitness();
                 cout << "BEST POLICY Test PRO-FITNESS" << "\t" << E.test_pro_pol.at(0).P_fitness << endl;
-                /*
-                for (int i=0; i<P.num_pol; i++) {
-                    test_fit << E.pro_pol.at(i).P_fitness << endl;
-                }*/
+                
                 test_fit << E.test_pro_pol.at(0).P_fitness << endl;
                 //run nn that is trained but don't evolve any further
                 //1 simulation of the best

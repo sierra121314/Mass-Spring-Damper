@@ -100,12 +100,14 @@ void EA::Build_Population() {
     neural_network PNN, ANN;
     PNN.setup(pP->num_inputs,pP->num_nodes,pP->num_outputs);
     pP->num_weights = PNN.intended_size;
+    
     ANN.setup(pP->A_num_inputs,pP->num_nodes,pP->num_outputs);
     pP->A_num_weights = ANN.intended_size;
-    //cout << pP->num_weights << endl;
+    
     pro_pol.clear();
     ant_pol.clear();
     for (int i=0; i<pP->num_pol; i++) {
+        assert(ant_pol.size()==i);
         Policy proP;
         Policy antP;
         pro_pol.push_back(proP);    //population of primary policies
@@ -135,6 +137,7 @@ void EA::Build_Population() {
             ant_pol.at(i).A_ICs.push_back(A_IC_goal); //goal_x
             ant_pol.at(i).A_ICs.push_back(A_IC_startx); //start_x
             ant_pol.at(i).A_ICs.push_back(A_IC_startxdot); //start_x_dot
+            assert(ant_pol.at(i).A_ICs.size()==3);
         }
         
     }
@@ -157,7 +160,7 @@ void EA::Run_Test_Simulation() {
     fstream test_fit;
     test_fit.open("stat_Ptest_fitness.txt", fstream::app);
     
-    
+    assert(pP->tr_2==false || pP->tr_3==false || pP->tr_4==false || pP->tr_5==false);
     
     
     test_init_fit(); //P and A fitness and fitswap set to zero
@@ -250,8 +253,8 @@ void EA::Run_Simulation() {
     rand_start << pP->m << "\t" << pP->b << "\t" << pP->k << "\t" << pP->mu << "\t" << pP->start_x << "\t" << pP->goal_x << "\t" << pP->start_x_dot << endl;
     
     for (int i=0; i<pP->num_pol; i++) {
-        pro_pol.at(i).P_fitness = 100000000000; //changed from -1 11/15
-        ant_pol.at(i).A_fitness = 10000000;
+        pro_pol.at(i).P_fitness = 0; //changed from -1 11/15
+        ant_pol.at(i).A_fitness = 0;
         pro_pol.at(i).P_fit_swap = 0;
         ant_pol.at(i).A_fit_swap = 0;
         for (int k=0; k<pP->num_loops; k++) {
@@ -282,21 +285,16 @@ void EA::Run_Simulation() {
                 aPo = & ant_pol.at(i);
                 S.Simulate(pPo, aPo);
                 
-                if (pro_pol.at(i).P_fitness > pro_pol.at(i).P_fit_swap) { //swapped direction 11/15 at 9:50
+                if (pro_pol.at(i).P_fitness < pro_pol.at(i).P_fit_swap) { //swapped direction 11/15 at 9:50
                     pro_pol.at(i).P_fitness = pro_pol.at(i).P_fit_swap;
                 }
-                if (ant_pol.at(i).A_fitness > ant_pol.at(i).A_fit_swap) {
+                if (ant_pol.at(i).A_fitness < ant_pol.at(i).A_fit_swap) {
                     ant_pol.at(i).A_fitness = ant_pol.at(i).A_fit_swap;
                 }
                 assert(pro_pol.at(i).P_fitness>=0);
                 assert(ant_pol.at(i).A_fitness>=0 && ant_pol.at(i).A_fitness<10000000);
             }
             
-            
-            /*
-            if (pP->multi_var==true) {
-                test_fit << pro_pol.at(i).P_fit_swap << "\t";
-            }*/
         }
         if (pP->multi_var==true) {
             //test_fit << pro_pol.at(i).P_fit_swap << endl;
@@ -552,6 +550,9 @@ void EA::Sort_Test_Policies_By_Fitness() {
     for (int i=0; i<pP->num_pol; i++) {
         sort(test_pro_pol.begin(), test_pro_pol.end(), Less_Than_Policy_Fitness());
         sort(test_ant_pol.begin(), test_ant_pol.end(), Greater_Than_Policy_Fitness());
+    }
+    for (int j=1; j<pP->num_pol-1;j++){
+        assert(test_pro_pol.at(0).P_fitness < test_pro_pol.at(j).P_fitness);
     }
     
 }
@@ -839,6 +840,8 @@ void EA::Graph_test(){
 
 //-------------------------------------------------------------------------
 void EA::Run_Test_Program(){
+    test_pro_pol.clear();
+    test_ant_pol.clear();
     test_pro_pol = pro_pol;
     test_ant_pol = ant_pol;
     Run_Test_Simulation();
@@ -861,13 +864,16 @@ void EA::Run_Program() {
     rand_start.open("random_starting_variables.txt", ofstream::out | ofstream::trunc);
     P_fit.open("stat_ave_best_P_fitness.txt", fstream::app);
     A_fit.open("stat_ave_best_A_fitness.txt", fstream::app);
-    sum=0;
+    
     Build_Population();
     best_P_fitness.clear();
     best_A_fitness.clear();
     assert(best_P_fitness.size()==0);
     
     for (int gen=0; gen<pP->gen_max; gen++) {
+        if (pP->tr_2==true){
+            assert(pP->start_x==15 && pP->start_x_dot==0 && pP->start_x_dd==0);
+        }
         if (gen %5 ==0){
             if (pP->rand_start_5gen==true){
                 pP->random_start_end_variables();

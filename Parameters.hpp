@@ -58,6 +58,7 @@ public:
     int num_nodes = 10;
     
     // GOAL VARIABLES //
+    void reset_start_var();
     double start_x = 15;
     double start_x_dot = 0;
     double start_x_dd = 0;
@@ -143,6 +144,12 @@ public:
 private:
 };
 
+void Parameters::reset_start_var(){
+    start_x = 15;
+    start_x_dot = 0;
+    start_x_dd = 0;
+}
+
 void Parameters::random_start_end_variables(){
     
     // DOMAIN VARIABLES - STATIC
@@ -157,6 +164,7 @@ void Parameters::random_start_end_variables(){
 }
 
 void Parameters::test_train_set(){
+    reset_start_var();
     if (one ==true){
         tr_1 = true;
         te_1 = true;
@@ -355,6 +363,7 @@ void Parameters::fifty_var(){
     if (multi_var==true) {
         fstream fifty_history;
         fifty_history.open("fiftysets_init.txt", fstream::app);
+        fifty_inits.clear();
         for (int i=0; i<50; i++) {
             vector<int> three_inits;
             
@@ -362,12 +371,16 @@ void Parameters::fifty_var(){
             three_inits.push_back(goal_x_lower_bound+double(rand() % goal_x_upper_bound));      //goal_x(0to6)  //actually goal value is this plus the start_x of previous
             three_inits.push_back(start_x_lower_bound + double(rand()%start_x_upper_bound));//start_x=something;(0 to 25) //
             three_inits.push_back(start_x_dot_lower_bound + double(rand() % start_x_dot_upper_bound));//start_x_dot=something;(0 to 5)
+            
             for (int j=0; j<3; j++) {
                 fifty_history << three_inits.at(j) << "\t";
             }
             fifty_history << endl;
+            
+            assert(three_inits.size()==3);
             fifty_inits.push_back(three_inits);
         }
+        assert(fifty_inits.size()==50);
         fifty_history << "___________________________________________" << endl;
         fifty_history.close();
     }
@@ -383,7 +396,7 @@ void Parameters::moving_goal(){
 
 void Parameters::trunc_Graphs(){
     // TRAIN //
-    ofstream x_best,xdot_best,xdd_best, best_P_force,best_A_force, P_fit_hist, A_fit_hist, SR, SR_A;
+    ofstream x_best,xdot_best,xdd_best, best_P_force,best_A_force, P_fit_hist, A_fit_hist, SR, SR_A,P_fit,A_fit;
     x_best.open("x_history.txt", std::ofstream::out | ofstream::trunc);
     xdot_best.open("x_dot_history.txt",std::ofstream::out | ofstream::trunc);
     xdd_best.open("x_dd_history.txt",std::ofstream::out | ofstream::trunc);
@@ -393,6 +406,8 @@ void Parameters::trunc_Graphs(){
     A_fit_hist.open("A_best_fitness_history.txt",std::ofstream::out | ofstream::trunc);
     SR.open("P_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);                    //best fitness per generation for all SR
     SR_A.open("A_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);
+    P_fit.open("stat_ave_best_P_fitness.txt", ofstream::out | ofstream::trunc);
+    A_fit.open("stat_ave_best_A_fitness.txt", ofstream::out | ofstream::trunc);
     
     ofstream x_med,xdot_med,xdd_med, med_P_force,med_A_force, SR_med, SR_A_med;
     x_med.open("med_x_history.txt", std::ofstream::out | ofstream::trunc);

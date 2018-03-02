@@ -135,6 +135,7 @@ void Simulator::MSD_initStates(Policy* pPo, Policy* aPo){
     //intialize starting stuff
     if (pP->rand_antagonist==true){    //Why not rand_antagonist==true??
         set_A_ICs(pPo, aPo);
+        assert(pP->goal_x == aPo->A_ICs.at(0) && pP->start_x == aPo->A_ICs.at(1) && pP->start_x_dot == aPo->A_ICs.at(2));
     }
     
     pPo->x = pP->start_x-pP->displace; //starting position minus any displacement
