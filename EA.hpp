@@ -249,6 +249,7 @@ void EA::Run_Simulation() {
     else {
         pP->num_loops = 1;
     }
+    
     //LOGGING START POSITIONS
     rand_start << pP->m << "\t" << pP->b << "\t" << pP->k << "\t" << pP->mu << "\t" << pP->start_x << "\t" << pP->goal_x << "\t" << pP->start_x_dot << endl;
     
@@ -283,7 +284,9 @@ void EA::Run_Simulation() {
             }
             else{
                 aPo = & ant_pol.at(i);
+                
                 S.Simulate(pPo, aPo);
+                
                 
                 if (pro_pol.at(i).P_fitness < pro_pol.at(i).P_fit_swap) { //swapped direction 11/15 at 9:50
                     pro_pol.at(i).P_fitness = pro_pol.at(i).P_fit_swap;
@@ -293,6 +296,7 @@ void EA::Run_Simulation() {
                 }
                 assert(pro_pol.at(i).P_fitness>=0);
                 assert(ant_pol.at(i).A_fitness>=0 && ant_pol.at(i).A_fitness<10000000);
+                
             }
             
         }
@@ -333,7 +337,7 @@ void EA::Run_Simulation() {
             
         }
     }
-     
+    
     fstream nsensor;
     fstream nactuator;
     nsensor.open("ave_sensor_noise.txt", fstream::app);
@@ -456,8 +460,9 @@ void EA::Mutation(Policy &M, Policy &N) {
     if (pP->rand_antagonist==true){
         double random2 = ((double)rand()/RAND_MAX);
         if (random2 <= pP->mutation_rate) {
-            double R3 = double(rand() % 1);
-            double R4 = double(rand() % 1);
+            double R3 = ((double)rand()/RAND_MAX) * 1;
+            double R4 = ((double)rand()/RAND_MAX) * 1;
+            //cout << R3 << "\t" << R4 << endl;
             //GOAL_X SET AND BOUNDARY CHECK
             N.A_ICs.at(0) = pP->goal_x + R3 - R4;
             if (N.A_ICs.at(0)>pP->goal_x_upper_bound){
@@ -467,7 +472,9 @@ void EA::Mutation(Policy &M, Policy &N) {
                 N.A_ICs.at(0) =pP->goal_x_lower_bound;
             }
             //START_X SET AND BOUNDARY CHECK
-            N.A_ICs.at(1) = pP->start_x + R3 - R4;
+            double R5 = ((double)rand()/RAND_MAX) * 1;
+            double R6 = ((double)rand()/RAND_MAX) * 1;
+            N.A_ICs.at(1) = pP->start_x + R5 - R6;
             if (N.A_ICs.at(1)>pP->start_x_upper_bound){
                 N.A_ICs.at(1) =pP->start_x_upper_bound;
             }
@@ -475,7 +482,9 @@ void EA::Mutation(Policy &M, Policy &N) {
                 N.A_ICs.at(1) =pP->start_x_lower_bound;
             }
             //START_X_DOT SET AND BOUNDARY CHECK
-            N.A_ICs.at(2)= pP->start_x_dot + R3 - R4;
+            double R7 = ((double)rand()/RAND_MAX) * 1;
+            double R8 = ((double)rand()/RAND_MAX) * 1;
+            N.A_ICs.at(2)= pP->start_x_dot + R7 - R8;
             if (N.A_ICs.at(2)>pP->start_x_dot_upper_bound){
                 N.A_ICs.at(2) =pP->start_x_dot_upper_bound;
             }
@@ -561,7 +570,15 @@ void EA::update_best_fit(){
     best_P_fitness.push_back(pro_pol.at(0).P_fitness);      // best fitness per generation
     best_A_fitness.push_back(ant_pol.at(0).A_fitness);
     
-    
+    if (pP->rand_antagonist==true){
+        ofstream AIC_goal,AIC_startx,AIC_startxdot;
+        AIC_goal.open("ANT_goal_history_bestpergen.txt", fstream::app);
+        AIC_startx.open("ANT_startx_history_bestpergen.txt", fstream::app);
+        AIC_startxdot.open("ANT_startxdot_history_bestpergen.txt", fstream::app);
+        AIC_goal << ant_pol.at(0).A_ICs.at(0) << "\t";  //goalx
+        AIC_startx << ant_pol.at(0).A_ICs.at(1) << "\t";  //startx
+        AIC_startxdot << ant_pol.at(0).A_ICs.at(2) << "\t";  //startxdot
+    }
 }
 
 void EA::ave_fit(){
@@ -666,6 +683,16 @@ void EA::Graph(){
     SR_A_med.open("A_med_fitpergen_SR_history.txt", fstream::app);     //best fitness per generation
     SR_med << endl;
     SR_A_med << endl;
+    
+    //ANT ICS
+    ofstream AIC_goal,AIC_startx,AIC_startxdot;
+    AIC_goal.open("ANT_goal_history_bestpergen.txt", fstream::app);
+    AIC_startx.open("ANT_startx_history_bestpergen.txt", fstream::app);
+    AIC_startxdot.open("ANT_startxdot_history_bestpergen.txt", fstream::app);
+    
+    AIC_goal << endl;
+    AIC_startx << endl;
+    AIC_startxdot << endl;
 }
 
 void EA::Graph_med(){
@@ -866,13 +893,15 @@ void EA::Run_Program() {
     A_fit.open("stat_ave_best_A_fitness.txt", fstream::app);
     
     Build_Population();
+    //assert(pP->start_x==15);
     best_P_fitness.clear();
     best_A_fitness.clear();
     assert(best_P_fitness.size()==0);
     
+    
     for (int gen=0; gen<pP->gen_max; gen++) {
         if (pP->tr_2==true){
-            assert(pP->start_x==15 && pP->start_x_dot==0 && pP->start_x_dd==0);
+            //assert(pP->start_x==15 && pP->start_x_dot==0 && pP->start_x_dd==0);
         }
         if (gen %5 ==0){
             if (pP->rand_start_5gen==true){
@@ -883,8 +912,11 @@ void EA::Run_Program() {
             //cout << "GENERATION \t" << gen << endl;
         }
         if (gen < pP->gen_max-1) {
+            
             EA_Process();
+            
             Graph_med();
+            
         }
         else {
             
@@ -897,6 +929,7 @@ void EA::Run_Program() {
             
             
         }
+        
         
 
     }

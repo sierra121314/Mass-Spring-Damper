@@ -36,7 +36,7 @@ public:
     double P_force;                     //Protagonist force
     double A_force;                     //Antagonist force
     // 2ND ANTAGONIST //
-    bool rand_antagonist;
+    bool rand_antagonist = false;
     double num_loops;
     
     // DOMAIN VARIABLES - STATIC
@@ -72,7 +72,7 @@ public:
     int start_x_lower_bound = 10;
     int start_x_dot_upper_bound = 5;
     int start_x_dot_lower_bound = 0;
-    double A_g = 2;             //amplifier for goal sinusoidal
+    double A_g = 1;             //amplifier for goal sinusoidal
     bool sinusoidal_goal = false;
     double g_phase = 0;
     void moving_goal();
@@ -108,7 +108,7 @@ public:
     bool actuator_NOISE = false;    //Determined by train-test otherwise default
     double sn = 1;                  //sensor noise magnitude
     double an = 1;                  //actuator noise magnitude
-    double As = 2;//should be 1
+    double As = 1;//should be 1
     bool sinusoidal_noise = true;   //within sensor and actuator noise, so if those are false->sinusoidal is false
     double phase = PI/4;            //in Radians
     double lambda = 0.05;              //Period - 2PI when lambda is 1
@@ -123,15 +123,15 @@ public:
     bool two_B;           //Primary ...
     bool two_A;           //train test 2 combo
     bool one;           //train test 1 combo
-    bool tr_1;          //pro plus ant with no noise
-    bool tr_2;          // pro only
-    bool tr_3;          //pro plus ant manipulating force
-    bool tr_4;          // pro and random starting variables per gen
-    bool tr_5;          //pro plus ant manipulating starting variables
+    bool tr_1 = false;          //pro plus ant with no noise
+    bool tr_2 = false;          // pro only
+    bool tr_3 = false;          //pro plus ant manipulating force
+    bool tr_4 = false;          // pro and random starting variables per gen
+    bool tr_5 = false;          //pro plus ant manipulating starting variables
     void train();
-    bool te_1;          // tr_1 with noise
-    bool te_A;          // Primary with no antagonist and noise
-    bool te_B;          // Domain with Gaussian noise distribution on top of a sinusoidal wave and 50 sets of starting variables per policy
+    bool te_1 = false;          // tr_1 with noise
+    bool te_A = false;          // Primary with no antagonist and noise
+    bool te_B = false;          // Domain with Gaussian noise distribution on top of a sinusoidal wave and 50 sets of starting variables per policy
     void test();
 
     bool three_for_three;   //Reverse Leniancy
@@ -145,9 +145,11 @@ private:
 };
 
 void Parameters::reset_start_var(){
-    start_x = 15;
+    //start_x = 15;
+    start_x = 10 + (rand() % 20);
     start_x_dot = 0;
     start_x_dd = 0;
+    goal_x  = 0 + (rand() % 5);
 }
 
 void Parameters::random_start_end_variables(){
@@ -157,14 +159,16 @@ void Parameters::random_start_end_variables(){
     //b = 1 + rand() % 2;       //damper
     //k = 1 + rand() % 2;       //spring
     //mu = 0 + rand() % 2;      //friction
-    start_x = start_x_lower_bound + double(rand() % start_x_upper_bound);
-    goal_x  = goal_x_lower_bound + double(rand() % goal_x_upper_bound);
-    start_x_dot = start_x_dot_lower_bound + double(rand() % start_x_dot_upper_bound);
+    start_x = 10 + (rand() % 20);
+    goal_x  = 0 + (rand() % 5);
+    start_x_dot = 0 + (rand() % 5);
+
 
 }
 
 void Parameters::test_train_set(){
     reset_start_var();
+    //assert(start_x== 15);
     if (one ==true){
         tr_1 = true;
         te_1 = true;
@@ -408,6 +412,11 @@ void Parameters::trunc_Graphs(){
     SR_A.open("A_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);
     P_fit.open("stat_ave_best_P_fitness.txt", ofstream::out | ofstream::trunc);
     A_fit.open("stat_ave_best_A_fitness.txt", ofstream::out | ofstream::trunc);
+    
+    ofstream AIC_goal,AIC_startx,AIC_startxdot;
+    AIC_goal.open("ANT_goal_history_bestpergen.txt", std::ofstream::out | ofstream::trunc);
+    AIC_startx.open("ANT_startx_history_bestpergen.txt", std::ofstream::out | ofstream::trunc);
+    AIC_startxdot.open("ANT_startxdot_history_bestpergen.txt", std::ofstream::out | ofstream::trunc);
     
     ofstream x_med,xdot_med,xdd_med, med_P_force,med_A_force, SR_med, SR_A_med;
     x_med.open("med_x_history.txt", std::ofstream::out | ofstream::trunc);

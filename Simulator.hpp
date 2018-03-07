@@ -137,12 +137,12 @@ void Simulator::MSD_initStates(Policy* pPo, Policy* aPo){
         set_A_ICs(pPo, aPo);
         assert(pP->goal_x == aPo->A_ICs.at(0) && pP->start_x == aPo->A_ICs.at(1) && pP->start_x_dot == aPo->A_ICs.at(2));
     }
-    
     pPo->x = pP->start_x-pP->displace; //starting position minus any displacement
     pPo->x_dot = pP->start_x_dot;
     pPo->x_dd = pP->start_x_dd;
     pP->P_force = pP->start_P_force;
     pP->A_force = pP->start_A_force;
+    
 
 }
 
@@ -326,13 +326,14 @@ void Simulator::calculateFitness(Policy* pPo, Policy* aPo){
     }
     else if (pP->multi_var==true){
         pP->goal_x = pP->goal_x;//goal.at(k) from list
+        //assert(pP->goal_x==aPo->A_ICs.at(0));
         //cout << pP->goal_x << endl;
         double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
         pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
         aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
     }
     else {
-        pP->goal_x = 2;
+        //pP->goal_x = 2;
         double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
         pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
         aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
@@ -356,9 +357,10 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
     tstep_actuator.open("tstep_actuator.txt", ofstream::out | ofstream::trunc);
     
     //STARTING POSITIONS
-    zero_noise_sum_ave();       //Zero outs all sums and averages of noise
-    MSD_initStates(pPo, aPo);   //Set Starting values
     
+    zero_noise_sum_ave();       //Zero outs all sums and averages of noise
+    
+    MSD_initStates(pPo, aPo);   //Set Starting values
     // PROTAGONIST //
     neural_network NN;
     NN = set_P_NN(NN, pPo);     //Setup, set ins and outs, set weights
@@ -380,15 +382,16 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         
         noise = noise_init(noise); //set sensor and actuator noise to zero
         assert(noise.at(0)==0 && noise.at(1)==0 && noise.at(2)==0 && noise.at(3)==0);
-
+        xt = xt+pP->dt;
         if (pP->sensor_NOISE == true) {
             double r = generateGaussianNoise();
             assert(r<=1 && r>=-1);
             
             if (pP->sinusoidal_noise==true){
-                xt = xt+pP->dt;
-                sinusoidal = pP->As*sin(PI/8*(xt+pP->dt)+pP->phase);
-                //sinusoidal = pP->As*sin((pP->lambda)*(xt)+pP->phase);
+                
+                //sinusoidal = pP->As*sin(PI/8*(xt+pP->dt)+pP->phase);
+                sinusoidal = pP->As*sin((pP->lambda)*(xt)+pP->phase);
+                assert(sinusoidal <= abs(pP->As)+abs(r) && sinusoidal >= -abs(pP->As)-abs(r));
             }
             
             double yt = r + sinusoidal;
@@ -406,8 +409,9 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
             assert(r<=1 && r>=-1);
             
             if (pP->sinusoidal_noise==true){
-                xt = xt+pP->dt;
-                sinusoidal = pP->As*sin(PI/8*(xt+pP->dt)+pP->phase);
+                //sinusoidal = pP->As*sin(PI/8*(xt+pP->dt)+pP->phase);
+                sinusoidal = pP->As*sin((pP->lambda)*(xt)+pP->phase);
+                assert(sinusoidal <= abs(pP->As)+abs(r) && sinusoidal >= -abs(pP->As)-abs(r));
             }
             double yt = r + sinusoidal;
             noise.at(1)= yt;
@@ -439,7 +443,6 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         else{
             pP->A_force = 0;
         }
-        
         // UPDATE POSITION, VELOCITY, ACCELERATION //
         MSD_equations(pPo, aPo);
         //Pendulum_equations(pPo, aPo);

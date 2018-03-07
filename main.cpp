@@ -34,19 +34,7 @@ int main() {
     srand(time(NULL));
     clock_t t1, t2,t3;
     t1 = clock();
-    Parameters P;
     
-    
-    //TRAINING MODES
-    P.train_and_test = true; //CHANGE
-    
-    P.five_B = true;
-    P.four_B = false;
-    P.two_B = false;
-    P.three_B = false;
-    P.three_A = false;
-    P.two_A = false;
-    P.one = false;
     ofstream test_fit, P_fit, A_fit, SR, SR_test,test_para;
     test_fit.open("stat_Ptest_fitness.txt", ofstream::out | ofstream::trunc);
     P_fit.open("stat_P_fitness.txt", ofstream::out | ofstream::trunc);
@@ -54,10 +42,40 @@ int main() {
     
     SR.open("P_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);
     SR_test.open("Ptest_best_fitpergen_SR_history.txt", ofstream::out | ofstream::trunc);
-    
+    Parameters P;
     P.trunc_Graphs();
     
+    
     for (int s=0; s<stat_runs; s++){
+        Parameters P;
+        
+        //TRAINING MODES
+        P.train_and_test = true; //CHANGE
+        
+        P.five_B = true;
+        P.four_B = false;
+        P.two_B = false;
+        P.three_B = false;
+        P.three_A = false;
+        P.two_A = false;
+        P.one = false;
+        if (P.two_B==true){
+            P.five_B = false;
+            P.four_B = false;
+            P.three_B = false;
+            P.three_A = false;
+            P.two_A = false;
+            P.one = false;
+        }
+        if (P.five_B == true){
+            P.four_B = false;
+            P.two_B = false;
+            P.three_B = false;
+            P.three_A = false;
+            P.two_A = false;
+            P.one = false;
+        }
+        
         EA E;
         if (P.train_and_test == true){
             P.test_train_set();
@@ -66,6 +84,7 @@ int main() {
             E.pP = &P;
             E.Run_Program();
             if(P.te_1==true || P.te_A==true || P.te_B==true){
+                assert(P.te_1==true || P.te_A==true || P.te_B==true);
                 P.test();
                 //E.pP = &P;
                 assert(P.A_f_max_bound==0);
