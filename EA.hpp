@@ -134,9 +134,9 @@ void EA::Build_Population() {
             double A_IC_goal = double(rand() % 6);
             double A_IC_startx = 5 + double(rand() % 25);
             double A_IC_startxdot = double(rand() % 5);
-            ant_pol.at(i).A_ICs.push_back(A_IC_goal); //goal_x
-            ant_pol.at(i).A_ICs.push_back(A_IC_startx); //start_x
-            ant_pol.at(i).A_ICs.push_back(A_IC_startxdot); //start_x_dot
+            ant_pol.at(i).A_ICs.push_back(A_IC_goal);           //goal_x
+            ant_pol.at(i).A_ICs.push_back(A_IC_startx);         //start_x
+            ant_pol.at(i).A_ICs.push_back(A_IC_startxdot);      //start_x_dot
             assert(ant_pol.at(i).A_ICs.size()==3);
         }
         
@@ -168,7 +168,9 @@ void EA::Run_Test_Simulation() {
     
     if (pP->multi_var==true){
         pP->num_loops=50;
-        pP->fifty_var();    //initialize 50x3 variables
+    }
+    else {
+        pP->num_loops = 1;
     }
     
     for (int i=0; i<pP->num_pol; i++) {
@@ -176,13 +178,23 @@ void EA::Run_Test_Simulation() {
         //test_init_fit(); //P and A fitness and fitswap set to zero
         
         test_pro_pol.at(i).loop_x_history.clear();
+        pP->fifty_fitness.clear();
         assert(test_pro_pol.at(i).loop_x_history.size()==0);
-        for(int k=0; k<pP->num_loops; k++){
+        for (int k=0; k<pP->num_loops; k++){
+            test_pro_pol.at(i).P_fitness = 0; //changed from -1 11/15
+            test_ant_pol.at(i).A_fitness = 0;
+            test_pro_pol.at(i).P_fit_swap = 0;
+            test_ant_pol.at(i).A_fit_swap = 0;
             if (pP->multi_var==true){
                 pP->goal_x = pP->fifty_inits.at(k).at(0);       //goal from vector
                 //cout << pP->goal_x << endl;
                 pP->start_x = pP->fifty_inits.at(k).at(1);      //start x from vector
                 pP->start_x_dot = pP->fifty_inits.at(k).at(2);  //start xdot from vector
+            }
+            else{
+                pP->start_x = pP->init_start_x;
+                pP->start_x_dot = pP->init_start_x_dot;
+                pP->goal_x = pP->init_goal_x;
             }
             Simulator S;
             S.pP = this->pP;
@@ -193,30 +205,40 @@ void EA::Run_Test_Simulation() {
             aPo = & test_ant_pol.at(i);
             S.Simulate(pPo, aPo);
             
-            if (pP->multi_var==true) {
-                //test_fit << pro_pol.at(i).P_fit_swap << endl;
-                test_pro_pol.at(i).P_fitness += test_pro_pol.at(i).P_fit_swap;
-            }
             
-            else if (test_pro_pol.at(i).P_fitness < test_pro_pol.at(i).P_fit_swap) { //if > then make sure P_fitness is set to a very high number
+            if (test_pro_pol.at(i).P_fitness < test_pro_pol.at(i).P_fit_swap) { //if > then make sure P_fitness is set to a very high number
                 test_pro_pol.at(i).P_fitness = test_pro_pol.at(i).P_fit_swap;
             }
-            else if (test_ant_pol.at(i).A_fitness < test_ant_pol.at(i).A_fit_swap) {
+            if (test_ant_pol.at(i).A_fitness < test_ant_pol.at(i).A_fit_swap) {
                 test_ant_pol.at(i).A_fitness = test_ant_pol.at(i).A_fit_swap;
+            }
+            else{
+                cout << "whoops" << endl;
             }
             assert(test_pro_pol.at(i).P_fitness>=0);
             assert(test_ant_pol.at(i).A_fitness>=0 );
             
             if (pP->multi_var==true){
+                pP->fifty_fitness.push_back(test_pro_pol.at(i).P_fitness);
+                assert(pP->fifty_fitness.at(k)==test_pro_pol.at(i).P_fit_swap);
+                assert(pP->fifty_fitness.size()==k+1);
                 test_pro_pol.at(i).loop_x_history.push_back(pPo->x_history);
                 assert(test_pro_pol.at(i).loop_x_history.at(k).size() == pP->total_time);
+            }
+            if (pP->fifty_fitness.size()==pP->num_loops){
+                assert(k == pP->num_loops-1);
+                for (int b=0; b<pP->num_loops; b++){
+                    test_pro_pol.at(i).P_fitness += pP->fifty_fitness.at(b);
+                }
             }
 
         }
         if (pP->multi_var==true) {
             assert(pP->num_loops == 50);
-            //test_pro_pol.at(i).P_fitness = test_pro_pol.at(i).P_fitness/pP->num_loops;
+            assert(pP->fifty_fitness.size()==pP->num_loops);
+            test_pro_pol.at(i).P_fitness = test_pro_pol.at(i).P_fitness/pP->num_loops;
             assert(test_pro_pol.at(i).loop_x_history.size() == pP->num_loops);
+            
         }
         
         
@@ -244,7 +266,6 @@ void EA::Run_Simulation() {
     }
     if (pP->multi_var==true){
         pP->num_loops=50;
-        pP->fifty_var();    //initialize 50x3 variables
     }
     else {
         pP->num_loops = 1;
@@ -264,6 +285,11 @@ void EA::Run_Simulation() {
                 //cout << pP->goal_x << endl;
                 pP->start_x = pP->fifty_inits.at(k).at(1);      //start x from vector
                 pP->start_x_dot = pP->fifty_inits.at(k).at(2);  //start xdot from vector
+            }
+            else{
+                pP->start_x = pP->init_start_x;
+                pP->start_x_dot = pP->init_start_x_dot;
+                pP->goal_x = pP->init_goal_x;
             }
             
             //First we insert a policy into the simulator then we can take the objective data for that policy and store it in our data architecture
@@ -306,37 +332,6 @@ void EA::Run_Simulation() {
         }
     }
     
-    if (pP->three_for_three == true) {
-        //Uses the same order of Pro policies as before
-        //Copy antagonist policies into seperate vector in order to choose best performance
-        for (int j=0; j<2; j++) {
-            random_shuffle ( ant_pol.begin(), ant_pol.end() );
-            
-            for (int i=0; i<pP->num_pol; i++) {
-                pro_pol.at(i).P_fit_swap = 0;
-                ant_pol.at(i).A_fit_swap = 0;
-                
-                Simulator S;
-                S.pP = this->pP;
-                Policy* pPo;
-                Policy* aPo;
-                pPo = & pro_pol.at(i);
-                aPo = & ant_pol.at(i);
-                S.Simulate(pPo, aPo);
-                
-                if (pro_pol.at(i).P_fitness > pro_pol.at(i).P_fit_swap) { //swapped direction 11/15 at 9:50
-                    pro_pol.at(i).P_fitness = pro_pol.at(i).P_fit_swap;
-                }
-                if (ant_pol.at(i).A_fitness > ant_pol.at(i).A_fit_swap) {
-                    ant_pol.at(i).A_fitness = ant_pol.at(i).A_fit_swap;
-                }
-                assert(pro_pol.at(i).P_fitness>=0);
-                assert(ant_pol.at(i).A_fitness>=0 && ant_pol.at(i).A_fitness<10000000);
-            }
-            
-            
-        }
-    }
     
     fstream nsensor;
     fstream nactuator;

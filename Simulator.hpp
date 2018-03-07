@@ -131,11 +131,16 @@ void Simulator::set_A_ICs(Policy* pPo, Policy* aPo){
     pP->start_x_dot = aPo->A_ICs.at(2);
 }
 void Simulator::MSD_initStates(Policy* pPo, Policy* aPo){
-    
     //intialize starting stuff
     if (pP->rand_antagonist==true){    //Why not rand_antagonist==true??
         set_A_ICs(pPo, aPo);
         assert(pP->goal_x == aPo->A_ICs.at(0) && pP->start_x == aPo->A_ICs.at(1) && pP->start_x_dot == aPo->A_ICs.at(2));
+    }
+    else if(pP->multi_var==true){
+        
+    }
+    else{
+        assert(pP->init_goal_x==pP->goal_x && pP->init_start_x==pP->start_x && pP->init_start_x_dot==pP->start_x_dot);
     }
     pPo->x = pP->start_x-pP->displace; //starting position minus any displacement
     pPo->x_dot = pP->start_x_dot;
@@ -317,14 +322,7 @@ void Simulator::calculateFitness(Policy* pPo, Policy* aPo){
      ss_penalty = 1; //want closest to 0 displacement and penalize for not being at Steady state
      }
      */
-    if (pP->sinusoidal_goal==true){  // SINUSOIDAL GOAL //
-        g_xt = pPo->x+g_xt+pP->dt;
-        pP->goal_x = pP->start_x + pP->A_g*sin(PI/16*(g_xt+pP->dt)+pP->g_phase);
-        double F_dist = (abs(pP->goal_x - pPo->x));
-        pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
-        aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
-    }
-    else if (pP->multi_var==true){
+    if (pP->multi_var==true){
         pP->goal_x = pP->goal_x;//goal.at(k) from list
         //assert(pP->goal_x==aPo->A_ICs.at(0));
         //cout << pP->goal_x << endl;

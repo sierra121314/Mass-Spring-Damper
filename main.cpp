@@ -50,7 +50,6 @@ int main() {
         Parameters P;
         
         //TRAINING MODES
-        P.train_and_test = true; //CHANGE
         
         P.five_B = true;
         P.four_B = false;
@@ -58,14 +57,13 @@ int main() {
         P.three_B = false;
         P.three_A = false;
         P.two_A = false;
-        P.one = false;
+        
         if (P.two_B==true){
             P.five_B = false;
             P.four_B = false;
             P.three_B = false;
             P.three_A = false;
             P.two_A = false;
-            P.one = false;
         }
         if (P.five_B == true){
             P.four_B = false;
@@ -73,61 +71,60 @@ int main() {
             P.three_B = false;
             P.three_A = false;
             P.two_A = false;
-            P.one = false;
         }
         
         EA E;
-        if (P.train_and_test == true){
-            P.test_train_set();
-            P.three_for_three = false; //change this one
-            P.train();
-            E.pP = &P;
-            E.Run_Program();
-            if(P.te_1==true || P.te_A==true || P.te_B==true){
-                assert(P.te_1==true || P.te_A==true || P.te_B==true);
-                P.test();
-                //E.pP = &P;
-                assert(P.A_f_max_bound==0);
-                
-                E.Run_Test_Program();
-                
-                cout << "BEST POLICY Test PRO-FITNESS" << "\t" << E.test_pro_pol.at(0).P_fitness << endl;
-                
-                test_fit << E.test_pro_pol.at(0).P_fitness << endl;
-                //run nn that is trained but don't evolve any further
-                //1 simulation of the best
-                //1 simulation of medium of population
-                
-            }
-        }
         
-        else {
-            P.P_f_min_bound = -5;
-            P.P_f_max_bound = 5;
-            P.A_f_min_bound = -1;
-            P.A_f_max_bound = 1;
-            
-            E.pP = &P;
-            E.Run_Program();
-        }
+        /////// TRAINING ///////
+        P.train_set();      //set train bool to true depending on combo selected - set test bools to false
+        assert(P.tr_2==true || P.tr_3==true || P.tr_4==true || P.tr_5==true);
+        
+        P.train();          //set A and P force ranges - set bools
+        assert(P.sensor_NOISE==false && P.actuator_NOISE==false);
+        assert(P.te_A==false && P.te_B==false);
+        
+        E.pP = &P;
+        E.Run_Program();
+        
+        
+        /////// TESTING ///////
+        P.test_set();           //set test bool to true - set train bools to false
+        assert(P.te_A==true || P.te_B==true);
+        assert(P.tr_2==false && P.tr_3==false && P.tr_4==false && P.tr_5==false);
+        
+        P.test();
+        //E.pP = &P;
+        assert(P.A_f_max_bound==0 && P.rand_antagonist==false);
+        
+        E.Run_Test_Program();
+        test_fit << E.test_pro_pol.at(0).P_fitness << endl;
+        
+        cout << "BEST POLICY Test PRO-FITNESS" << "\t" << E.test_pro_pol.at(0).P_fitness << endl;
+        
+        
+        // SR RUN TIME
         t3 = clock();
         float df ((float)t3-(float)t1);
         float sec = df /CLOCKS_PER_SEC;
         cout << "SR time\t" << sec << endl;
-    }
+        
+    }//SR LOOP
+    
+    // TOTAL PROGRAM RUN TIME
     t2 = clock();
     float diff ((float)t2-(float)t1);
     float seconds = diff / CLOCKS_PER_SEC;
-    cout << "run time" << "\t" << seconds << endl;
+    cout << "Total Run Time" << "\t" << seconds << endl;
     
+    // INCLUDE TOTAL RUN TIME IN PARAMETER FILE
     test_para.open("testing_parameters.txt", fstream::app);
     test_para << "run time" << "\t" << seconds << endl;
     
     //P.closeGraphs();
-    
     test_fit.close();
     P_fit.close();
     SR.close();
     SR_test.close();
+    
     cout << "END PROGRAM" << endl;
 }
