@@ -186,6 +186,7 @@ void EA::Run_Test_Simulation() {
             test_pro_pol.at(i).P_fit_swap = 0;
             test_ant_pol.at(i).A_fit_swap = 0;
             if (pP->multi_var==true){
+                assert(pP->num_loops==50);
                 pP->goal_x = pP->fifty_inits.at(k).at(0);       //goal from vector
                 //cout << pP->goal_x << endl;
                 pP->start_x = pP->fifty_inits.at(k).at(1);      //start x from vector
@@ -453,40 +454,50 @@ void EA::Mutation(Policy &M, Policy &N) {
         }
     }
     if (pP->rand_antagonist==true){
-        double random2 = ((double)rand()/RAND_MAX);
-        if (random2 <= pP->mutation_rate) {
-            double R3 = ((double)rand()/RAND_MAX) * 1;
-            double R4 = ((double)rand()/RAND_MAX) * 1;
-            //cout << R3 << "\t" << R4 << endl;
-            //GOAL_X SET AND BOUNDARY CHECK
-            N.A_ICs.at(0) = pP->goal_x + R3 - R4;
-            if (N.A_ICs.at(0)>pP->goal_x_upper_bound){
-                N.A_ICs.at(0) =pP->goal_x_upper_bound;
+        for (int v=0; v<3; v++){
+            double random2 = ((double)rand()/RAND_MAX);
+            if (v==0 && random2 <= pP->mutation_rate) {
+                double R3 = ((double)rand()/RAND_MAX) * 1;
+                double R4 = ((double)rand()/RAND_MAX) * 1;
+                //cout << R3 << "\t" << R4 << endl;
+                //GOAL_X SET AND BOUNDARY CHECK
+                N.A_ICs.at(0) = pP->goal_x + R3 - R4;
+                if (N.A_ICs.at(0)>pP->goal_x_upper_bound){
+                    N.A_ICs.at(0) =pP->goal_x_upper_bound;
+                }
+                if (N.A_ICs.at(0)<pP->goal_x_lower_bound){
+                    N.A_ICs.at(0) =pP->goal_x_lower_bound;
+                }
             }
-            if (N.A_ICs.at(0)<pP->goal_x_lower_bound){
-                N.A_ICs.at(0) =pP->goal_x_lower_bound;
+            else if (v==1 && random2 <= pP->mutation_rate){
+                //START_X SET AND BOUNDARY CHECK
+                double R5 = ((double)rand()/RAND_MAX) * 1;
+                double R6 = ((double)rand()/RAND_MAX) * 1;
+                N.A_ICs.at(1) = pP->start_x + R5 - R6;
+                if (N.A_ICs.at(1)>pP->start_x_upper_bound){
+                    N.A_ICs.at(1) =pP->start_x_upper_bound;
+                }
+                if (N.A_ICs.at(1)<pP->start_x_lower_bound){
+                    N.A_ICs.at(1) =pP->start_x_lower_bound;
+                }
             }
-            //START_X SET AND BOUNDARY CHECK
-            double R5 = ((double)rand()/RAND_MAX) * 1;
-            double R6 = ((double)rand()/RAND_MAX) * 1;
-            N.A_ICs.at(1) = pP->start_x + R5 - R6;
-            if (N.A_ICs.at(1)>pP->start_x_upper_bound){
-                N.A_ICs.at(1) =pP->start_x_upper_bound;
+            else if (v==2 && random2 <= pP->mutation_rate){
+                //START_X_DOT SET AND BOUNDARY CHECK
+                double R7 = ((double)rand()/RAND_MAX) * 1;
+                double R8 = ((double)rand()/RAND_MAX) * 1;
+                N.A_ICs.at(2)= pP->start_x_dot + R7 - R8;
+                if (N.A_ICs.at(2)>pP->start_x_dot_upper_bound){
+                    N.A_ICs.at(2) =pP->start_x_dot_upper_bound;
+                }
+                if (N.A_ICs.at(2)<pP->start_x_dot_lower_bound){
+                    N.A_ICs.at(2) =pP->start_x_dot_lower_bound;
+                }
             }
-            if (N.A_ICs.at(1)<pP->start_x_lower_bound){
-                N.A_ICs.at(1) =pP->start_x_lower_bound;
-            }
-            //START_X_DOT SET AND BOUNDARY CHECK
-            double R7 = ((double)rand()/RAND_MAX) * 1;
-            double R8 = ((double)rand()/RAND_MAX) * 1;
-            N.A_ICs.at(2)= pP->start_x_dot + R7 - R8;
-            if (N.A_ICs.at(2)>pP->start_x_dot_upper_bound){
-                N.A_ICs.at(2) =pP->start_x_dot_upper_bound;
-            }
-            if (N.A_ICs.at(2)<pP->start_x_dot_lower_bound){
-                N.A_ICs.at(2) =pP->start_x_dot_lower_bound;
+            else{
+                assert(random2 > pP->mutation_rate);
             }
         }
+        
     }
 }
 

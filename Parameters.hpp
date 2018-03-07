@@ -81,7 +81,7 @@ public:
     double A_f_min_bound;
     double A_f_max_bound;
     double x_min_bound = 0;
-    double x_max_bound = 20;
+    double x_max_bound = 20;        //maybe this should be max boundary plus goal as max
     double x_dot_min_bound = -.2;
     double x_dot_max_bound = .2;
     
