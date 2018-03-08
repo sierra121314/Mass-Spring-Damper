@@ -129,12 +129,13 @@ void Simulator::set_A_ICs(Policy* pPo, Policy* aPo){
     pP->goal_x = aPo->A_ICs.at(0);
     pP->start_x = aPo->A_ICs.at(1);
     pP->start_x_dot = aPo->A_ICs.at(2);
+    pP->displace = aPo->A_ICs.at(3);
 }
 void Simulator::MSD_initStates(Policy* pPo, Policy* aPo){
     //intialize starting stuff
-    if (pP->rand_antagonist==true){    //Why not rand_antagonist==true??
+    if (pP->rand_antagonist==true){
         set_A_ICs(pPo, aPo);
-        assert(pP->goal_x == aPo->A_ICs.at(0) && pP->start_x == aPo->A_ICs.at(1) && pP->start_x_dot == aPo->A_ICs.at(2));
+        assert(pP->goal_x == aPo->A_ICs.at(0) && pP->start_x == aPo->A_ICs.at(1) && pP->start_x_dot == aPo->A_ICs.at(2) && pP->displace == aPo->A_ICs.at(3));
     }
     else if(pP->multi_var==true){
         

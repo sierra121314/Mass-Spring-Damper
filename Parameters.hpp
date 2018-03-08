@@ -60,15 +60,18 @@ public:
     double start_x_dot;
     double start_x_dd = 0;
     
-    double displace = 2;        //initial displacement
+    double init_displace = 2;        //initial displacement
+    double displace;
     double init_goal_x = 2;
     double goal_x;              //ending position (start_x+goal_x);
     int goal_x_upper_bound = 5;     //had to use int vs double due to rand() only works with ints
     int goal_x_lower_bound = 0;
-    int start_x_upper_bound = 20;
-    int start_x_lower_bound = 10;
+    int start_x_upper_bound = 15;
+    int start_x_lower_bound = 5;
     int start_x_dot_upper_bound = 5;
     int start_x_dot_lower_bound = 0;
+    int displace_upper_bound = 2;
+    int displace_lower_bound = -2;
     
     double P_force;                     //Protagonist force
     double A_force;                     //Antagonist force
@@ -81,7 +84,7 @@ public:
     double A_f_min_bound;
     double A_f_max_bound;
     double x_min_bound = 0;
-    double x_max_bound = 20;        //maybe this should be max boundary plus goal as max
+    double x_max_bound = 30;        //maybe this should be max boundary plus goal as max
     double x_dot_min_bound = -.2;
     double x_dot_max_bound = .2;
     
@@ -153,6 +156,7 @@ void Parameters::reset_start_var(){
     start_x_dd = 0;
     goal_x = init_goal_x;
     //init_goal_x  = 0 + (rand() % 5);
+    displace = init_displace;
 }
 
 void Parameters::random_start_end_variables(){
@@ -380,16 +384,17 @@ void Parameters::fifty_var(){
             vector<int> three_inits;
             
             //Initialize 50x3 variables
-            three_inits.push_back(goal_x_lower_bound+double(rand() % goal_x_upper_bound));      //goal_x(0to6)  //actually goal value is this plus the start_x of previous
+            three_inits.push_back(goal_x_lower_bound+double(rand() % goal_x_upper_bound));      //goal_x(0to5)  //actually goal value is this plus the start_x of previous
             three_inits.push_back(start_x_lower_bound + double(rand()%start_x_upper_bound));//start_x=something;(0 to 25) //
             three_inits.push_back(start_x_dot_lower_bound + double(rand() % start_x_dot_upper_bound));//start_x_dot=something;(0 to 5)
+            three_inits.push_back(displace_lower_bound + double(rand() % displace_upper_bound));
             
-            for (int j=0; j<3; j++) {
+            for (int j=0; j<4; j++) {
                 fifty_history << three_inits.at(j) << "\t";
             }
             fifty_history << endl;
             
-            assert(three_inits.size()==3);
+            assert(three_inits.size()==4);
             fifty_inits.push_back(three_inits);
         }
         assert(fifty_inits.size()==50);
@@ -414,10 +419,11 @@ void Parameters::trunc_Graphs(){
     P_fit.open("stat_ave_best_P_fitness.txt", ofstream::out | ofstream::trunc);
     A_fit.open("stat_ave_best_A_fitness.txt", ofstream::out | ofstream::trunc);
     
-    ofstream AIC_goal,AIC_startx,AIC_startxdot;
+    ofstream AIC_goal,AIC_startx,AIC_startxdot,AIC_displace;
     AIC_goal.open("ANT_goal_history_bestpergen.txt", std::ofstream::out | ofstream::trunc);
     AIC_startx.open("ANT_startx_history_bestpergen.txt", std::ofstream::out | ofstream::trunc);
     AIC_startxdot.open("ANT_startxdot_history_bestpergen.txt", std::ofstream::out | ofstream::trunc);
+    AIC_displace.open("ANT_displace_history_bestpergen.txt", std::ofstream::out | ofstream::trunc);
     
     ofstream x_med,xdot_med,xdd_med, med_P_force,med_A_force, SR_med, SR_A_med;
     x_med.open("med_x_history.txt", std::ofstream::out | ofstream::trunc);

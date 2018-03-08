@@ -131,13 +131,16 @@ void EA::Build_Population() {
             assert(-1<=A_r && 1>=A_r);
         }
         if (pP->rand_antagonist==true) { //if statement not necessary
-            double A_IC_goal = double(rand() % 6);
-            double A_IC_startx = 5 + double(rand() % 25);
-            double A_IC_startxdot = double(rand() % 5);
+            double A_IC_goal = 0 + double(rand() % 5);
+            double A_IC_startx = 10 + double(rand() % 10);
+            double A_IC_startxdot = 0 + double(rand() % 5);
+            double A_IC_displace = -2 + double(rand() % 4);
+            assert(A_IC_startx<20);
             ant_pol.at(i).A_ICs.push_back(A_IC_goal);           //goal_x
             ant_pol.at(i).A_ICs.push_back(A_IC_startx);         //start_x
             ant_pol.at(i).A_ICs.push_back(A_IC_startxdot);      //start_x_dot
-            assert(ant_pol.at(i).A_ICs.size()==3);
+            ant_pol.at(i).A_ICs.push_back(A_IC_displace);
+            assert(ant_pol.at(i).A_ICs.size()==4);
         }
         
     }
@@ -191,11 +194,13 @@ void EA::Run_Test_Simulation() {
                 //cout << pP->goal_x << endl;
                 pP->start_x = pP->fifty_inits.at(k).at(1);      //start x from vector
                 pP->start_x_dot = pP->fifty_inits.at(k).at(2);  //start xdot from vector
+                pP->displace = pP->fifty_inits.at(k).at(3);     //dispace from vector
             }
             else{
                 pP->start_x = pP->init_start_x;
                 pP->start_x_dot = pP->init_start_x_dot;
                 pP->goal_x = pP->init_goal_x;
+                pP->displace = pP->init_displace;
             }
             Simulator S;
             S.pP = this->pP;
@@ -273,7 +278,7 @@ void EA::Run_Simulation() {
     }
     
     //LOGGING START POSITIONS
-    rand_start << pP->m << "\t" << pP->b << "\t" << pP->k << "\t" << pP->mu << "\t" << pP->start_x << "\t" << pP->goal_x << "\t" << pP->start_x_dot << endl;
+    rand_start << pP->m << "\t" << pP->b << "\t" << pP->k << "\t" << pP->mu << "\t" << pP->start_x << "\t" << pP->goal_x << "\t" << pP->start_x_dot << "\t" << pP->displace << endl;
     
     for (int i=0; i<pP->num_pol; i++) {
         pro_pol.at(i).P_fitness = 0; //changed from -1 11/15
@@ -283,14 +288,15 @@ void EA::Run_Simulation() {
         for (int k=0; k<pP->num_loops; k++) {
             if (pP->multi_var==true){
                 pP->goal_x = pP->fifty_inits.at(k).at(0);       //goal from vector
-                //cout << pP->goal_x << endl;
                 pP->start_x = pP->fifty_inits.at(k).at(1);      //start x from vector
                 pP->start_x_dot = pP->fifty_inits.at(k).at(2);  //start xdot from vector
+                pP->displace = pP->fifty_inits.at(k).at(3);     //dispace from vector
             }
             else{
                 pP->start_x = pP->init_start_x;
                 pP->start_x_dot = pP->init_start_x_dot;
                 pP->goal_x = pP->init_goal_x;
+                pP->displace = pP->init_displace;
             }
             
             //First we insert a policy into the simulator then we can take the objective data for that policy and store it in our data architecture
@@ -454,7 +460,7 @@ void EA::Mutation(Policy &M, Policy &N) {
         }
     }
     if (pP->rand_antagonist==true){
-        for (int v=0; v<3; v++){
+        for (int v=0; v<4; v++){
             double random2 = ((double)rand()/RAND_MAX);
             if (v==0 && random2 <= pP->mutation_rate) {
                 double R3 = ((double)rand()/RAND_MAX) * 1;
@@ -477,9 +483,16 @@ void EA::Mutation(Policy &M, Policy &N) {
                 if (N.A_ICs.at(1)>pP->start_x_upper_bound){
                     N.A_ICs.at(1) =pP->start_x_upper_bound;
                 }
+                if (N.A_ICs.at(1)<10){
+                    N.A_ICs.at(1) =10;
+                }
+                /*
+                if (N.A_ICs.at(1)>pP->start_x_upper_bound){
+                    N.A_ICs.at(1) =pP->start_x_upper_bound;
+                }
                 if (N.A_ICs.at(1)<pP->start_x_lower_bound){
                     N.A_ICs.at(1) =pP->start_x_lower_bound;
-                }
+                }*/
             }
             else if (v==2 && random2 <= pP->mutation_rate){
                 //START_X_DOT SET AND BOUNDARY CHECK
@@ -491,6 +504,17 @@ void EA::Mutation(Policy &M, Policy &N) {
                 }
                 if (N.A_ICs.at(2)<pP->start_x_dot_lower_bound){
                     N.A_ICs.at(2) =pP->start_x_dot_lower_bound;
+                }
+            }
+            else if (v==3 && random2 <= pP->mutation_rate){
+                double R9 = ((double)rand()/RAND_MAX) * 1;
+                double R0 = ((double)rand()/RAND_MAX) * 1;
+                N.A_ICs.at(2)= pP->start_x_dot + R9 - R0;
+                if (N.A_ICs.at(3)>pP->displace_upper_bound){
+                    N.A_ICs.at(3) =pP->displace_upper_bound;
+                }
+                if (N.A_ICs.at(3)<pP->displace_lower_bound){
+                    N.A_ICs.at(3) =pP->displace_lower_bound;
                 }
             }
             else{
@@ -577,13 +601,15 @@ void EA::update_best_fit(){
     best_A_fitness.push_back(ant_pol.at(0).A_fitness);
     
     if (pP->rand_antagonist==true){
-        ofstream AIC_goal,AIC_startx,AIC_startxdot;
+        ofstream AIC_goal,AIC_startx,AIC_startxdot,AIC_displace;
         AIC_goal.open("ANT_goal_history_bestpergen.txt", fstream::app);
         AIC_startx.open("ANT_startx_history_bestpergen.txt", fstream::app);
         AIC_startxdot.open("ANT_startxdot_history_bestpergen.txt", fstream::app);
+        AIC_displace.open("ANT_displace_history_bestpergen.txt", fstream::app);
         AIC_goal << ant_pol.at(0).A_ICs.at(0) << "\t";  //goalx
         AIC_startx << ant_pol.at(0).A_ICs.at(1) << "\t";  //startx
         AIC_startxdot << ant_pol.at(0).A_ICs.at(2) << "\t";  //startxdot
+        AIC_displace << ant_pol.at(0).A_ICs.at(3) << "\t";  //displace
     }
 }
 
