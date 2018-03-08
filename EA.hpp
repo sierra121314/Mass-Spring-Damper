@@ -118,6 +118,7 @@ void EA::Build_Population() {
         ant_pol.at(i).A_fitness = 0;
         //cout << "Policy" << "\t" << i << "\t" << "weights" << "\t";
         //for that policy have a vector of weights
+        
         for (int w=0; w < pP->num_weights; w++){
             //pick random # between 0 and 1 and put into that vector
             double P_r = -1 + (2)*((double)rand()/RAND_MAX);
@@ -125,11 +126,15 @@ void EA::Build_Population() {
             assert(-1<=P_r && 1>=P_r);
             
         }
+        assert(pro_pol.at(i).P_weights.size() == pP->num_weights);
+        
         for (int v=0; v< pP->A_num_weights; v++) {
             double A_r = -1 + (2)*((double)rand()/RAND_MAX);
             ant_pol.at(i).A_weights.push_back(A_r);
             assert(-1<=A_r && 1>=A_r);
         }
+        assert(ant_pol.at(i).A_weights.size() == pP->A_num_weights);
+        
         if (pP->rand_antagonist==true) { //if statement not necessary
             double A_IC_goal = 0 + double(rand() % 5);
             double A_IC_startx = 10 + double(rand() % 10);
@@ -183,6 +188,7 @@ void EA::Run_Test_Simulation() {
         test_pro_pol.at(i).loop_x_history.clear();
         pP->fifty_fitness.clear();
         assert(test_pro_pol.at(i).loop_x_history.size()==0);
+        
         for (int k=0; k<pP->num_loops; k++){
             test_pro_pol.at(i).P_fitness = 0; //changed from -1 11/15
             test_ant_pol.at(i).A_fitness = 0;
@@ -202,12 +208,12 @@ void EA::Run_Test_Simulation() {
                 pP->goal_x = pP->init_goal_x;
                 pP->displace = pP->init_displace;
             }
+            
             Simulator S;
             S.pP = this->pP;
             Policy* pPo;
             Policy* aPo;
             pPo = & test_pro_pol.at(i);
-            
             aPo = & test_ant_pol.at(i);
             S.Simulate(pPo, aPo);
             
@@ -460,7 +466,7 @@ void EA::Mutation(Policy &M, Policy &N) {
         }
     }
     if (pP->rand_antagonist==true){
-        for (int v=0; v<4; v++){
+        for (int v=0; v < 4; v++){
             double random2 = ((double)rand()/RAND_MAX);
             if (v==0 && random2 <= pP->mutation_rate) {
                 double R3 = ((double)rand()/RAND_MAX) * 1;
@@ -509,13 +515,14 @@ void EA::Mutation(Policy &M, Policy &N) {
             else if (v==3 && random2 <= pP->mutation_rate){
                 double R9 = ((double)rand()/RAND_MAX) * 1;
                 double R0 = ((double)rand()/RAND_MAX) * 1;
-                N.A_ICs.at(2)= pP->start_x_dot + R9 - R0;
-                if (N.A_ICs.at(3)>pP->displace_upper_bound){
-                    N.A_ICs.at(3) =pP->displace_upper_bound;
+                N.A_ICs.at(3)= pP->displace + R9 - R0;
+                if (N.A_ICs.at(3)>(pP->displace_lower_bound + pP->displace_upper_bound)){
+                    N.A_ICs.at(3) =pP->displace_lower_bound + pP->displace_upper_bound;
                 }
                 if (N.A_ICs.at(3)<pP->displace_lower_bound){
                     N.A_ICs.at(3) =pP->displace_lower_bound;
                 }
+                assert(N.A_ICs.at(3)<=2);
             }
             else{
                 assert(random2 > pP->mutation_rate);
@@ -543,6 +550,7 @@ void EA::Repopulate() {
         ant_pol.push_back(N);
         pro_pol.at(pro_pol.size()-1).age = 0; //how long it has survived
         ant_pol.at(ant_pol.size()-1).age = 0;
+        
     }
     assert(pro_pol.size() == pP->num_pol);
     assert(ant_pol.size() == pP->num_pol);
@@ -606,6 +614,7 @@ void EA::update_best_fit(){
         AIC_startx.open("ANT_startx_history_bestpergen.txt", fstream::app);
         AIC_startxdot.open("ANT_startxdot_history_bestpergen.txt", fstream::app);
         AIC_displace.open("ANT_displace_history_bestpergen.txt", fstream::app);
+        
         AIC_goal << ant_pol.at(0).A_ICs.at(0) << "\t";  //goalx
         AIC_startx << ant_pol.at(0).A_ICs.at(1) << "\t";  //startx
         AIC_startxdot << ant_pol.at(0).A_ICs.at(2) << "\t";  //startxdot
@@ -946,7 +955,6 @@ void EA::Run_Program() {
         if (gen < pP->gen_max-1) {
             
             EA_Process();
-            
             Graph_med();
             
         }

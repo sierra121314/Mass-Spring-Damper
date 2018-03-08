@@ -70,7 +70,7 @@ public:
     int start_x_lower_bound = 5;
     int start_x_dot_upper_bound = 5;
     int start_x_dot_lower_bound = 0;
-    int displace_upper_bound = 2;
+    int displace_upper_bound = 4;
     int displace_lower_bound = -2;
     
     double P_force;                     //Protagonist force
@@ -384,9 +384,9 @@ void Parameters::fifty_var(){
             vector<int> three_inits;
             
             //Initialize 50x3 variables
-            three_inits.push_back(goal_x_lower_bound+double(rand() % goal_x_upper_bound));      //goal_x(0to5)  //actually goal value is this plus the start_x of previous
-            three_inits.push_back(start_x_lower_bound + double(rand()%start_x_upper_bound));//start_x=something;(0 to 25) //
-            three_inits.push_back(start_x_dot_lower_bound + double(rand() % start_x_dot_upper_bound));//start_x_dot=something;(0 to 5)
+            three_inits.push_back(goal_x_lower_bound+double(rand() % goal_x_upper_bound));              //goal_x(0to5)  //actually goal value is this plus the start_x of previous
+            three_inits.push_back(start_x_lower_bound + double(rand() % start_x_upper_bound));          //start_x=something;(0 to 25) //
+            three_inits.push_back(start_x_dot_lower_bound + double(rand() % start_x_dot_upper_bound));  //start_x_dot=something;(0 to 5)
             three_inits.push_back(displace_lower_bound + double(rand() % displace_upper_bound));
             
             for (int j=0; j<4; j++) {

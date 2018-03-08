@@ -281,7 +281,7 @@ vector<double> Simulator::noise_init(vector<double> noise){
     noise.push_back(0); // x actuator
     noise.push_back(0); // xdot sensor
     noise.push_back(0); // xdot actuator
-    
+    assert(noise.size()==4);
     return noise;
 }
 //-----------------------------------------------------------------------------
@@ -427,6 +427,7 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         noise.at(3) = pP->an*noise.at(3); //actuator noise for velocity
         state.push_back(pPo->x+noise.at(0)+noise.at(1));
         state.push_back(pPo->x_dot+noise.at(2)+noise.at(3));
+        assert(state.size()==2);
         
         pP->P_force = set_P_force(NN, state);
     
