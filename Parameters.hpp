@@ -64,13 +64,13 @@ public:
     double displace;
     double init_goal_x = 2;
     double goal_x;              //ending position (start_x+goal_x);
-    int goal_x_upper_bound = 5;     //had to use int vs double due to rand() only works with ints
-    int goal_x_lower_bound = 0;
-    int start_x_upper_bound = 15;
+    int goal_x_upper_bound = 2;     //had to use int vs double due to rand() only works with ints
+    int goal_x_lower_bound = -2;
+    int start_x_upper_bound = 20;
     int start_x_lower_bound = 5;
-    int start_x_dot_upper_bound = 5;
-    int start_x_dot_lower_bound = 0;
-    int displace_upper_bound = 4;
+    int start_x_dot_upper_bound = 2;
+    int start_x_dot_lower_bound = -2;
+    int displace_upper_bound = 2;
     int displace_lower_bound = -2;
     
     double P_force;                     //Protagonist force
@@ -384,17 +384,21 @@ void Parameters::fifty_var(){
             vector<int> three_inits;
             
             //Initialize 50x3 variables
-            three_inits.push_back(goal_x_lower_bound+double(rand() % goal_x_upper_bound));              //goal_x(0to5)  //actually goal value is this plus the start_x of previous
-            three_inits.push_back(start_x_lower_bound + double(rand() % start_x_upper_bound));          //start_x=something;(0 to 25) //
-            three_inits.push_back(start_x_dot_lower_bound + double(rand() % start_x_dot_upper_bound));  //start_x_dot=something;(0 to 5)
-            three_inits.push_back(displace_lower_bound + double(rand() % displace_upper_bound));
+            three_inits.push_back(goal_x_lower_bound+double(rand() % (goal_x_upper_bound-goal_x_lower_bound)));              //goal_x(0to5)  //actually goal value is this plus the start_x of previous
+            three_inits.push_back(start_x_lower_bound + double(rand() % (start_x_upper_bound-start_x_lower_bound)));          //start_x=something;(0 to 25) //
+            three_inits.push_back(start_x_dot_lower_bound + double(rand() % (start_x_dot_upper_bound-start_x_dot_lower_bound)));  //start_x_dot=something;(0 to 5)
+            //three_inits.push_back(displace_lower_bound + double(rand() % (displace_upper_bound-displace_lower_bound)));
+            assert(three_inits.at(0)>=goal_x_lower_bound && three_inits.at(0)<=goal_x_upper_bound);
+            assert(three_inits.at(1)>=start_x_lower_bound && three_inits.at(1)<=start_x_upper_bound);
+            assert(three_inits.at(2)>=start_x_dot_lower_bound && three_inits.at(2)<=start_x_dot_upper_bound);
+            //assert(three_inits.at(3)>=displace_lower_bound && three_inits.at(3)<=displace_upper_bound);
             
-            for (int j=0; j<4; j++) {
+            for (int j=0; j<3; j++) {
                 fifty_history << three_inits.at(j) << "\t";
             }
             fifty_history << endl;
             
-            assert(three_inits.size()==4);
+            assert(three_inits.size()==3);
             fifty_inits.push_back(three_inits);
         }
         assert(fifty_inits.size()==50);

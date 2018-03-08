@@ -136,9 +136,9 @@ void EA::Build_Population() {
         assert(ant_pol.at(i).A_weights.size() == pP->A_num_weights);
         
         if (pP->rand_antagonist==true) { //if statement not necessary
-            double A_IC_goal = 0 + double(rand() % 5);
-            double A_IC_startx = 10 + double(rand() % 10);
-            double A_IC_startxdot = 0 + double(rand() % 5);
+            double A_IC_goal = -2 + double(rand() % 4);
+            double A_IC_startx = 5 + double(rand() % 15);
+            double A_IC_startxdot = -2 + double(rand() % 4);
             double A_IC_displace = -2 + double(rand() % 4);
             assert(A_IC_startx<20);
             ant_pol.at(i).A_ICs.push_back(A_IC_goal);           //goal_x
@@ -200,7 +200,8 @@ void EA::Run_Test_Simulation() {
                 //cout << pP->goal_x << endl;
                 pP->start_x = pP->fifty_inits.at(k).at(1);      //start x from vector
                 pP->start_x_dot = pP->fifty_inits.at(k).at(2);  //start xdot from vector
-                pP->displace = pP->fifty_inits.at(k).at(3);     //dispace from vector
+                //pP->displace = pP->fifty_inits.at(k).at(3);     //dispace from vector
+                pP->displace = pP->init_displace;
             }
             else{
                 pP->start_x = pP->init_start_x;
@@ -296,7 +297,8 @@ void EA::Run_Simulation() {
                 pP->goal_x = pP->fifty_inits.at(k).at(0);       //goal from vector
                 pP->start_x = pP->fifty_inits.at(k).at(1);      //start x from vector
                 pP->start_x_dot = pP->fifty_inits.at(k).at(2);  //start xdot from vector
-                pP->displace = pP->fifty_inits.at(k).at(3);     //dispace from vector
+                //pP->displace = pP->fifty_inits.at(k).at(3);     //dispace from vector
+                pP->displace = pP->init_displace;
             }
             else{
                 pP->start_x = pP->init_start_x;
@@ -516,8 +518,8 @@ void EA::Mutation(Policy &M, Policy &N) {
                 double R9 = ((double)rand()/RAND_MAX) * 1;
                 double R0 = ((double)rand()/RAND_MAX) * 1;
                 N.A_ICs.at(3)= pP->displace + R9 - R0;
-                if (N.A_ICs.at(3)>(pP->displace_lower_bound + pP->displace_upper_bound)){
-                    N.A_ICs.at(3) =pP->displace_lower_bound + pP->displace_upper_bound;
+                if (N.A_ICs.at(3)>pP->displace_upper_bound){
+                    N.A_ICs.at(3) = pP->displace_upper_bound;
                 }
                 if (N.A_ICs.at(3)<pP->displace_lower_bound){
                     N.A_ICs.at(3) =pP->displace_lower_bound;
@@ -726,14 +728,16 @@ void EA::Graph(){
     SR_A_med << endl;
     
     //ANT ICS
-    ofstream AIC_goal,AIC_startx,AIC_startxdot;
+    ofstream AIC_goal,AIC_startx,AIC_startxdot, AIC_displace;
     AIC_goal.open("ANT_goal_history_bestpergen.txt", fstream::app);
     AIC_startx.open("ANT_startx_history_bestpergen.txt", fstream::app);
     AIC_startxdot.open("ANT_startxdot_history_bestpergen.txt", fstream::app);
+    AIC_displace.open("ANT_displace_history_bestpergen.txt", fstream::app);
     
     AIC_goal << endl;
     AIC_startx << endl;
     AIC_startxdot << endl;
+    AIC_displace << endl;
 }
 
 void EA::Graph_med(){
