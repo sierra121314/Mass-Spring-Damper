@@ -26,9 +26,9 @@ protected:
     
 public:
     // EA STUFF //
-    int num_pol = 100;                  //number of policies
+    int num_pol = 10;                  //number of policies
     int to_kill = num_pol/2;
-    int gen_max = 500;                  //number of generations
+    int gen_max = 10;                  //number of generations
     double total_time = 1000;            //total time steps
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range
@@ -387,18 +387,18 @@ void Parameters::fifty_var(){
             three_inits.push_back(goal_x_lower_bound+double(rand() % (goal_x_upper_bound-goal_x_lower_bound)));              //goal_x(0to5)  //actually goal value is this plus the start_x of previous
             three_inits.push_back(start_x_lower_bound + double(rand() % (start_x_upper_bound-start_x_lower_bound)));          //start_x=something;(0 to 25) //
             three_inits.push_back(start_x_dot_lower_bound + double(rand() % (start_x_dot_upper_bound-start_x_dot_lower_bound)));  //start_x_dot=something;(0 to 5)
-            //three_inits.push_back(displace_lower_bound + double(rand() % (displace_upper_bound-displace_lower_bound)));
+            three_inits.push_back(displace_lower_bound + double(rand() % (displace_upper_bound-displace_lower_bound)));
             assert(three_inits.at(0)>=goal_x_lower_bound && three_inits.at(0)<=goal_x_upper_bound);
             assert(three_inits.at(1)>=start_x_lower_bound && three_inits.at(1)<=start_x_upper_bound);
             assert(three_inits.at(2)>=start_x_dot_lower_bound && three_inits.at(2)<=start_x_dot_upper_bound);
-            //assert(three_inits.at(3)>=displace_lower_bound && three_inits.at(3)<=displace_upper_bound);
+            assert(three_inits.at(3)>=displace_lower_bound && three_inits.at(3)<=displace_upper_bound);
             
             for (int j=0; j<3; j++) {
                 fifty_history << three_inits.at(j) << "\t";
             }
             fifty_history << endl;
             
-            assert(three_inits.size()==3);
+            assert(three_inits.size()==4);
             fifty_inits.push_back(three_inits);
         }
         assert(fifty_inits.size()==50);

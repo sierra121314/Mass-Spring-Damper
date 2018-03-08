@@ -200,8 +200,8 @@ void EA::Run_Test_Simulation() {
                 //cout << pP->goal_x << endl;
                 pP->start_x = pP->fifty_inits.at(k).at(1);      //start x from vector
                 pP->start_x_dot = pP->fifty_inits.at(k).at(2);  //start xdot from vector
-                //pP->displace = pP->fifty_inits.at(k).at(3);     //dispace from vector
-                pP->displace = pP->init_displace;
+                pP->displace = pP->fifty_inits.at(k).at(3);     //dispace from vector
+                //pP->displace = pP->init_displace;
             }
             else{
                 pP->start_x = pP->init_start_x;
@@ -297,8 +297,8 @@ void EA::Run_Simulation() {
                 pP->goal_x = pP->fifty_inits.at(k).at(0);       //goal from vector
                 pP->start_x = pP->fifty_inits.at(k).at(1);      //start x from vector
                 pP->start_x_dot = pP->fifty_inits.at(k).at(2);  //start xdot from vector
-                //pP->displace = pP->fifty_inits.at(k).at(3);     //dispace from vector
-                pP->displace = pP->init_displace;
+                pP->displace = pP->fifty_inits.at(k).at(3);     //dispace from vector
+                //pP->displace = pP->init_displace;
             }
             else{
                 pP->start_x = pP->init_start_x;
@@ -728,15 +728,15 @@ void EA::Graph(){
     SR_A_med << endl;
     
     //ANT ICS
-    ofstream AIC_goal,AIC_startx,AIC_startxdot, AIC_displace;
-    AIC_goal.open("ANT_goal_history_bestpergen.txt", fstream::app);
-    AIC_startx.open("ANT_startx_history_bestpergen.txt", fstream::app);
-    AIC_startxdot.open("ANT_startxdot_history_bestpergen.txt", fstream::app);
+    ofstream AIC_goal_x,AIC_start_x,AIC_start_xdot, AIC_displace;
+    AIC_goal_x.open("ANT_goal_history_bestpergen.txt", fstream::app);
+    AIC_start_x.open("ANT_startx_history_bestpergen.txt", fstream::app);
+    AIC_start_xdot.open("ANT_startxdot_history_bestpergen.txt", fstream::app);
     AIC_displace.open("ANT_displace_history_bestpergen.txt", fstream::app);
     
-    AIC_goal << endl;
-    AIC_startx << endl;
-    AIC_startxdot << endl;
+    AIC_goal_x << endl;
+    AIC_start_x << endl;
+    AIC_start_xdot << endl;
     AIC_displace << endl;
 }
 
