@@ -26,9 +26,9 @@ protected:
     
 public:
     // EA STUFF //
-    int num_pol = 10;                  //number of policies
+    int num_pol = 100;                  //number of policies
     int to_kill = num_pol/2;
-    int gen_max = 10;                  //number of generations
+    int gen_max = 500;                  //number of generations
     double total_time = 1000;            //total time steps
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range
@@ -64,14 +64,14 @@ public:
     double displace;
     double init_goal_x = 2;
     double goal_x;              //ending position (start_x+goal_x);
-    int goal_x_upper_bound = 2;     //had to use int vs double due to rand() only works with ints
-    int goal_x_lower_bound = -2;
-    int start_x_upper_bound = 20;
-    int start_x_lower_bound = 5;
-    int start_x_dot_upper_bound = 2;
-    int start_x_dot_lower_bound = -2;
-    int displace_upper_bound = 2;
-    int displace_lower_bound = -2;
+    double goal_x_upper_bound = 2;     //had to use int vs double due to rand() only works with ints
+    double goal_x_lower_bound = -2;
+    double start_x_upper_bound = 20;
+    double start_x_lower_bound = 5;
+    double start_x_dot_upper_bound = 2;
+    double start_x_dot_lower_bound = -2;
+    double displace_upper_bound = 2;
+    double displace_lower_bound = -2;
     
     double P_force;                     //Protagonist force
     double A_force;                     //Antagonist force
@@ -100,7 +100,7 @@ public:
     vector<double> fifty_fitness;
     bool multi_var;      //50 goals per policy
     void fifty_var();           //50 goals, start_x, start_x_dot
-    vector<vector<int>> fifty_inits;
+    vector<vector<double>> fifty_inits;
     
     
     // WHAT TO GRAPH
@@ -166,11 +166,15 @@ void Parameters::random_start_end_variables(){
     //b = 1 + rand() % 2;       //damper
     //k = 1 + rand() % 2;       //spring
     //mu = 0 + rand() % 2;      //friction
-    start_x = 10 + (rand() % 20);
-    goal_x  = 0 + (rand() % 5);
-    start_x_dot = 0 + (rand() % 5);
+    start_x = start_x_lower_bound + double(rand() % (int)(start_x_upper_bound-start_x_lower_bound));
+    goal_x  = goal_x_lower_bound + double(rand() % (int)(goal_x_upper_bound-goal_x_lower_bound));
+    start_x_dot = start_x_dot_lower_bound + double(rand() % (int)(start_x_dot_upper_bound-start_x_dot_lower_bound));
+    displace = displace_lower_bound + double(rand() % (int)(displace_upper_bound-displace_lower_bound));
 
-
+    assert(start_x <= start_x_upper_bound && start_x >= start_x_lower_bound);
+    assert(start_x_dot <= start_x_dot_upper_bound && start_x_dot >= start_x_dot_lower_bound);
+    assert(goal_x <= goal_x_upper_bound && goal_x >= goal_x_lower_bound);
+    assert(displace <= displace_upper_bound && displace >= displace_lower_bound);
 }
 
 void Parameters::train_set(){
@@ -280,7 +284,7 @@ void Parameters::train(){
         rand_antagonist = false;
         rand_start_gen = false;
         rand_start_5gen = false;
-        multi_var = false; //do NOT change this one
+        multi_var = false;          //do NOT change this one
     }
     if (tr_3 == true){
         P_f_min_bound = -5;
@@ -291,7 +295,7 @@ void Parameters::train(){
         rand_antagonist = false;
         rand_start_gen = false;
         rand_start_5gen = false;
-        multi_var = false; //do NOT change this one
+        multi_var = false;          //do NOT change this one
     }
     if (tr_4 == true){
         P_f_min_bound = -5;
@@ -302,7 +306,7 @@ void Parameters::train(){
         rand_antagonist = false;
         rand_start_gen = true; //pick one or the other
         rand_start_5gen = false;
-        multi_var = false; //do NOT change this one
+        multi_var = false;          //do NOT change this one
     }
     if (tr_5 == true){
         P_f_min_bound = -5;
@@ -313,7 +317,7 @@ void Parameters::train(){
         rand_antagonist = true;
         rand_start_gen = false;
         rand_start_5gen = false;
-        multi_var = false; //do NOT change this one
+        multi_var = false;          //do NOT change this one
         
     }
     train_para();
@@ -366,8 +370,8 @@ void Parameters::test(){
         actuator_NOISE = true;      // Changed from True to test
         
         rand_antagonist = false;
-        multi_var = true;       //50 rand variables per policy
-        rand_start_gen = false; //do NOT change this one
+        multi_var = true;               //50 rand variables per policy
+        rand_start_gen = false;         //do NOT change this one
         
         fifty_var();
     }
@@ -381,19 +385,20 @@ void Parameters::fifty_var(){
         fifty_history.open("fiftysets_init.txt", fstream::app);
         fifty_inits.clear();
         for (int i=0; i<50; i++) {
-            vector<int> three_inits;
+            vector<double> three_inits;
             
             //Initialize 50x3 variables
-            three_inits.push_back(goal_x_lower_bound+double(rand() % (goal_x_upper_bound-goal_x_lower_bound)));              //goal_x(0to5)  //actually goal value is this plus the start_x of previous
-            three_inits.push_back(start_x_lower_bound + double(rand() % (start_x_upper_bound-start_x_lower_bound)));          //start_x=something;(0 to 25) //
-            three_inits.push_back(start_x_dot_lower_bound + double(rand() % (start_x_dot_upper_bound-start_x_dot_lower_bound)));  //start_x_dot=something;(0 to 5)
-            three_inits.push_back(displace_lower_bound + double(rand() % (displace_upper_bound-displace_lower_bound)));
+            three_inits.push_back(goal_x_lower_bound + double(rand() % (int)(goal_x_upper_bound-goal_x_lower_bound)));              //goal_x(0to5)  //actually goal value is this plus the start_x of previous
+            three_inits.push_back(start_x_lower_bound + double(rand() % (int)(start_x_upper_bound-start_x_lower_bound)));          //start_x=something;(0 to 25) //
+            three_inits.push_back(start_x_dot_lower_bound + double(rand() % (int)(start_x_dot_upper_bound-start_x_dot_lower_bound)));  //start_x_dot=something;(0 to 5)
+            three_inits.push_back(displace_lower_bound + double(rand() % (int)(displace_upper_bound-displace_lower_bound)));
+            
             assert(three_inits.at(0)>=goal_x_lower_bound && three_inits.at(0)<=goal_x_upper_bound);
             assert(three_inits.at(1)>=start_x_lower_bound && three_inits.at(1)<=start_x_upper_bound);
             assert(three_inits.at(2)>=start_x_dot_lower_bound && three_inits.at(2)<=start_x_dot_upper_bound);
             assert(three_inits.at(3)>=displace_lower_bound && three_inits.at(3)<=displace_upper_bound);
             
-            for (int j=0; j<3; j++) {
+            for (int j=0; j<4; j++) {
                 fifty_history << three_inits.at(j) << "\t";
             }
             fifty_history << endl;

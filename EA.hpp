@@ -136,10 +136,12 @@ void EA::Build_Population() {
         assert(ant_pol.at(i).A_weights.size() == pP->A_num_weights);
         
         if (pP->rand_antagonist==true) { //if statement not necessary
-            double A_IC_goal = -2 + double(rand() % 4);
-            double A_IC_startx = 5 + double(rand() % 15);
-            double A_IC_startxdot = -2 + double(rand() % 4);
-            double A_IC_displace = -2 + double(rand() % 4);
+            double A_IC_goal = pP->goal_x_lower_bound + double(rand() % (int)(pP->goal_x_upper_bound-pP->goal_x_lower_bound));
+            double A_IC_startx = pP->start_x_lower_bound + double(rand() % (int)(pP->start_x_upper_bound-pP->start_x_lower_bound));
+            double A_IC_startxdot = pP->start_x_dot_lower_bound + double(rand() % (int)(pP->start_x_dot_upper_bound-pP->start_x_dot_lower_bound));
+            double A_IC_displace = pP->displace_lower_bound + double(rand() % (int)(pP->displace_upper_bound-pP->displace_lower_bound));
+            
+
             assert(A_IC_startx<20);
             ant_pol.at(i).A_ICs.push_back(A_IC_goal);           //goal_x
             ant_pol.at(i).A_ICs.push_back(A_IC_startx);         //start_x
@@ -299,6 +301,9 @@ void EA::Run_Simulation() {
                 pP->start_x_dot = pP->fifty_inits.at(k).at(2);  //start xdot from vector
                 pP->displace = pP->fifty_inits.at(k).at(3);     //dispace from vector
                 //pP->displace = pP->init_displace;
+            }
+            else if (pP->rand_start_gen==true){
+                
             }
             else{
                 pP->start_x = pP->init_start_x;
@@ -491,16 +496,10 @@ void EA::Mutation(Policy &M, Policy &N) {
                 if (N.A_ICs.at(1)>pP->start_x_upper_bound){
                     N.A_ICs.at(1) =pP->start_x_upper_bound;
                 }
-                if (N.A_ICs.at(1)<10){
-                    N.A_ICs.at(1) =10;
-                }
-                /*
-                if (N.A_ICs.at(1)>pP->start_x_upper_bound){
-                    N.A_ICs.at(1) =pP->start_x_upper_bound;
-                }
+                
                 if (N.A_ICs.at(1)<pP->start_x_lower_bound){
                     N.A_ICs.at(1) =pP->start_x_lower_bound;
-                }*/
+                }
             }
             else if (v==2 && random2 <= pP->mutation_rate){
                 //START_X_DOT SET AND BOUNDARY CHECK

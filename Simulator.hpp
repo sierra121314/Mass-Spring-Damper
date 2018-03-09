@@ -140,8 +140,11 @@ void Simulator::MSD_initStates(Policy* pPo, Policy* aPo){
     else if(pP->multi_var==true){
         
     }
+    else if (pP->rand_start_gen==true){
+        
+    }
     else{
-        assert(pP->init_goal_x==pP->goal_x && pP->init_start_x==pP->start_x && pP->init_start_x_dot==pP->start_x_dot && pP->init_displace==pP->displace);
+        assert(pP->init_goal_x==pP->goal_x && pP->init_start_x==pP->start_x && pP->init_start_x_dot==pP->start_x_dot);
     }
     pPo->x = pP->start_x-pP->displace; //starting position minus any displacement
     pPo->x_dot = pP->start_x_dot;
