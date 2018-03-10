@@ -136,15 +136,16 @@ void EA::Build_Population() {
         assert(ant_pol.at(i).A_weights.size() == pP->A_num_weights);
         
         if (pP->rand_antagonist==true) { //if statement not necessary
-            //double A_IC_goal = pP->ant_goal_x_lower_bound + double(rand() % (int)(pP->ant_goal_x_upper_bound-pP->ant_goal_x_lower_bound));
-            //double A_IC_startx = pP->ant_start_x_lower_bound + double(rand() % (int)(pP->ant_start_x_upper_bound-pP->ant_start_x_lower_bound));
-            //double A_IC_startxdot = pP->ant_start_x_dot_lower_bound + double(rand() % (int)(pP->ant_start_x_dot_upper_bound-pP->ant_start_x_dot_lower_bound));
-            //double A_IC_displace = pP->ant_displace_lower_bound + double(rand() % (int)(pP->ant_displace_upper_bound-pP->ant_displace_lower_bound));
+            double A_IC_goal = pP->ant_goal_x_lower_bound + double(rand() % (int)(pP->ant_goal_x_upper_bound-pP->ant_goal_x_lower_bound));
+            double A_IC_startx = pP->ant_start_x_lower_bound + double(rand() % (int)(pP->ant_start_x_upper_bound-pP->ant_start_x_lower_bound));
+            double A_IC_startxdot = pP->ant_start_x_dot_lower_bound + double(rand() % (int)(pP->ant_start_x_dot_upper_bound-pP->ant_start_x_dot_lower_bound));
+            double A_IC_displace = pP->ant_displace_lower_bound + double(rand() % (int)(pP->ant_displace_upper_bound-pP->ant_displace_lower_bound));
             
+            /*
             double A_IC_goal = pP->init_goal_x;
             double A_IC_startx = pP->init_start_x;
             double A_IC_startxdot = pP->init_start_x_dot;
-            double A_IC_displace = pP->init_displace;
+            double A_IC_displace = pP->init_displace;*/
 
             assert(A_IC_startx<20);
             ant_pol.at(i).A_ICs.push_back(A_IC_goal);           //goal_x
@@ -614,7 +615,7 @@ void EA::update_best_fit(){
     best_P_fitness.push_back(pro_pol.at(0).P_fitness);      // best fitness per generation
     best_A_fitness.push_back(ant_pol.at(0).A_fitness);
     
-    if (pP->rand_antagonist==true){
+    if (pP->rand_antagonist==true || pP->rand_ant_per_5gen==true){
         ofstream AIC_goal,AIC_startx,AIC_startxdot,AIC_displace;
         AIC_goal.open("ANT_goal_history_bestpergen.txt", fstream::app);
         AIC_startx.open("ANT_startx_history_bestpergen.txt", fstream::app);
@@ -949,16 +950,22 @@ void EA::Run_Program() {
     
     
     for (int gen=0; gen<pP->gen_max; gen++) {
-        if (pP->tr_2==true){
-            //assert(pP->start_x==15 && pP->start_x_dot==0 && pP->start_x_dd==0);
+        if (pP->rand_ant_per_5gen ==true && gen==0){
+            pP->rand_antagonist = true;
         }
         if (gen %5 ==0){
             if (pP->rand_start_5gen==true){
                 pP->random_start_end_variables();
             }
+            if (pP->rand_ant_per_5gen ==true){
+                pP->rand_antagonist = true;
+            }
         }
-        if (gen %10 ==0) {
-            //cout << "GENERATION \t" << gen << endl;
+        else{
+            if (pP->rand_ant_per_5gen ==true){
+                pP->rand_antagonist = false;
+                assert(gen!=0 || gen != gen % 5);
+            }
         }
         if (gen < pP->gen_max-1) {
             

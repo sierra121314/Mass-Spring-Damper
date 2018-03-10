@@ -26,9 +26,9 @@ protected:
     
 public:
     // EA STUFF //
-    int num_pol = 10;                  //number of policies
+    int num_pol = 100;                  //number of policies
     int to_kill = num_pol/2;
-    int gen_max = 10;                  //number of generations
+    int gen_max = 500;                  //number of generations
     double total_time = 1000;            //total time steps
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range
@@ -42,6 +42,11 @@ public:
     bool MSD_EOM = true;
     bool Pend_EOM = false;
     bool full_leniency = false;
+    
+    double P_force;                     //Protagonist force
+    double A_force;                     //Antagonist force
+    double start_P_force = 0;
+    double start_A_force = 0;
     
     // NEURAL NETWORK STUFF //
     int num_weights;
@@ -83,19 +88,16 @@ public:
     double displace_upper_bound = 2;
     double displace_lower_bound = -2;
     
-    double ant_goal_x_upper_bound = goal_x_upper_bound/2;
-    double ant_goal_x_lower_bound = goal_x_lower_bound/2;
-    double ant_start_x_upper_bound = start_x_lower_bound + start_x_upper_bound/2;
-    double ant_start_x_lower_bound = start_x_lower_bound + start_x_lower_bound/2;
-    double ant_start_x_dot_upper_bound = start_x_dot_upper_bound/2;
-    double ant_start_x_dot_lower_bound = start_x_dot_lower_bound/2;
-    double ant_displace_upper_bound = displace_upper_bound/2;
-    double ant_displace_lower_bound = displace_lower_bound/2;
+    double ant_goal_x_upper_bound = goal_x_upper_bound;
+    double ant_goal_x_lower_bound = goal_x_lower_bound;
+    double ant_start_x_upper_bound = start_x_upper_bound;
+    double ant_start_x_lower_bound = start_x_lower_bound;
+    double ant_start_x_dot_upper_bound = start_x_dot_upper_bound;
+    double ant_start_x_dot_lower_bound = start_x_dot_lower_bound;
+    double ant_displace_upper_bound = displace_upper_bound;
+    double ant_displace_lower_bound = displace_lower_bound;
     
-    double P_force;                     //Protagonist force
-    double A_force;                     //Antagonist force
-    double start_P_force = 0;
-    double start_A_force = 0;
+    
     
     
     // RANDOMIZING STARTS //
@@ -105,10 +107,11 @@ public:
     
     // 2ND ANTAGONIST //
     bool rand_antagonist = false;
+    bool rand_ant_per_5gen = false;         //Allows variable manipulating ANT to evolve every 5 generations
     double num_loops;
     vector<double> fifty_fitness;
-    bool multi_var;      //50 goals per policy
-    void fifty_var();           //50 goals, start_x, start_x_dot
+    bool multi_var;                         //50 goals per policy
+    void fifty_var();                       //50 goals, start_x, start_x_dot
     vector<vector<double>> fifty_inits;
     
     
@@ -291,7 +294,7 @@ void Parameters::train_para(){
     train_para << "# Policies\t" << num_pol << "\t # Generations\t" << gen_max << "\t Mut Rate and Range\t" << mutation_rate << "\t" << mutate_range << endl;
     train_para << "Pro Bounds\t " << P_f_min_bound << "\t" << P_f_max_bound << endl;
     train_para << "Ant Bounds\t " << A_f_min_bound << "\t" << A_f_max_bound << endl;
-    train_para << "Random Antagonist\t" << rand_antagonist << endl;
+    train_para << "Random Antagonist\t" << rand_antagonist << "\tEvery 5 gen\t" << rand_ant_per_5gen << endl;
     train_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
     train_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
     train_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl << "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << "\tFrequency" << lambda << endl;
@@ -321,6 +324,7 @@ void Parameters::train(){
         A_f_max_bound = 0;
         
         rand_antagonist = false;
+        rand_ant_per_5gen = false;
         rand_start_gen = false;
         rand_start_5gen = false;
         multi_var = false;          //do NOT change this one
@@ -332,6 +336,7 @@ void Parameters::train(){
         A_f_max_bound = 1;
         
         rand_antagonist = false;
+        rand_ant_per_5gen = false;
         rand_start_gen = false;
         rand_start_5gen = false;
         multi_var = false;          //do NOT change this one
@@ -343,6 +348,7 @@ void Parameters::train(){
         A_f_max_bound = 0;
         
         rand_antagonist = false;
+        rand_ant_per_5gen = false;
         rand_start_gen = true; //pick one or the other
         rand_start_5gen = false;
         multi_var = false;          //do NOT change this one
@@ -354,6 +360,7 @@ void Parameters::train(){
         A_f_max_bound = 0;
         
         rand_antagonist = true;
+        rand_ant_per_5gen = false;       //turn on or off
         rand_start_gen = false;
         rand_start_5gen = false;
         multi_var = false;          //do NOT change this one
@@ -399,6 +406,7 @@ void Parameters::test(){
         rand_antagonist = false;
         multi_var = false;       //50 rand variables per policy
         rand_start_gen = false;  //do NOT change this one
+        rand_ant_per_5gen = false;
     }
     if (te_B == true){
         P_f_min_bound = -5;
@@ -412,6 +420,7 @@ void Parameters::test(){
         rand_antagonist = false;
         multi_var = true;               //50 rand variables per policy
         rand_start_gen = false;         //do NOT change this one
+        rand_ant_per_5gen = false;      //do NOT change this one
         
         fifty_var();
     }

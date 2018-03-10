@@ -139,7 +139,7 @@ void Simulator::set_A_ICs(Policy* pPo, Policy* aPo){
 }
 void Simulator::MSD_initStates(Policy* pPo, Policy* aPo){
     //intialize starting stuff
-    if (pP->rand_antagonist==true){
+    if (pP->rand_antagonist==true || pP->rand_ant_per_5gen == true){
         set_A_ICs(pPo, aPo);
         assert(pP->goal_x == aPo->A_ICs.at(0) && pP->start_x == aPo->A_ICs.at(1) && pP->start_x_dot == aPo->A_ICs.at(2) && pP->displace == aPo->A_ICs.at(3));
     }
