@@ -81,6 +81,12 @@ public:
     double ave_sensor_noise;
     double ave_actuator_noise;
     
+    vector<double> set_sensor_actuator_noise(vector<double> noise);
+    double x_sensor_noise();
+    double xdot_sensor_noise();
+    double x_actuator_noise();
+    double xdot_actuator_noise();
+    
     // HISTORY
     void history(Policy* pPo, Policy* aPo);
     void clear_history(Policy* pPo, Policy* aPo);
@@ -279,6 +285,82 @@ double Simulator::generateGaussianNoise() {
     }
     return n;
 }
+double Simulator::x_sensor_noise(){
+    double r = generateGaussianNoise();
+    assert(r<=1 && r>=-1);
+    
+    if (pP->sinusoidal_noise==true){
+        sinusoidal = pP->As*sin((pP->lambda)*(xt)+pP->phase);
+        assert(sinusoidal <= abs(pP->As)+abs(r) && sinusoidal >= -abs(pP->As)-abs(r));
+    }
+    else{
+        sinusoidal = 0;
+    }
+    double yt = sinusoidal + r;
+    
+    return yt;
+}
+double Simulator::xdot_sensor_noise(){
+    double rr = generateGaussianNoise();
+    assert(rr<=1 && rr>=-1);
+    if (pP->sinusoidal_noise==true){
+        sinusoidal = pP->As*sin((pP->lambda)*(xt)+pP->phase);
+        assert(sinusoidal <= abs(pP->As)+abs(rr) && sinusoidal >= -abs(pP->As)-abs(rr));
+    }
+    else{
+        sinusoidal = 0;
+    }
+    double yt = sinusoidal + rr;
+    
+    return yt;
+}
+
+double Simulator::x_actuator_noise(){
+    double r = generateGaussianNoise();
+    assert(r<=1 && r>=-1);
+    
+    if (pP->sinusoidal_noise==true){
+        sinusoidal = pP->As*sin((pP->lambda)*(xt)+pP->phase);
+        assert(sinusoidal <= abs(pP->As)+abs(r) && sinusoidal >= -abs(pP->As)-abs(r));
+    }
+    else{
+        sinusoidal = 0;
+    }
+    double yt = sinusoidal + r;
+    return yt;
+}
+
+double Simulator::xdot_actuator_noise(){
+    double rr = generateGaussianNoise();
+    assert(rr<=1 && rr>=-1);
+    if (pP->sinusoidal_noise==true){
+        sinusoidal = pP->As*sin((pP->lambda)*(xt)+pP->phase);
+        assert(sinusoidal <= abs(pP->As)+abs(rr) && sinusoidal >= -abs(pP->As)-abs(rr));
+    }
+    else{
+        sinusoidal = 0;
+    }
+    double yt = sinusoidal + rr;
+    return yt;
+}
+
+vector<double> Simulator::set_sensor_actuator_noise(vector<double> noise){
+    xt = xt+pP->dt;     //increment timer for the sinewave
+    if (pP->sensor_NOISE == true) {
+        noise.at(0)= x_sensor_noise();
+        noise.at(2)= xdot_sensor_noise();
+    }
+    if (pP->actuator_NOISE == true) {
+        noise.at(1)= x_actuator_noise();
+        noise.at(3)= xdot_actuator_noise();
+    }
+    
+    noise.at(0) = pP->sn*noise.at(0);           //sensor noise for position
+    noise.at(1) = pP->an*noise.at(1);           //actuator noise for position
+    noise.at(2) = pP->sn*noise.at(2);    //sensor noise for velocity
+    noise.at(3) = pP->an*noise.at(3);           //actuator noise for velocity
+    return noise;
+}
 vector<double> Simulator::noise_init(vector<double> noise){
     noise.push_back(0); // x sensor
     noise.push_back(0); // x actuator
@@ -384,50 +466,9 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         
         noise = noise_init(noise); //set sensor and actuator noise to zero
         assert(noise.at(0)==0 && noise.at(1)==0 && noise.at(2)==0 && noise.at(3)==0);
-        xt = xt+pP->dt;
-        if (pP->sensor_NOISE == true) {
-            double r = generateGaussianNoise();
-            assert(r<=1 && r>=-1);
-            
-            if (pP->sinusoidal_noise==true){
-                
-                //sinusoidal = pP->As*sin(PI/8*(xt+pP->dt)+pP->phase);
-                sinusoidal = pP->As*sin((pP->lambda)*(xt)+pP->phase);
-                assert(sinusoidal <= abs(pP->As)+abs(r) && sinusoidal >= -abs(pP->As)-abs(r));
-            }
-            
-            double yt = r + sinusoidal;
-            noise.at(0)= yt;
-            
-            double rr = generateGaussianNoise();
-            assert(rr<=1 && rr>=-1);
-            //sinusoidal = sin(2*PI*(xt+pP->dt)+pP->phase);
-            yt = rr + sinusoidal;
-            noise.at(2)= yt;
-            //cout << "r=" << r << "\t" << "rr=" << rr << endl;
-        }
-        if (pP->actuator_NOISE == true) {
-            double r = generateGaussianNoise();
-            assert(r<=1 && r>=-1);
-            
-            if (pP->sinusoidal_noise==true){
-                //sinusoidal = pP->As*sin(PI/8*(xt+pP->dt)+pP->phase);
-                sinusoidal = pP->As*sin((pP->lambda)*(xt)+pP->phase);
-                assert(sinusoidal <= abs(pP->As)+abs(r) && sinusoidal >= -abs(pP->As)-abs(r));
-            }
-            double yt = r + sinusoidal;
-            noise.at(1)= yt;
-            
-            double rr = generateGaussianNoise();
-            assert(rr<=1 && rr>=-1);
-            yt = rr + sinusoidal;
-            noise.at(3)= yt;
-        }
         
-        noise.at(0) = pP->sn*noise.at(0); //sensor noise for position
-        noise.at(1) = pP->an*noise.at(1); //actuator noise for position
-        noise.at(2) = pP->sn*(1/10)*noise.at(2); //sensor noise for velocity
-        noise.at(3) = pP->an*noise.at(3); //actuator noise for velocity
+        noise = set_sensor_actuator_noise(noise); //if noise -> update noise
+        
         state.push_back(pPo->x+noise.at(0)+noise.at(1));
         state.push_back(pPo->x_dot+noise.at(2)+noise.at(3));
         assert(state.size()==2);

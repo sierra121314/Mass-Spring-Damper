@@ -51,7 +51,9 @@ int main() {
         
         //TRAINING MODES
         
+        P.five_A = false;
         P.five_B = true;
+        P.four_A = false;
         P.four_B = false;
         P.two_B = false;
         P.three_B = false;

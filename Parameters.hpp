@@ -26,9 +26,9 @@ protected:
     
 public:
     // EA STUFF //
-    int num_pol = 100;                  //number of policies
+    int num_pol = 10;                  //number of policies
     int to_kill = num_pol/2;
-    int gen_max = 500;                  //number of generations
+    int gen_max = 10;                  //number of generations
     double total_time = 1000;            //total time steps
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range
@@ -51,6 +51,16 @@ public:
     int num_outputs = 1;
     int num_nodes = 10;
     
+    // NN BOUNDARIES //
+    double P_f_min_bound; //set in main
+    double P_f_max_bound;
+    double A_f_min_bound;
+    double A_f_max_bound;
+    double x_min_bound = 0;
+    double x_max_bound = 30;        //maybe this should be max boundary plus goal as max
+    double x_dot_min_bound = -.2;
+    double x_dot_max_bound = .2;
+    
     
     // GOAL VARIABLES //
     void reset_start_var();
@@ -63,8 +73,8 @@ public:
     double init_displace = 2;        //initial displacement
     double displace;
     double init_goal_x = 2;
-    double goal_x;              //ending position (start_x+goal_x);
-    double goal_x_upper_bound = 2;     //had to use int vs double due to rand() only works with ints
+    double goal_x;                      //ending position (start_x+goal_x);
+    double goal_x_upper_bound = 2;
     double goal_x_lower_bound = -2;
     double start_x_upper_bound = 20;
     double start_x_lower_bound = 5;
@@ -73,20 +83,19 @@ public:
     double displace_upper_bound = 2;
     double displace_lower_bound = -2;
     
+    double ant_goal_x_upper_bound = goal_x_upper_bound/2;
+    double ant_goal_x_lower_bound = goal_x_lower_bound/2;
+    double ant_start_x_upper_bound = start_x_lower_bound + start_x_upper_bound/2;
+    double ant_start_x_lower_bound = start_x_lower_bound + start_x_lower_bound/2;
+    double ant_start_x_dot_upper_bound = start_x_dot_upper_bound/2;
+    double ant_start_x_dot_lower_bound = start_x_dot_lower_bound/2;
+    double ant_displace_upper_bound = displace_upper_bound/2;
+    double ant_displace_lower_bound = displace_lower_bound/2;
+    
     double P_force;                     //Protagonist force
     double A_force;                     //Antagonist force
     double start_P_force = 0;
     double start_A_force = 0;
-    
-    // NN BOUNDARIES //
-    double P_f_min_bound; //set in main
-    double P_f_max_bound;
-    double A_f_min_bound;
-    double A_f_max_bound;
-    double x_min_bound = 0;
-    double x_max_bound = 30;        //maybe this should be max boundary plus goal as max
-    double x_dot_min_bound = -.2;
-    double x_dot_max_bound = .2;
     
     
     // RANDOMIZING STARTS //
@@ -123,7 +132,10 @@ public:
     // TRAINING AND TESTING MODES //
     void train_set();       //Depending on combo selected, set testing bool to true
     void test_set();        //Depending on combo selected, set testing bool to true
+    
+    bool five_A;
     bool five_B;          //Antagonist that manipulates starting variables
+    bool four_A;
     bool four_B;          //Primary with random starting variables per generation
     bool three_B;
     bool three_A;         //train test 3 combo
@@ -199,10 +211,20 @@ void Parameters::train_set(){
         assert(tr_2==false && tr_4==false && tr_5==false);
         cout << "train three - test B" <<endl;
     }
+    if (four_A == true){
+        tr_4 = true;    //Primary with random start per gen
+        assert(tr_2==false && tr_3==false && tr_5==false);
+        cout << "train four - test A" <<endl;
+    }
     if (four_B == true){
         tr_4 = true;    //Primary with random start per gen
         assert(tr_2==false && tr_3==false && tr_5==false);
         cout << "train four - test B" <<endl;
+    }
+    if (five_A == true){
+        tr_5 = true;
+        assert(tr_2==false && tr_3==false && tr_4==false);
+        cout << "train five - test A" <<endl;
     }
     if (five_B == true){
         tr_5 = true;
@@ -235,10 +257,20 @@ void Parameters::test_set(){
         assert(te_A==false);
         cout << "Start - test B" <<endl;
     }
+    if (four_A == true){
+        te_A = true;
+        assert(te_B==false);
+        cout << "Start - test A" <<endl;
+    }
     if (four_B == true){
         te_B = true;    //Primary with 50 starting variables per policy
         assert(te_A==false);
         cout << "Start - test B" <<endl;
+    }
+    if (five_A == true){
+        te_A = true;
+        assert(te_B==false);
+        cout << "Start - test A" <<endl;
     }
     if (five_B == true){
         te_B = true;
@@ -262,12 +294,19 @@ void Parameters::train_para(){
     train_para << "Random Antagonist\t" << rand_antagonist << endl;
     train_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
     train_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
-    train_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl << "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << endl;
+    train_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl << "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << "\tFrequency" << lambda << endl;
     train_para << "Random Starts/Gen\t" << rand_start_gen << "\t" << rand_start_5gen << endl;
     train_para << "50 Starting Variables/Policy\t" << multi_var << endl;
     train_para << "goal upper and lower bound\t" << goal_x_upper_bound << "\t" << goal_x_lower_bound << endl;
      train_para << "start_x upper and lower bound\t" << start_x_upper_bound << "\t" << start_x_lower_bound << endl;
     train_para << "start_xdot upper and lower bound\t" << start_x_dot_upper_bound << "\t" << start_x_dot_lower_bound << endl;
+    train_para << "displacement upper and lower bound\t" << displace_upper_bound << "\t" << displace_lower_bound << endl;
+    
+    train_para << "ANT goal upper and lower bound\t" << ant_goal_x_upper_bound << "\t" << ant_goal_x_lower_bound << endl;
+    train_para << "ANT start_x upper and lower bound\t" << ant_start_x_upper_bound << "\t" << ant_start_x_lower_bound << endl;
+    train_para << "ANT start_xdot upper and lower bound\t" << ant_start_x_dot_upper_bound << "\t" << ant_start_x_dot_lower_bound << endl;
+    train_para << "ANT displacement upper and lower bound\t" << ant_displace_upper_bound << "\t" << ant_displace_lower_bound << endl;
+    
     train_para.close();
 }
 
@@ -335,12 +374,13 @@ void Parameters::test_para(){
     test_para << "Random Antagonist\t" << rand_antagonist << endl;
     test_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
     test_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
-    test_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl <<  "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << endl;
+    test_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl << "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << "\tFrequency" << lambda << endl;
     test_para << "Random Starts/Gen\t" << rand_start_gen << "\t" << rand_start_5gen << endl;
     test_para << "50 Starting Variables/Policy\t" << multi_var << endl;
     test_para << "goal upper and lower bound\t" << goal_x_upper_bound << "\t" << goal_x_lower_bound << endl;
     test_para << "start_x upper and lower bound\t" << start_x_upper_bound << "\t" << start_x_lower_bound << endl;
     test_para << "start_xdot upper and lower bound\t" << start_x_dot_upper_bound << "\t" << start_x_dot_lower_bound << endl;
+    test_para << "displacement upper and lower bound\t" << displace_upper_bound << "\t" << displace_lower_bound << endl;
     
     test_para.close();
 }
