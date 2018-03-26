@@ -27,7 +27,7 @@
 #include "EA.hpp"
 
 
-int stat_runs = 5;
+int stat_runs = 2;
 
 
 int main() {
@@ -51,12 +51,15 @@ int main() {
         
         //TRAINING MODES
         
-        P.five_B = true;
+        P.five_A = false;
+        P.five_B = false;
+        P.four_A = false;
         P.four_B = false;
         P.two_B = false;
         P.three_B = false;
-        P.three_A = false;
+        P.three_A = true;
         P.two_A = false;
+        
         
         if (P.two_B==true){
             P.five_B = false;
