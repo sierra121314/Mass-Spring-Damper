@@ -52,6 +52,20 @@ public:
     void MSD_equations(Policy* pPo, Policy* aPo);
     void Pendulum_equations(Policy* pPo, Policy* aPo);
     
+    // Runge-Kutta
+    double t_init = 0;
+    double t;
+    double k1_w;
+    double k2_w;
+    double k3_w;
+    double k4_w;
+    double k1_theta;
+    double k2_theta;
+    double k3_theta;
+    double k4_theta;
+    double theta_dd(double theta);
+    double theta_dot(double theta_d);
+    
     //PRIMARY
     neural_network set_P_NN(neural_network NN, Policy* pPo);
     double set_P_force(neural_network NN, vector<double> state);
@@ -176,7 +190,7 @@ void Simulator::Pend_initStates(Policy* pPo, Policy* aPo){
     else{
         assert(pP->init_goal_x==pP->goal_x && pP->init_start_x==pP->start_x && pP->init_start_x_dot==pP->start_x_dot);
     }
-    pP->goal_x = pP->pend_goal;
+    //pP->goal_x = pP->pend_goal;
     pPo->x = pP->start_x; //starting position minus any displacement
     pPo->x_dot = pP->start_x_dot;
     pPo->x_dd = pP->start_x_dd;
@@ -404,24 +418,57 @@ void Simulator::MSD_equations(Policy* pPo, Policy* aPo){
         pPo->x_dot = 0;
     }
 }
+double Simulator::theta_dd(double theta){
+    //pP->P_force=0;
+    double c = pP->P_force + pP->A_force - pP->mu*x_dot_old;
+    double theta_dd = 9.81*sin(theta) / (pP->L) + (c)/(pP->m*pow(pP->L,2)); //rad/s^2   // define theta_dd with t variable
+    return theta_dd;
+}
+double Simulator::theta_dot(double theta_d){
+    return theta_d;
+}
 
 void Simulator::Pendulum_equations(Policy *pPo, Policy *aPo){
     x_old = pPo->x;     // x is a representation of theta in this domain
     x_dot_old = pPo->x_dot;
     x_dd_old = pPo->x_dd;
     
-    double c = pP->P_force + pP->A_force - pP->mu*x_dot_old;
+    //double c = pP->P_force + pP->A_force - pP->mu*x_dot_old;
     
-    pPo->x_dd = 9.81*sin(x_old) / (pP->L) + (c)/(pP->m*pow(pP->L,2)); //rad/s^2   // define theta_dd with t variable
-    //pPo->x_dd = -9.81*cos(x_old) / (pP->L) + (c)/(pP->m*pow(pP->L,1)); //rad/s^2   // define theta_dd with t variable
+    //pPo->x_dd = 9.81*sin(x_old) / (pP->L) + (c)/(pP->m*pow(pP->L,2)); //rad/s^2   // define theta_dd with t variable
     
-    //pPo->x_dd = (c + pP->m*9.81*sin(x_old) + pP->m*cos(x_old))/(pP->m*pP->L);
-    //pPo->x_dd = (pP->m*9.81*sin(x_old) + pP->m*cos(x_old))/(pP->m*pP->L);
-    
-    //thetat_dd to theta_dot
-    pPo->x_dot = x_dot_old + pPo->x_dd*pP->dt;
+    //thetat_dd to theta_dot //EULER'S METHOD
+    //pPo->x_dot = x_dot_old + pPo->x_dd*pP->dt;
     //theta_dot to theta
-    pPo->x = x_old + pPo->x_dot*pP->dt;
+    //pPo->x = x_old + pPo->x_dot*pP->dt;
+    
+    //RK4
+    t = t + pP->dt;
+    double theta = x_old;
+    double theta_d = x_dot_old;
+    k1_w = theta_dd(theta);
+    k1_theta = theta_dot(theta_d);
+    pPo->x_dd = k1_w;
+    
+    theta = x_old + pP->dt*0.5*k1_theta;
+    theta_d = x_dot_old + 0.5*pP->dt*k1_w;
+    k2_w = theta_dd(theta);
+    k2_theta = theta_dot(theta_d);
+    
+    theta = x_old + pP->dt*0.5*k2_theta;
+    theta_d = x_dot_old + 0.5*pP->dt*k2_w;
+    k3_w = theta_dd(theta);
+    k3_theta = theta_dot(theta_d);
+    
+    theta = x_old + pP->dt*0.5*k3_theta;
+    theta_d = x_dot_old + 0.5*pP->dt*k3_w;
+    k4_w = theta_dd(theta);
+    k4_theta = theta_dot(theta_d);
+    
+    pPo->x_dot = x_dot_old + (pP->dt/6)*(k1_w + 2*k2_w + 2*k3_w + k4_w);
+    pPo->x = x_old + (pP->dt/6)*(k1_theta + 2*k2_theta + 2*k3_theta + k4_theta);
+    
+    
     
     if (pPo->x > PI){
         pPo->x = pPo->x - 2*PI;
@@ -429,7 +476,6 @@ void Simulator::Pendulum_equations(Policy *pPo, Policy *aPo){
     else if(pPo->x < -PI){
         pPo->x = 2*PI + pPo->x;
     }
-    
     assert(pPo->x <= PI && pPo->x >= -PI);
     
     //theta to xy
@@ -487,6 +533,8 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
 {
     pPo->P_fit_swap = 0;
     aPo->A_fit_swap = 0;
+    t = t_init;
+    assert(t==0);
     
     //NOISE GRAPH
     fstream nsensor, nactuator, tstep_sensor, tstep_actuator;

@@ -38,15 +38,21 @@ public:
     double b = 0.05;    //damper
     double k = 1;       //spring
     double dt = 0.1;    //time step [s]
-    double mu = 0;      //friction
+    double mu = 1;      //friction
     bool MSD_EOM = false;
     bool Pend_EOM = true;
     bool full_leniency = false;
     
+    // MSD DOMAIN
+    double msd_start = 15;
+    double init_msd_goal = 2;
+    
+    // PENDULUM DOMAIN
     double L = 10;
-    double pend_m = 1;                  //pendulum mass - set in reset_var
+    double pend_m = 0.25;                  //pendulum mass - set in reset_var
     double init_pend_goal = 0;
     double pend_start = ((-5)*PI/180);
+    double pend_goal;
     
     double P_force;                     //Protagonist force
     double A_force;                     //Antagonist force
@@ -74,7 +80,7 @@ public:
     
     // GOAL VARIABLES //
     void reset_start_var();
-    double init_start_x = 15;
+    double init_start_x;
     double init_start_x_dot = 0;
     double start_x;
     double start_x_dot;
@@ -82,9 +88,11 @@ public:
     
     double init_displace = 2;        //initial displacement
     double displace;
-    double init_goal_x = 2;
+    double init_goal_x;
     double goal_x;                      //ending position (start_x+goal_x);
-    double pend_goal;
+    
+    
+    
     double goal_x_upper_bound = 2;
     double goal_x_lower_bound = -2;
     double start_x_upper_bound = 20;
@@ -178,8 +186,8 @@ void Parameters::reset_start_var(){
     start_x_dd = 0;
     
     if (MSD_EOM==true){
-        start_x = init_start_x;
-        goal_x = init_goal_x;
+        init_start_x = msd_start;
+        init_goal_x = init_msd_goal;
         displace = init_displace;
         
         x_min_bound = 0;
@@ -189,6 +197,7 @@ void Parameters::reset_start_var(){
     }
     else if(Pend_EOM==true){
         init_goal_x = init_pend_goal;
+        pend_goal = init_pend_goal;
         init_start_x = pend_start;
         init_displace = 0;
         m = pend_m;
