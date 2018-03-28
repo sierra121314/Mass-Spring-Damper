@@ -26,7 +26,7 @@ protected:
     
 public:
     // EA STUFF //
-    int num_pol = 100;                  //number of policies
+    int num_pol = 20;                  //number of policies
     int to_kill = num_pol/2;
     int gen_max = 500;                  //number of generations
     double total_time = 1000;            //total time steps

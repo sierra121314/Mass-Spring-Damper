@@ -469,14 +469,19 @@ void Simulator::Pendulum_equations(Policy *pPo, Policy *aPo){
     pPo->x = x_old + (pP->dt/6)*(k1_theta + 2*k2_theta + 2*k3_theta + k4_theta);
     
     
-    
+    if (pPo->x > 2*PI){
+        pPo->x = pPo->x - 2*PI;
+    }
+    else if(pPo->x < -2*PI){
+        pPo->x = 2*PI + pPo->x;
+    }/*
     if (pPo->x > PI){
         pPo->x = pPo->x - 2*PI;
     }
     else if(pPo->x < -PI){
         pPo->x = 2*PI + pPo->x;
     }
-    assert(pPo->x <= PI && pPo->x >= -PI);
+    assert(pPo->x <= PI && pPo->x >= -PI);*/
     
     //theta to xy
     //Px = L*cos(theta);
