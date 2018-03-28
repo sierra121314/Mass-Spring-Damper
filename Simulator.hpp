@@ -105,6 +105,7 @@ public:
     // HISTORY
     void history(Policy* pPo, Policy* aPo);
     void clear_history(Policy* pPo, Policy* aPo);
+    void void_history(Policy* pPo, Policy* aPo);
     
 private:
 };
@@ -143,6 +144,23 @@ void Simulator::history(Policy* pPo, Policy* aPo){
     pPo->velocity_noise_tstep_history.push_back(noise_xdot_increm);
     pPo->sensor_noise_tstep_history.push_back(noise_sensor_increm);
     pPo->actuator_noise_tstep_history.push_back(noise_actuator_increm);
+}
+void Simulator::void_history(Policy* pPo, Policy* aPo){
+    double void_hist = -10;
+    pPo->x_history.push_back(void_hist);
+    pPo->x_dot_history.push_back(void_hist);
+    pPo->x_dd_history.push_back(void_hist);
+    pPo->P_force_history.push_back(void_hist);
+    aPo->A_force_history.push_back(void_hist);
+    
+    //pPo->position_noise_tstep_history.push_back(noise_x_sum);
+    //pPo->velocity_noise_tstep_history.push_back(noise_xdot_sum);
+    //pPo->sensor_noise_tstep_history.push_back(noise_sensor_sum);
+    //pPo->actuator_noise_tstep_history.push_back(noise_actuator_sum);
+    pPo->position_noise_tstep_history.push_back(0);
+    pPo->velocity_noise_tstep_history.push_back(0);
+    pPo->sensor_noise_tstep_history.push_back(0);
+    pPo->actuator_noise_tstep_history.push_back(0);
 }
 
 //------------------------------------------------------------------------------------------------------------
@@ -192,6 +210,7 @@ void Simulator::Pend_initStates(Policy* pPo, Policy* aPo){
     }
     //pP->goal_x = pP->pend_goal;
     pPo->x = pP->start_x; //starting position minus any displacement
+    assert(pPo->x = pP->pend_start);
     pPo->x_dot = pP->start_x_dot;
     pPo->x_dd = pP->start_x_dd;
     pP->P_force = pP->start_P_force;
@@ -420,6 +439,7 @@ void Simulator::MSD_equations(Policy* pPo, Policy* aPo){
 }
 double Simulator::theta_dd(double theta){
     //pP->P_force=0;
+    pP->P_force= pP->P_force*pP->L*sin(theta);
     double c = pP->P_force + pP->A_force - pP->mu*x_dot_old;
     double theta_dd = 9.81*sin(theta) / (pP->L) + (c)/(pP->m*pow(pP->L,2)); //rad/s^2   // define theta_dd with t variable
     return theta_dd;
@@ -468,20 +488,20 @@ void Simulator::Pendulum_equations(Policy *pPo, Policy *aPo){
     pPo->x_dot = x_dot_old + (pP->dt/6)*(k1_w + 2*k2_w + 2*k3_w + k4_w);
     pPo->x = x_old + (pP->dt/6)*(k1_theta + 2*k2_theta + 2*k3_theta + k4_theta);
     
-    
+    /*
     if (pPo->x > 2*PI){
         pPo->x = pPo->x - 2*PI;
     }
     else if(pPo->x < -2*PI){
         pPo->x = 2*PI + pPo->x;
-    }/*
+    }*/
     if (pPo->x > PI){
         pPo->x = pPo->x - 2*PI;
     }
     else if(pPo->x < -PI){
         pPo->x = 2*PI + pPo->x;
     }
-    assert(pPo->x <= PI && pPo->x >= -PI);*/
+    assert(pPo->x <= PI && pPo->x >= -PI);
     
     //theta to xy
     //Px = L*cos(theta);
@@ -491,16 +511,17 @@ void Simulator::Pendulum_equations(Policy *pPo, Policy *aPo){
 //-----------------------------------------------------------------------------
 void Simulator::calculateFitness(Policy* pPo, Policy* aPo){
     double ss_penalty = 0;
-    /*
-     if (pPo->x<1.05*(1 + pP->start_x) || pPo->x>.95*(1 + pP->start_x)) {
-     ss_penalty = 1; //want closest to 0 displacement and penalize for not being at Steady state
-     }
-     */
+    
     if (pP->multi_var==true){
         pP->goal_x = pP->goal_x;//goal.at(k) from list
         //assert(pP->goal_x==aPo->A_ICs.at(0));
         //cout << pP->goal_x << endl;
         if (pP->Pend_EOM==true){
+            
+             if (pPo->x>PI/2 || pPo->x<-PI/2) {
+                 ss_penalty = 50000; //want closest to 0 displacement and penalize for not being at Steady state
+             }
+             
             double F_dist = (abs(pP->goal_x - abs(pPo->x))); //2 + resting position
             pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
             aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
@@ -516,7 +537,11 @@ void Simulator::calculateFitness(Policy* pPo, Policy* aPo){
     else {
         //pP->goal_x = 2;
         if (pP->Pend_EOM==true){
+            if (pPo->x>PI/2 || pPo->x<-PI/2) {
+                ss_penalty = 50000; //want closest to 0 displacement and penalize for not being at Steady state
+            }
             double F_dist = (abs(pP->goal_x - abs(pPo->x))); //2 + resting position
+            assert(pP->goal_x == 0);
             pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
             aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
         }
@@ -586,6 +611,7 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         assert(state.size()==2);
         
         pP->P_force = set_P_force(NN, state);
+        
     
         if (pP->rand_antagonist==true){
             pP->A_force = 0;
@@ -605,6 +631,7 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         }
         else if(pP->Pend_EOM==true){
             Pendulum_equations(pPo, aPo);
+            
         }
        
         // CALCULATE FITNESS //
@@ -615,6 +642,14 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
         
         // STORE HISTORY (STATES,FORCES, NOISE) //
         history(pPo, aPo);
+        if(pP->Pend_EOM==true){
+            if (pPo->x>(PI/2) || pPo->x<(-PI/2)) {
+                for (int j=0; j< pP->total_time-i-1; j++){
+                    void_history(pPo, aPo);
+                }
+                i = pP->total_time-1;
+            }
+        }
 
     }
     

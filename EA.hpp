@@ -149,7 +149,7 @@ void EA::Build_Population() {
             double A_IC_startxdot = pP->init_start_x_dot;
             double A_IC_displace = pP->init_displace;*/
 
-            assert(A_IC_startx<20);
+            assert(A_IC_startx < 20);
             ant_pol.at(i).A_ICs.push_back(A_IC_goal);           //goal_x
             ant_pol.at(i).A_ICs.push_back(A_IC_startx);         //start_x
             ant_pol.at(i).A_ICs.push_back(A_IC_startxdot);      //start_x_dot
@@ -177,7 +177,7 @@ void EA::Run_Test_Simulation() {
     fstream test_fit;
     test_fit.open("stat_Ptest_fitness.txt", fstream::app);
     
-    assert(pP->tr_2==false || pP->tr_3==false || pP->tr_4==false || pP->tr_5==false);
+    assert(pP->tr_2 == false || pP->tr_3==false || pP->tr_4==false || pP->tr_5==false);
     
     
     test_init_fit(); //P and A fitness and fitswap set to zero
@@ -284,7 +284,7 @@ void EA::init_fit(){
 }
 void EA::full_leniency_ave_fit(){
     if (pP->A_f_max_bound != 0 && pP->full_leniency==true){
-        for (int b=0; b<pP->num_pol; b++){
+        for (int b=0; b < pP->num_pol; b++){
             pro_pol.at(b).P_fitness = pro_pol.at(b).P_fitness/pP->num_pol;
             ant_pol.at(b).A_fitness = ant_pol.at(b).A_fitness/pP->num_pol;
             //cout << "pro\t" << pro_pol.at(b).P_fitness << endl;

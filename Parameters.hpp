@@ -26,7 +26,7 @@ protected:
     
 public:
     // EA STUFF //
-    int num_pol = 20;                  //number of policies
+    int num_pol = 100;                  //number of policies
     int to_kill = num_pol/2;
     int gen_max = 500;                  //number of generations
     double total_time = 1000;            //total time steps
@@ -38,7 +38,7 @@ public:
     double b = 0.05;    //damper
     double k = 1;       //spring
     double dt = 0.1;    //time step [s]
-    double mu = 1;      //friction
+    double mu = 0;      //friction
     bool MSD_EOM = false;
     bool Pend_EOM = true;
     bool full_leniency = false;
@@ -48,10 +48,10 @@ public:
     double init_msd_goal = 2;
     
     // PENDULUM DOMAIN
-    double L = 10;
-    double pend_m = 0.25;                  //pendulum mass - set in reset_var
+    double L = 5;
+    double pend_m = 0.5;                  //pendulum mass - set in reset_var
     double init_pend_goal = 0;
-    double pend_start = ((-5)*PI/180);
+    double pend_start = ((5)*PI/180);
     double pend_goal;
     
     double P_force;                     //Protagonist force
@@ -362,8 +362,8 @@ void Parameters::train(){
     actuator_NOISE = false;    //Determined by train-test otherwise default
     
     if (tr_2 == true){
-        P_f_min_bound = -5;
-        P_f_max_bound = 5;
+        P_f_min_bound = -15;
+        P_f_max_bound = 15;
         A_f_min_bound = -0;
         A_f_max_bound = 0;
         
