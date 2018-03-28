@@ -26,7 +26,7 @@ protected:
     
 public:
     // EA STUFF //
-    int num_pol = 20;                  //number of policies
+    int num_pol = 100;                  //number of policies
     int to_kill = num_pol/2;
     int gen_max = 500;                  //number of generations
     double total_time = 1000;            //total time steps
@@ -39,9 +39,14 @@ public:
     double k = 1;       //spring
     double dt = 0.1;    //time step [s]
     double mu = 0;      //friction
-    bool MSD_EOM = true;
-    bool Pend_EOM = false;
-    bool full_leniency = true;
+    bool MSD_EOM = false;
+    bool Pend_EOM = true;
+    bool full_leniency = false;
+    
+    double L = 10;
+    double pend_m = 1;                  //pendulum mass - set in reset_var
+    double init_pend_goal = 0;
+    double pend_start = ((-5)*PI/180);
     
     double P_force;                     //Protagonist force
     double A_force;                     //Antagonist force
@@ -61,10 +66,10 @@ public:
     double P_f_max_bound;
     double A_f_min_bound;
     double A_f_max_bound;
-    double x_min_bound = 0;
-    double x_max_bound = 30;        //maybe this should be max boundary plus goal as max
-    double x_dot_min_bound = -.2;
-    double x_dot_max_bound = .2;
+    double x_min_bound;
+    double x_max_bound;       //maybe this should be max boundary plus goal as max
+    double x_dot_min_bound;
+    double x_dot_max_bound;
     
     
     // GOAL VARIABLES //
@@ -79,6 +84,7 @@ public:
     double displace;
     double init_goal_x = 2;
     double goal_x;                      //ending position (start_x+goal_x);
+    double pend_goal;
     double goal_x_upper_bound = 2;
     double goal_x_lower_bound = -2;
     double start_x_upper_bound = 20;
@@ -164,14 +170,42 @@ public:
 private:
 };
 
+
 void Parameters::reset_start_var(){
     //init_start_x = 10 + (rand() % 20);
-    start_x = init_start_x;
+    
     start_x_dot = init_start_x_dot;
     start_x_dd = 0;
+    
+    if (MSD_EOM==true){
+        start_x = init_start_x;
+        goal_x = init_goal_x;
+        displace = init_displace;
+        
+        x_min_bound = 0;
+        x_max_bound = 30;        //maybe this should be max boundary plus goal as max
+        x_dot_min_bound = -.2;
+        x_dot_max_bound = .2;
+    }
+    else if(Pend_EOM==true){
+        init_goal_x = init_pend_goal;
+        init_start_x = pend_start;
+        init_displace = 0;
+        m = pend_m;
+        
+        x_min_bound = -2*PI/2;
+        x_max_bound = 2*PI/2;        //maybe this should be max boundary plus goal as max
+        x_dot_min_bound = -2;
+        x_dot_max_bound = 2;
+    }
+    
+    start_x = init_start_x;
     goal_x = init_goal_x;
-    //init_goal_x  = 0 + (rand() % 5);
     displace = init_displace;
+    //init_goal_x  = 0 + (rand() % 5);
+    
+    assert((Pend_EOM==true && m == pend_m) || (MSD_EOM==true && m == m));
+    
 }
 
 void Parameters::random_start_end_variables(){
@@ -298,6 +332,7 @@ void Parameters::train_para(){
     train_para << "x and xdot Bounds\t " << x_min_bound << "\t" << x_max_bound << "\t" << x_dot_min_bound << "\t" << x_dot_max_bound << endl;
     train_para << "# NN Input-Output-Nodes\t" << num_inputs << "\t" << num_outputs << "\t" << num_nodes << endl;
     train_para << "SENSOR Noise\t" << sensor_NOISE << "\t ACTUATOR Noise" << actuator_NOISE << endl << "SINUSOIDAL Noise (if sensor or actuator is true)" << sinusoidal_noise << "\tPHASE" << phase << "\tFrequency" << lambda << endl;
+    
     train_para << "Random Starts/Gen\t" << rand_start_gen << "\t" << rand_start_5gen << endl;
     train_para << "50 Starting Variables/Policy\t" << multi_var << endl;
     train_para << "goal upper and lower bound\t" << goal_x_upper_bound << "\t" << goal_x_lower_bound << endl;

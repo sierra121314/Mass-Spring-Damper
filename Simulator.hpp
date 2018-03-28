@@ -36,6 +36,7 @@ public:
     
     void Simulate(Policy* pPo, Policy* aPo);
     void MSD_initStates(Policy* pPo, Policy* aPo);
+    void Pend_initStates(Policy* pPo, Policy* aPo);
     void Pendulum_initStates(Policy* pPo, Policy* aPo);
     double generateGaussianNoise();
     double generateActuatorNoise();
@@ -160,17 +161,32 @@ void Simulator::MSD_initStates(Policy* pPo, Policy* aPo){
     
 
 }
-
-void Simulator::Pendulum_initStates(Policy *pPo, Policy *aPo){
-    noise_x_sum = 0;
-    noise_xdot_sum = 0;
-    //theta = start_theta - displace;
-    //theta_dot = start_theta_dot;
-    //theta_dd = start_theta_dd;
-    
+void Simulator::Pend_initStates(Policy* pPo, Policy* aPo){
+    //intialize starting stuff
+    if (pP->rand_antagonist==true || pP->rand_ant_per_5gen == true){
+        set_A_ICs(pPo, aPo);
+        assert(pP->goal_x == aPo->A_ICs.at(0) && pP->start_x == aPo->A_ICs.at(1) && pP->start_x_dot == aPo->A_ICs.at(2) && pP->displace == aPo->A_ICs.at(3));
+    }
+    else if(pP->multi_var==true){
+        
+    }
+    else if (pP->rand_start_gen==true){
+        
+    }
+    else{
+        assert(pP->init_goal_x==pP->goal_x && pP->init_start_x==pP->start_x && pP->init_start_x_dot==pP->start_x_dot);
+    }
+    pP->goal_x = pP->pend_goal;
+    pPo->x = pP->start_x; //starting position minus any displacement
+    pPo->x_dot = pP->start_x_dot;
+    pPo->x_dd = pP->start_x_dd;
     pP->P_force = pP->start_P_force;
     pP->A_force = pP->start_A_force;
+    
+    
 }
+
+
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 neural_network Simulator::set_P_NN(neural_network NN, Policy* pPo){
@@ -390,11 +406,32 @@ void Simulator::MSD_equations(Policy* pPo, Policy* aPo){
 }
 
 void Simulator::Pendulum_equations(Policy *pPo, Policy *aPo){
-    //theta_dd = -g*sin(theta) / (L); //rad/s^2   // define theta_dd with t variable
+    x_old = pPo->x;     // x is a representation of theta in this domain
+    x_dot_old = pPo->x_dot;
+    x_dd_old = pPo->x_dd;
+    
+    double c = pP->P_force + pP->A_force - pP->mu*x_dot_old;
+    
+    pPo->x_dd = 9.81*sin(x_old) / (pP->L) + (c)/(pP->m*pow(pP->L,2)); //rad/s^2   // define theta_dd with t variable
+    //pPo->x_dd = -9.81*cos(x_old) / (pP->L) + (c)/(pP->m*pow(pP->L,1)); //rad/s^2   // define theta_dd with t variable
+    
+    //pPo->x_dd = (c + pP->m*9.81*sin(x_old) + pP->m*cos(x_old))/(pP->m*pP->L);
+    //pPo->x_dd = (pP->m*9.81*sin(x_old) + pP->m*cos(x_old))/(pP->m*pP->L);
+    
     //thetat_dd to theta_dot
-    //theta_dot = theta_dot + theta_dd*dt;
+    pPo->x_dot = x_dot_old + pPo->x_dd*pP->dt;
     //theta_dot to theta
-    //theta = theta + theta_dot*dt;
+    pPo->x = x_old + pPo->x_dot*pP->dt;
+    
+    if (pPo->x > PI){
+        pPo->x = pPo->x - 2*PI;
+    }
+    else if(pPo->x < -PI){
+        pPo->x = 2*PI + pPo->x;
+    }
+    
+    assert(pPo->x <= PI && pPo->x >= -PI);
+    
     //theta to xy
     //Px = L*cos(theta);
     //Py = L*sin(theta);
@@ -412,17 +449,35 @@ void Simulator::calculateFitness(Policy* pPo, Policy* aPo){
         pP->goal_x = pP->goal_x;//goal.at(k) from list
         //assert(pP->goal_x==aPo->A_ICs.at(0));
         //cout << pP->goal_x << endl;
-        double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
-        pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
-        aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+        if (pP->Pend_EOM==true){
+            double F_dist = (abs(pP->goal_x - abs(pPo->x))); //2 + resting position
+            pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+            aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+        }
+        else{
+            double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
+            pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+            aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+        }
+        
+        
     }
     else {
         //pP->goal_x = 2;
-        double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
-        pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
-        aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+        if (pP->Pend_EOM==true){
+            double F_dist = (abs(pP->goal_x - abs(pPo->x))); //2 + resting position
+            pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+            aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+        }
+        else{
+            double F_dist = (abs(pP->goal_x + pP->start_x - pPo->x)); //2 + resting position
+            pPo->P_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+            aPo->A_fit_swap += pP->w1*F_dist + pP->w2*ss_penalty;
+            
+        }
+        
     }
-
+    
 }
 
 
@@ -443,8 +498,12 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
     //STARTING POSITIONS
     
     zero_noise_sum_ave();       //Zero outs all sums and averages of noise
-    
-    MSD_initStates(pPo, aPo);   //Set Starting values
+    if (pP->MSD_EOM==true){
+        MSD_initStates(pPo, aPo);   //Set Starting values
+    }
+    else if (pP->Pend_EOM==true){
+        Pend_initStates(pPo,aPo);
+    }
     // PROTAGONIST //
     neural_network NN;
     NN = set_P_NN(NN, pPo);     //Setup, set ins and outs, set weights
@@ -488,8 +547,12 @@ void Simulator::Simulate(Policy* pPo, Policy* aPo)
             pP->A_force = 0;
         }
         // UPDATE POSITION, VELOCITY, ACCELERATION //
-        MSD_equations(pPo, aPo);
-        //Pendulum_equations(pPo, aPo);
+        if (pP->MSD_EOM==true){
+            MSD_equations(pPo, aPo);
+        }
+        else if(pP->Pend_EOM==true){
+            Pendulum_equations(pPo, aPo);
+        }
        
         // CALCULATE FITNESS //
         calculateFitness(pPo, aPo);

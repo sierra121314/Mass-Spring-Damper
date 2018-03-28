@@ -368,7 +368,7 @@ void EA::Run_Simulation() {
                     ant_pol.at(i).A_fitness = ant_pol.at(i).A_fit_swap;
                 }
                 assert(pro_pol.at(i).P_fitness>=0);
-                assert(ant_pol.at(i).A_fitness>=0 && ant_pol.at(i).A_fitness<10000000);
+                assert(ant_pol.at(i).A_fitness>=0 && ant_pol.at(i).A_fitness<1000000000);
                 
             }
             
@@ -630,7 +630,7 @@ void EA::Sort_Test_Policies_By_Fitness() {
         sort(test_ant_pol.begin(), test_ant_pol.end(), Greater_Than_Policy_Fitness());
     }
     for (int j=1; j<pP->num_pol-1;j++){
-        assert(test_pro_pol.at(0).P_fitness < test_pro_pol.at(j).P_fitness);
+        //assert(test_pro_pol.at(0).P_fitness < test_pro_pol.at(j).P_fitness);
     }
     
 }

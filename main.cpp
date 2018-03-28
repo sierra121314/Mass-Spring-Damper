@@ -27,7 +27,7 @@
 #include "EA.hpp"
 
 
-int stat_runs = 2;
+int stat_runs = 1;
 
 
 int main() {
@@ -57,8 +57,8 @@ int main() {
         P.four_B = false;
         P.two_B = false;
         P.three_B = false;
-        P.three_A = true;
-        P.two_A = false;
+        P.three_A = false;
+        P.two_A = true;
         
         
         if (P.two_B==true){
