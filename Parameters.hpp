@@ -28,7 +28,7 @@ public:
     // EA STUFF //
     int num_pol = 100;                  //number of policies
     int to_kill = num_pol/2;
-    int gen_max = 500;                  //number of generations
+    int gen_max = 300;                  //number of generations
     double total_time = 1000;            //total time steps
     double mutation_rate = 0.5;         //mutation rate
     double mutate_range = 0.1;          //mutation range
@@ -48,11 +48,13 @@ public:
     double init_msd_goal = 2;
     
     // PENDULUM DOMAIN
-    double L = 5;
+    double L = 10;
     double pend_m = 0.5;                  //pendulum mass - set in reset_var
     double init_pend_goal = 0;
     double pend_start = ((5)*PI/180);
     double pend_goal;
+    //double pend_force = -9.81*pend_m*pend_m*L*L - 9.81*(L)*pend_m*sin(PI/4);
+    double pend_force = -9.81*(L)*pend_m*sin(PI/4);
     
     double P_force;                     //Protagonist force
     double A_force;                     //Antagonist force
@@ -76,6 +78,8 @@ public:
     double x_max_bound;       //maybe this should be max boundary plus goal as max
     double x_dot_min_bound;
     double x_dot_max_bound;
+    double x_dd_min_bound;
+    double x_dd_max_bound;
     
     
     // GOAL VARIABLES //
@@ -111,7 +115,8 @@ public:
     double ant_displace_upper_bound = displace_upper_bound;
     double ant_displace_lower_bound = displace_lower_bound;
     
-    
+    double ant_start_theta_upper_bound = ((0.5)*PI/180);
+    double ant_start_theta_lower_bound = ((0.5)*PI/180);
     
     
     // RANDOMIZING STARTS //
@@ -202,8 +207,8 @@ void Parameters::reset_start_var(){
         init_displace = 0;
         m = pend_m;
         
-        x_min_bound = -2*PI/2;
-        x_max_bound = 2*PI/2;        //maybe this should be max boundary plus goal as max
+        x_min_bound = -15*PI/180;
+        x_max_bound = 15*PI/180;        //maybe this should be max boundary plus goal as max
         x_dot_min_bound = -2;
         x_dot_max_bound = 2;
     }
@@ -362,8 +367,17 @@ void Parameters::train(){
     actuator_NOISE = false;    //Determined by train-test otherwise default
     
     if (tr_2 == true){
-        P_f_min_bound = -15;
-        P_f_max_bound = 15;
+        
+        if (Pend_EOM==true){
+            //P_f_min_bound = pend_force;
+            //P_f_max_bound = -pend_force;
+            P_f_min_bound = pend_force;
+            P_f_max_bound = -pend_force;
+        }
+        else{
+            P_f_min_bound = -5;
+            P_f_max_bound = 5;
+        }
         A_f_min_bound = -0;
         A_f_max_bound = 0;
         
@@ -398,8 +412,16 @@ void Parameters::train(){
         multi_var = false;          //do NOT change this one
     }
     if (tr_5 == true){
-        P_f_min_bound = -5;
-        P_f_max_bound = 5;
+        if (Pend_EOM==true){
+            //P_f_min_bound = pend_force;
+            //P_f_max_bound = -pend_force;
+            P_f_min_bound = pend_force;
+            P_f_max_bound = -pend_force;
+        }
+        else{
+            P_f_min_bound = -5;
+            P_f_max_bound = 5;
+        }
         A_f_min_bound = -0;
         A_f_max_bound = 0;
         
@@ -526,6 +548,9 @@ void Parameters::trunc_Graphs(){
     AIC_startx.open("ANT_startx_history_bestpergen.txt", std::ofstream::out | ofstream::trunc);
     AIC_startxdot.open("ANT_startxdot_history_bestpergen.txt", std::ofstream::out | ofstream::trunc);
     AIC_displace.open("ANT_displace_history_bestpergen.txt", std::ofstream::out | ofstream::trunc);
+    
+    ofstream AIC_starttheta;
+    AIC_starttheta.open("ANT_starttheta_history_bestpergen.txt", std::ofstream::out | ofstream::trunc);
     
     ofstream x_med,xdot_med,xdd_med, med_P_force,med_A_force, SR_med, SR_A_med;
     x_med.open("med_x_history.txt", std::ofstream::out | ofstream::trunc);

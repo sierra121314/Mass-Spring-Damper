@@ -123,9 +123,14 @@ void EA::Build_Population() {
         
         for (int w=0; w < pP->num_weights; w++){
             //pick random # between 0 and 1 and put into that vector
+            
             double P_r = -1 + (2)*((double)rand()/RAND_MAX);
             pro_pol.at(i).P_weights.push_back(P_r);
             assert(-1<=P_r && 1>=P_r);
+            /*
+            double P_r = -0.1 + (0.2)*((double)rand()/RAND_MAX);
+            pro_pol.at(i).P_weights.push_back(P_r);
+            assert(-0.1<=P_r && 0.1>=P_r);*/
             
         }
         assert(pro_pol.at(i).P_weights.size() == pP->num_weights);
@@ -138,23 +143,34 @@ void EA::Build_Population() {
         assert(ant_pol.at(i).A_weights.size() == pP->A_num_weights);
         
         if (pP->rand_antagonist==true) { //if statement not necessary
-            double A_IC_goal = pP->ant_goal_x_lower_bound + double(rand() % (int)(pP->ant_goal_x_upper_bound-pP->ant_goal_x_lower_bound));
-            double A_IC_startx = pP->ant_start_x_lower_bound + double(rand() % (int)(pP->ant_start_x_upper_bound-pP->ant_start_x_lower_bound));
-            double A_IC_startxdot = pP->ant_start_x_dot_lower_bound + double(rand() % (int)(pP->ant_start_x_dot_upper_bound-pP->ant_start_x_dot_lower_bound));
-            double A_IC_displace = pP->ant_displace_lower_bound + double(rand() % (int)(pP->ant_displace_upper_bound-pP->ant_displace_lower_bound));
+            if (pP->Pend_EOM==true){
+                double range = pP->ant_start_theta_upper_bound-pP->ant_start_theta_lower_bound;
+                double A_IC_start_theta = pP->ant_start_theta_lower_bound + double(rand() % (1)*PI/180 );
+                ant_pol.at(i).A_pend_ICs.push_back(A_IC_start_theta);
+                assert(ant_pol.at(i).A_pend_ICs.size()==1);
+                //cout << pP->ant_start_theta_lower_bound << "\t" << pP->ant_start_theta_upper_bound << "\t" << A_IC_start_theta <<endl;
+                assert(A_IC_start_theta >= pP->ant_start_theta_lower_bound && A_IC_start_theta <= pP->ant_start_theta_upper_bound);
+            }
+            else{
+                double A_IC_goal = pP->ant_goal_x_lower_bound + double(rand() % (int)(pP->ant_goal_x_upper_bound-pP->ant_goal_x_lower_bound));
+                double A_IC_startx = pP->ant_start_x_lower_bound + double(rand() % (int)(pP->ant_start_x_upper_bound-pP->ant_start_x_lower_bound));
+                double A_IC_startxdot = pP->ant_start_x_dot_lower_bound + double(rand() % (int)(pP->ant_start_x_dot_upper_bound-pP->ant_start_x_dot_lower_bound));
+                double A_IC_displace = pP->ant_displace_lower_bound + double(rand() % (int)(pP->ant_displace_upper_bound-pP->ant_displace_lower_bound));
+                
+                /*
+                 double A_IC_goal = pP->init_goal_x;
+                 double A_IC_startx = pP->init_start_x;
+                 double A_IC_startxdot = pP->init_start_x_dot;
+                 double A_IC_displace = pP->init_displace;*/
+                
+                assert(A_IC_startx < 20);
+                ant_pol.at(i).A_ICs.push_back(A_IC_goal);           //goal_x
+                ant_pol.at(i).A_ICs.push_back(A_IC_startx);         //start_x
+                ant_pol.at(i).A_ICs.push_back(A_IC_startxdot);      //start_x_dot
+                ant_pol.at(i).A_ICs.push_back(A_IC_displace);
+                assert(ant_pol.at(i).A_ICs.size()==4);
+            }
             
-            /*
-            double A_IC_goal = pP->init_goal_x;
-            double A_IC_startx = pP->init_start_x;
-            double A_IC_startxdot = pP->init_start_x_dot;
-            double A_IC_displace = pP->init_displace;*/
-
-            assert(A_IC_startx < 20);
-            ant_pol.at(i).A_ICs.push_back(A_IC_goal);           //goal_x
-            ant_pol.at(i).A_ICs.push_back(A_IC_startx);         //start_x
-            ant_pol.at(i).A_ICs.push_back(A_IC_startxdot);      //start_x_dot
-            ant_pol.at(i).A_ICs.push_back(A_IC_displace);
-            assert(ant_pol.at(i).A_ICs.size()==4);
         }
         
     }
@@ -368,7 +384,7 @@ void EA::Run_Simulation() {
                     ant_pol.at(i).A_fitness = ant_pol.at(i).A_fit_swap;
                 }
                 assert(pro_pol.at(i).P_fitness>=0);
-                assert(ant_pol.at(i).A_fitness>=0 && ant_pol.at(i).A_fitness<1000000000);
+                assert(ant_pol.at(i).A_fitness>=0 );
                 
             }
             
@@ -503,62 +519,83 @@ void EA::Mutation(Policy &M, Policy &N) {
     }
     if (pP->rand_antagonist==true){
         
-        for (int v=0; v < 4; v++){
-            double random2 = ((double)rand()/RAND_MAX);
-            if (v==0 && random2 <= pP->mutation_rate) {
-                double R3 = ((double)rand()/RAND_MAX) * 1;
-                double R4 = ((double)rand()/RAND_MAX) * 1;
-                //cout << R3 << "\t" << R4 << endl;
-                //GOAL_X SET AND BOUNDARY CHECK
-                N.A_ICs.at(0) = pP->goal_x + R3 - R4;
-                if (N.A_ICs.at(0) > pP->ant_goal_x_upper_bound){
-                    N.A_ICs.at(0) = pP->ant_goal_x_upper_bound;
+        if (pP->Pend_EOM==true){
+            for (int w=0; w<1; w++){
+                double random3 = ((double)rand()/RAND_MAX);
+                if (w==0 && random3 <= pP->mutation_rate) {
+                    double R3 = ((double)rand()/RAND_MAX) * 1;
+                    double R4 = ((double)rand()/RAND_MAX) * 1;
+                    N.A_pend_ICs.at(0) = pP->start_x + (R3 - R4)*PI/180;
+                    if (N.A_pend_ICs.at(0) > pP->ant_start_theta_upper_bound){
+                        N.A_pend_ICs.at(0) = pP->ant_start_theta_upper_bound;
+                    }
+                    if (N.A_pend_ICs.at(0) < pP->ant_start_theta_lower_bound){
+                        N.A_pend_ICs.at(0) = pP->ant_start_theta_lower_bound;
+                    }
                 }
-                if (N.A_ICs.at(0) < pP->ant_goal_x_lower_bound){
-                    N.A_ICs.at(0) = pP->ant_goal_x_lower_bound;
-                }
-            }
-            else if (v==1 && random2 <= pP->mutation_rate){
-                //START_X SET AND BOUNDARY CHECK
-                double R5 = ((double)rand()/RAND_MAX) * 1;
-                double R6 = ((double)rand()/RAND_MAX) * 1;
-                N.A_ICs.at(1) = pP->start_x + R5 - R6;
-                if (N.A_ICs.at(1) > pP->ant_start_x_upper_bound){
-                    N.A_ICs.at(1) = pP->ant_start_x_upper_bound;
-                }
-                
-                if (N.A_ICs.at(1) < pP->ant_start_x_lower_bound){
-                    N.A_ICs.at(1) = pP->ant_start_x_lower_bound;
-                }
-            }
-            else if (v==2 && random2 <= pP->mutation_rate){
-                //START_X_DOT SET AND BOUNDARY CHECK
-                double R7 = ((double)rand()/RAND_MAX) * 1;
-                double R8 = ((double)rand()/RAND_MAX) * 1;
-                N.A_ICs.at(2) = pP->start_x_dot + R7 - R8;
-                if (N.A_ICs.at(2) > pP->ant_start_x_dot_upper_bound){
-                    N.A_ICs.at(2) = pP->ant_start_x_dot_upper_bound;
-                }
-                if (N.A_ICs.at(2) < pP->ant_start_x_dot_lower_bound){
-                    N.A_ICs.at(2) = pP->ant_start_x_dot_lower_bound;
-                }
-            }
-            else if (v==3 && random2 <= pP->mutation_rate){
-                double R9 = ((double)rand()/RAND_MAX) * 1;
-                double R0 = ((double)rand()/RAND_MAX) * 1;
-                N.A_ICs.at(3)= pP->displace + R9 - R0;
-                if (N.A_ICs.at(3) > pP->ant_displace_upper_bound){
-                    N.A_ICs.at(3) = pP->ant_displace_upper_bound;
-                }
-                if (N.A_ICs.at(3) < pP->ant_displace_lower_bound){
-                    N.A_ICs.at(3) = pP->ant_displace_lower_bound;
-                }
-                assert(N.A_ICs.at(3)<=2);
-            }
-            else{
-                assert(random2 > pP->mutation_rate);
+
             }
         }
+        else{
+            for (int v=0; v < 4; v++){
+                double random2 = ((double)rand()/RAND_MAX);
+                if (v==0 && random2 <= pP->mutation_rate) {
+                    double R3 = ((double)rand()/RAND_MAX) * 1;
+                    double R4 = ((double)rand()/RAND_MAX) * 1;
+                    //cout << R3 << "\t" << R4 << endl;
+                    //GOAL_X SET AND BOUNDARY CHECK
+                    N.A_ICs.at(0) = pP->goal_x + R3 - R4;
+                    if (N.A_ICs.at(0) > pP->ant_goal_x_upper_bound){
+                        N.A_ICs.at(0) = pP->ant_goal_x_upper_bound;
+                    }
+                    if (N.A_ICs.at(0) < pP->ant_goal_x_lower_bound){
+                        N.A_ICs.at(0) = pP->ant_goal_x_lower_bound;
+                    }
+                }
+                else if (v==1 && random2 <= pP->mutation_rate){
+                    //START_X SET AND BOUNDARY CHECK
+                    double R5 = ((double)rand()/RAND_MAX) * 1;
+                    double R6 = ((double)rand()/RAND_MAX) * 1;
+                    N.A_ICs.at(1) = pP->start_x + R5 - R6;
+                    if (N.A_ICs.at(1) > pP->ant_start_x_upper_bound){
+                        N.A_ICs.at(1) = pP->ant_start_x_upper_bound;
+                    }
+                    
+                    if (N.A_ICs.at(1) < pP->ant_start_x_lower_bound){
+                        N.A_ICs.at(1) = pP->ant_start_x_lower_bound;
+                    }
+                }
+                else if (v==2 && random2 <= pP->mutation_rate){
+                    //START_X_DOT SET AND BOUNDARY CHECK
+                    double R7 = ((double)rand()/RAND_MAX) * 1;
+                    double R8 = ((double)rand()/RAND_MAX) * 1;
+                    N.A_ICs.at(2) = pP->start_x_dot + R7 - R8;
+                    if (N.A_ICs.at(2) > pP->ant_start_x_dot_upper_bound){
+                        N.A_ICs.at(2) = pP->ant_start_x_dot_upper_bound;
+                    }
+                    if (N.A_ICs.at(2) < pP->ant_start_x_dot_lower_bound){
+                        N.A_ICs.at(2) = pP->ant_start_x_dot_lower_bound;
+                    }
+                }
+                else if (v==3 && random2 <= pP->mutation_rate){
+                    double R9 = ((double)rand()/RAND_MAX) * 1;
+                    double R0 = ((double)rand()/RAND_MAX) * 1;
+                    N.A_ICs.at(3)= pP->displace + R9 - R0;
+                    if (N.A_ICs.at(3) > pP->ant_displace_upper_bound){
+                        N.A_ICs.at(3) = pP->ant_displace_upper_bound;
+                    }
+                    if (N.A_ICs.at(3) < pP->ant_displace_lower_bound){
+                        N.A_ICs.at(3) = pP->ant_displace_lower_bound;
+                    }
+                    assert(N.A_ICs.at(3)<=2);
+                }
+                else{
+                    assert(random2 > pP->mutation_rate);
+                }
+            }
+
+        }
+        
         
     }
 }
@@ -640,16 +677,24 @@ void EA::update_best_fit(){
     best_A_fitness.push_back(ant_pol.at(0).A_fitness);
     
     if (pP->rand_antagonist==true || pP->rand_ant_per_5gen==true){
-        ofstream AIC_goal,AIC_startx,AIC_startxdot,AIC_displace;
-        AIC_goal.open("ANT_goal_history_bestpergen.txt", fstream::app);
-        AIC_startx.open("ANT_startx_history_bestpergen.txt", fstream::app);
-        AIC_startxdot.open("ANT_startxdot_history_bestpergen.txt", fstream::app);
-        AIC_displace.open("ANT_displace_history_bestpergen.txt", fstream::app);
+        if (pP->Pend_EOM==true){
+            ofstream AIC_starttheta;
+            AIC_starttheta.open("ANT_starttheta_history_bestpergen.txt", fstream::app);
+            AIC_starttheta << ant_pol.at(0).A_pend_ICs.at(0) << "\t";  //startx
+        }
+        else{
+            ofstream AIC_goal,AIC_startx,AIC_startxdot,AIC_displace;
+            AIC_goal.open("ANT_goal_history_bestpergen.txt", fstream::app);
+            AIC_startx.open("ANT_startx_history_bestpergen.txt", fstream::app);
+            AIC_startxdot.open("ANT_startxdot_history_bestpergen.txt", fstream::app);
+            AIC_displace.open("ANT_displace_history_bestpergen.txt", fstream::app);
+            
+            AIC_goal << ant_pol.at(0).A_ICs.at(0) << "\t";  //goalx
+            AIC_startx << ant_pol.at(0).A_ICs.at(1) << "\t";  //startx
+            AIC_startxdot << ant_pol.at(0).A_ICs.at(2) << "\t";  //startxdot
+            AIC_displace << ant_pol.at(0).A_ICs.at(3) << "\t";  //displace
+        }
         
-        AIC_goal << ant_pol.at(0).A_ICs.at(0) << "\t";  //goalx
-        AIC_startx << ant_pol.at(0).A_ICs.at(1) << "\t";  //startx
-        AIC_startxdot << ant_pol.at(0).A_ICs.at(2) << "\t";  //startxdot
-        AIC_displace << ant_pol.at(0).A_ICs.at(3) << "\t";  //displace
     }
 }
 

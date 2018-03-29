@@ -30,6 +30,7 @@ public:
     vector<double> P_weights;
     vector<double> A_weights;
     vector<double> A_ICs;
+    vector<double> A_pend_ICs;
     vector<double> x_history;
     vector<vector<double>> loop_x_history;
     vector<double> x_dot_history;
